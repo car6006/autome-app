@@ -20,6 +20,15 @@ class AutoMeAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.created_notes = []
+        self.auth_token = None
+        self.test_user_id = None
+        self.test_user_data = {
+            "email": f"test_user_{int(time.time())}@example.com",
+            "username": f"testuser_{int(time.time())}",
+            "password": "TestPassword123!",
+            "first_name": "Test",
+            "last_name": "User"
+        }
 
     def log(self, message):
         """Log test messages with timestamp"""
