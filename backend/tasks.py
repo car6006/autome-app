@@ -1,0 +1,138 @@
+import os, time, json, datetime, subprocess, pathlib
+from .store import NotesStore
+from .storage import create_presigned_get_url
+from .providers import stt_transcribe, ocr_read
+import httpx
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Minimal SendGrid via HTTP API (no SDK)
+async def send_email(to_list, subject, html):
+    key = os.getenv("SENDGRID_API_KEY")
+    if not key or not to_list:
+        logger.warning("SendGrid API key missing or no recipients")
+        return
+    
+    payload = {
+        "personalizations": [{"to": [{"email": x} for x in to_list]}],
+        "from": {"email": "no-reply@autome.local"},
+        "subject": subject,
+        "content": [{"type":"text/html","value": html}],
+    }
+    
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(
+            "https://api.sendgrid.com/v3/mail/send",
+            headers={"Authorization": f"Bearer {key}"},
+            json=payload
+        )
+        r.raise_for_status()
+
+def _repo_url_with_pat(repo_url: str, pat: str) -> str:
+    if not pat or not repo_url.startswith("https://"):
+        return repo_url
+    return repo_url.replace("https://","https://"+pat+"@")
+
+def _write_note_files(base: pathlib.Path, note_id: str, title: str, artifacts: dict):
+    now = datetime.datetime.utcnow()
+    d = base / "notes" / now.strftime("%Y") / now.strftime("%m") / now.strftime("%d") / note_id
+    d.mkdir(parents=True, exist_ok=True)
+    
+    (d / "meta.json").write_text(json.dumps({
+        "id": note_id,
+        "title": title,
+        "created_utc": now.isoformat() + "Z"
+    }, ensure_ascii=False, indent=2))
+    
+    md = ["# " + title]
+    if "summary" in artifacts and artifacts["summary"]:
+        md += ["", "## Summary", artifacts["summary"]]
+    if "transcript" in artifacts and artifacts["transcript"]:
+        md += ["", "## Transcript", artifacts["transcript"]]
+    if "text" in artifacts and artifacts["text"]:
+        md += ["", "## OCR Text", artifacts["text"]]
+    if "actions" in artifacts and artifacts["actions"]:
+        md += ["", "## Action items"] + [f"- {a}" for a in artifacts["actions"]]
+    
+    (d / "note.md").write_text("\n".join(md))
+
+async def enqueue_transcription(note_id: str):
+    note = await NotesStore.get(note_id)
+    if not note:
+        logger.error(f"Note not found: {note_id}")
+        return
+        
+    signed = create_presigned_get_url(note["media_key"])
+    start = time.time()
+    result = await stt_transcribe(signed)
+    latency_ms = int((time.time() - start) * 1000)
+    
+    artifacts = {
+        "transcript": result.get("text",""),
+        "summary": result.get("summary",""),
+        "actions": result.get("actions",[])
+    }
+    
+    await NotesStore.set_artifacts(note_id, artifacts)
+    await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
+    await NotesStore.update_status(note_id, "ready")
+
+async def enqueue_ocr(note_id: str):
+    note = await NotesStore.get(note_id)
+    if not note:
+        logger.error(f"Note not found: {note_id}")
+        return
+        
+    signed = create_presigned_get_url(note["media_key"])
+    start = time.time()
+    result = await ocr_read(signed)
+    latency_ms = int((time.time() - start) * 1000)
+    
+    artifacts = {
+        "text": result.get("text",""),
+        "summary": result.get("summary",""),
+        "actions": result.get("actions",[])
+    }
+    
+    await NotesStore.set_artifacts(note_id, artifacts)
+    await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
+    await NotesStore.update_status(note_id, "ready")
+
+async def enqueue_email(note_id: str, to_list: list, subject: str):
+    note = await NotesStore.get(note_id)
+    if not note:
+        logger.error(f"Note not found: {note_id}")
+        return
+        
+    art = note["artifacts"]
+    body = art.get("summary") or art.get("transcript") or art.get("text") or ""
+    html = f"<h3>{note['title']}</h3><p>{body}</p>"
+    await send_email(to_list, subject, html)
+
+async def enqueue_git_sync(note_id: str):
+    note = await NotesStore.get(note_id)
+    if not note:
+        logger.error(f"Note not found: {note_id}")
+        return
+        
+    repo = os.getenv("GIT_REPO_URL")
+    if not repo:
+        logger.warning("Git sync skipped - no GIT_REPO_URL configured")
+        return
+    
+    # Workdir
+    work = pathlib.Path(os.getenv("GIT_WORKDIR", "/tmp/autome_repo"))
+    work.mkdir(parents=True, exist_ok=True)
+    
+    if not (work / ".git").exists():
+        ru = _repo_url_with_pat(repo, os.getenv("GIT_PAT", ""))
+        subprocess.run(["git","clone","--depth","1",ru,str(work)], check=True)
+    else:
+        subprocess.run(["git","-C",str(work),"pull","--rebase","--autostash"], check=True)
+    
+    _write_note_files(work, note_id, note["title"], note["artifacts"])
+    subprocess.run(["git","-C",str(work),"add","-A"], check=True)
+    msg = f"feat(note): {note['title']} [{note_id}]"
+    subprocess.run(["git","-C",str(work),"commit","-m",msg], check=False)
+    subprocess.run(["git","-C",str(work),"push"], check=True)
