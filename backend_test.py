@@ -380,6 +380,158 @@ class AutoMeAPITester:
         self.auth_token = temp_token
         return success
 
+    def test_expeditors_user_registration(self):
+        """Test Expeditors user registration"""
+        expeditors_user_data = {
+            "email": f"test_expeditors_{int(time.time())}@expeditors.com",
+            "username": f"expeditors_user_{int(time.time())}",
+            "password": "ExpeditorsPass123!",
+            "first_name": "Expeditors",
+            "last_name": "User"
+        }
+        
+        success, response = self.run_test(
+            "Expeditors User Registration",
+            "POST",
+            "auth/register",
+            200,
+            data=expeditors_user_data
+        )
+        if success:
+            self.expeditors_token = response.get('access_token')
+            user_data = response.get('user', {})
+            self.expeditors_user_id = user_data.get('id')
+            self.expeditors_user_data = expeditors_user_data
+            self.log(f"   Expeditors user ID: {self.expeditors_user_id}")
+            self.log(f"   Expeditors token received: {'Yes' if self.expeditors_token else 'No'}")
+        return success
+
+    def test_network_diagram_access_control_non_expeditors(self):
+        """Test that non-Expeditors users cannot access network diagram endpoints"""
+        # Test with regular user (should get 404)
+        success, response = self.run_test(
+            "Network Diagram Access - Non-Expeditors (Should Fail)",
+            "POST",
+            "notes/network-diagram",
+            404,  # Should fail with 404 "Feature not found"
+            data={"title": "Test Network", "kind": "network_diagram"},
+            auth_required=True
+        )
+        return success
+
+    def test_network_diagram_access_control_expeditors(self):
+        """Test that Expeditors users can access network diagram endpoints"""
+        # Switch to Expeditors user token
+        temp_token = self.auth_token
+        self.auth_token = self.expeditors_token
+        
+        success, response = self.run_test(
+            "Network Diagram Access - Expeditors User",
+            "POST",
+            "notes/network-diagram",
+            200,
+            data={"title": "Expeditors Supply Chain Network", "kind": "network_diagram"},
+            auth_required=True
+        )
+        
+        network_note_id = None
+        if success and 'id' in response:
+            network_note_id = response['id']
+            self.created_notes.append(network_note_id)
+            self.log(f"   Created network diagram note ID: {network_note_id}")
+            self.log(f"   Feature confirmation: {response.get('feature', 'N/A')}")
+        
+        # Restore original token
+        self.auth_token = temp_token
+        return success, network_note_id
+
+    def test_network_diagram_processing_non_expeditors(self, note_id):
+        """Test that non-Expeditors users cannot process network diagrams"""
+        # Create dummy audio file for network processing
+        with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as tmp_file:
+            dummy_data = b'\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81\x01\x42\xf2\x81\x04\x42\xf3\x81\x08\x42\x82\x84webm'
+            tmp_file.write(dummy_data)
+            tmp_file.flush()
+            
+            with open(tmp_file.name, 'rb') as f:
+                files = {'file': ('network_description.webm', f, 'audio/webm')}
+                success, response = self.run_test(
+                    "Network Processing - Non-Expeditors (Should Fail)",
+                    "POST",
+                    f"notes/{note_id}/process-network",
+                    404,  # Should fail with 404 "Feature not found"
+                    files=files,
+                    auth_required=True
+                )
+            
+            os.unlink(tmp_file.name)
+            return success
+
+    def test_network_diagram_processing_expeditors(self, network_note_id):
+        """Test network diagram processing for Expeditors users"""
+        # Switch to Expeditors user token
+        temp_token = self.auth_token
+        self.auth_token = self.expeditors_token
+        
+        # Create dummy audio file with supply chain content
+        with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as tmp_file:
+            # Write minimal WebM header with supply chain keywords in filename
+            dummy_data = b'\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81\x01\x42\xf2\x81\x04\x42\xf3\x81\x08\x42\x82\x84webm'
+            tmp_file.write(dummy_data)
+            tmp_file.flush()
+            
+            with open(tmp_file.name, 'rb') as f:
+                files = {'file': ('expeditors_network_SHA_JNB_airfreight.webm', f, 'audio/webm')}
+                success, response = self.run_test(
+                    "Network Processing - Expeditors User",
+                    "POST",
+                    f"notes/{network_note_id}/process-network",
+                    200,
+                    files=files,
+                    auth_required=True
+                )
+            
+            os.unlink(tmp_file.name)
+            
+            if success:
+                self.log(f"   Processing status: {response.get('status', 'N/A')}")
+                self.log(f"   Processing message: {response.get('message', 'N/A')}")
+        
+        # Restore original token
+        self.auth_token = temp_token
+        return success
+
+    def test_network_diagram_results(self, network_note_id):
+        """Test retrieving network diagram results"""
+        # Switch to Expeditors user token
+        temp_token = self.auth_token
+        self.auth_token = self.expeditors_token
+        
+        # Wait a bit for processing
+        time.sleep(2)
+        
+        success, response = self.run_test(
+            f"Get Network Diagram Results {network_note_id[:8]}...",
+            "GET",
+            f"notes/{network_note_id}",
+            200,
+            auth_required=True
+        )
+        
+        if success:
+            self.log(f"   Note status: {response.get('status', 'N/A')}")
+            self.log(f"   Note kind: {response.get('kind', 'N/A')}")
+            artifacts = response.get('artifacts', {})
+            if artifacts:
+                self.log(f"   Has network topology: {'network_topology' in artifacts}")
+                self.log(f"   Has diagram data: {'diagram_data' in artifacts}")
+                self.log(f"   Has insights: {'insights' in artifacts}")
+                self.log(f"   Processing type: {artifacts.get('processing_type', 'N/A')}")
+        
+        # Restore original token
+        self.auth_token = temp_token
+        return success, response
+
     def wait_for_processing(self, note_id, max_wait=30):
         """Wait for note processing to complete"""
         self.log(f"⏳ Waiting for note {note_id[:8]}... to process (max {max_wait}s)")
