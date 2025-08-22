@@ -257,6 +257,124 @@ class AutoMeAPITester:
         
         return success and success2
 
+    def test_user_registration(self):
+        """Test user registration"""
+        success, response = self.run_test(
+            "User Registration",
+            "POST",
+            "auth/register",
+            200,
+            data=self.test_user_data
+        )
+        if success:
+            self.auth_token = response.get('access_token')
+            user_data = response.get('user', {})
+            self.test_user_id = user_data.get('id')
+            self.log(f"   Registered user ID: {self.test_user_id}")
+            self.log(f"   Token received: {'Yes' if self.auth_token else 'No'}")
+        return success
+
+    def test_user_login(self):
+        """Test user login"""
+        login_data = {
+            "email": self.test_user_data["email"],
+            "password": self.test_user_data["password"]
+        }
+        success, response = self.run_test(
+            "User Login",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        if success:
+            self.auth_token = response.get('access_token')
+            user_data = response.get('user', {})
+            self.log(f"   Login successful for: {user_data.get('email')}")
+            self.log(f"   User ID: {user_data.get('id')}")
+        return success
+
+    def test_get_user_profile(self):
+        """Test getting current user profile"""
+        success, response = self.run_test(
+            "Get User Profile",
+            "GET",
+            "auth/me",
+            200,
+            auth_required=True
+        )
+        if success:
+            self.log(f"   Profile email: {response.get('email')}")
+            self.log(f"   Profile name: {response.get('profile', {}).get('first_name')} {response.get('profile', {}).get('last_name')}")
+            self.log(f"   Notes count: {response.get('notes_count', 0)}")
+        return success
+
+    def test_update_user_profile(self):
+        """Test updating user profile"""
+        profile_update = {
+            "company": "Test Company",
+            "job_title": "Test Engineer",
+            "phone": "+1-555-123-4567",
+            "bio": "This is a test user profile"
+        }
+        success, response = self.run_test(
+            "Update User Profile",
+            "PUT",
+            "auth/me",
+            200,
+            data=profile_update,
+            auth_required=True
+        )
+        if success:
+            profile = response.get('profile', {})
+            self.log(f"   Updated company: {profile.get('company')}")
+            self.log(f"   Updated job title: {profile.get('job_title')}")
+        return success
+
+    def test_duplicate_registration(self):
+        """Test duplicate user registration (should fail)"""
+        success, response = self.run_test(
+            "Duplicate Registration (Should Fail)",
+            "POST",
+            "auth/register",
+            400,  # Should fail with 400
+            data=self.test_user_data
+        )
+        return success
+
+    def test_invalid_login(self):
+        """Test login with invalid credentials"""
+        invalid_login = {
+            "email": self.test_user_data["email"],
+            "password": "WrongPassword123!"
+        }
+        success, response = self.run_test(
+            "Invalid Login (Should Fail)",
+            "POST",
+            "auth/login",
+            401,  # Should fail with 401
+            data=invalid_login
+        )
+        return success
+
+    def test_unauthorized_access(self):
+        """Test accessing protected endpoint without auth"""
+        # Temporarily clear token
+        temp_token = self.auth_token
+        self.auth_token = None
+        
+        success, response = self.run_test(
+            "Unauthorized Access (Should Fail)",
+            "GET",
+            "auth/me",
+            403,  # Should fail with 403 or 401
+            auth_required=True
+        )
+        
+        # Restore token
+        self.auth_token = temp_token
+        return success
+
     def wait_for_processing(self, note_id, max_wait=30):
         """Wait for note processing to complete"""
         self.log(f"⏳ Waiting for note {note_id[:8]}... to process (max {max_wait}s)")
