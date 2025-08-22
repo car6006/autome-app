@@ -415,38 +415,96 @@ class AutoMeAPITester:
             self.log("❌ Health check failed - stopping tests")
             return False
         
-        # Test note creation
-        audio_note_id = self.test_create_audio_note()
-        photo_note_id = self.test_create_photo_note()
+        # === AUTHENTICATION TESTS ===
+        self.log("\n🔐 AUTHENTICATION TESTS")
         
-        if not audio_note_id or not photo_note_id:
-            self.log("❌ Note creation failed - stopping tests")
+        # Test user registration
+        if not self.test_user_registration():
+            self.log("❌ User registration failed - stopping auth tests")
             return False
         
-        # Test note retrieval
-        self.test_get_note(audio_note_id)
-        self.test_get_note(photo_note_id)
+        # Test user profile retrieval
+        self.test_get_user_profile()
         
-        # Test note listing
-        self.test_list_notes()
+        # Test profile update
+        self.test_update_user_profile()
         
-        # Test file uploads
-        self.test_upload_dummy_audio(audio_note_id)
-        self.test_upload_dummy_image(photo_note_id)
+        # Test duplicate registration (should fail)
+        self.test_duplicate_registration()
+        
+        # Test invalid login (should fail)
+        self.test_invalid_login()
+        
+        # Test unauthorized access (should fail)
+        self.test_unauthorized_access()
+        
+        # Test login with valid credentials
+        self.test_user_login()
+        
+        # === AUTHENTICATED NOTE TESTS ===
+        self.log("\n📝 AUTHENTICATED NOTE TESTS")
+        
+        # Test authenticated note creation
+        auth_audio_note_id = self.test_create_audio_note(authenticated=True)
+        auth_photo_note_id = self.test_create_photo_note(authenticated=True)
+        
+        if not auth_audio_note_id or not auth_photo_note_id:
+            self.log("❌ Authenticated note creation failed")
+            return False
+        
+        # Test authenticated note listing (should show user's notes)
+        self.test_list_notes(authenticated=True)
+        
+        # Test authenticated metrics
+        self.test_metrics_endpoint(authenticated=True)
+        
+        # === ANONYMOUS TESTS ===
+        self.log("\n👤 ANONYMOUS USER TESTS")
+        
+        # Clear auth token to test anonymous access
+        temp_token = self.auth_token
+        self.auth_token = None
+        
+        # Test anonymous note creation
+        anon_audio_note_id = self.test_create_audio_note(authenticated=False)
+        anon_photo_note_id = self.test_create_photo_note(authenticated=False)
+        
+        # Test anonymous note listing
+        self.test_list_notes(authenticated=False)
+        
+        # Test anonymous metrics
+        self.test_metrics_endpoint(authenticated=False)
+        
+        # Restore auth token
+        self.auth_token = temp_token
+        
+        # === FILE UPLOAD TESTS ===
+        self.log("\n📁 FILE UPLOAD TESTS")
+        
+        if auth_audio_note_id:
+            self.test_upload_dummy_audio(auth_audio_note_id)
+        if auth_photo_note_id:
+            self.test_upload_dummy_image(auth_photo_note_id)
         
         # Wait a bit for processing to start
         time.sleep(3)
         
         # Check processing status
-        self.test_get_note(audio_note_id)
-        self.test_get_note(photo_note_id)
+        if auth_audio_note_id:
+            self.test_get_note(auth_audio_note_id)
+        if auth_photo_note_id:
+            self.test_get_note(auth_photo_note_id)
         
-        # Test additional functionality
-        self.test_email_functionality(audio_note_id)
-        self.test_git_sync_functionality(photo_note_id)
+        # === ADDITIONAL FUNCTIONALITY TESTS ===
+        self.log("\n🔧 ADDITIONAL FUNCTIONALITY TESTS")
         
-        # Test metrics
-        self.test_metrics_endpoint()
+        # Test email functionality
+        if auth_audio_note_id:
+            self.test_email_functionality(auth_audio_note_id)
+        
+        # Test git sync functionality
+        if auth_photo_note_id:
+            self.test_git_sync_functionality(auth_photo_note_id)
         
         # Test error handling
         self.test_invalid_endpoints()
