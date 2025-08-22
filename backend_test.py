@@ -35,10 +35,14 @@ class AutoMeAPITester:
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] {message}")
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, files=None, timeout=30):
+    def run_test(self, name, method, endpoint, expected_status, data=None, files=None, timeout=30, auth_required=False):
         """Run a single API test"""
         url = f"{self.api_url}/{endpoint}" if endpoint else f"{self.api_url}/"
         headers = {'Content-Type': 'application/json'} if not files else {}
+        
+        # Add authentication header if required and available
+        if auth_required and self.auth_token:
+            headers['Authorization'] = f'Bearer {self.auth_token}'
 
         self.tests_run += 1
         self.log(f"🔍 Testing {name}...")
@@ -48,9 +52,14 @@ class AutoMeAPITester:
                 response = requests.get(url, headers=headers, timeout=timeout)
             elif method == 'POST':
                 if files:
-                    response = requests.post(url, data=data, files=files, timeout=timeout)
+                    # Remove Content-Type for file uploads
+                    if 'Content-Type' in headers:
+                        del headers['Content-Type']
+                    response = requests.post(url, data=data, files=files, headers=headers, timeout=timeout)
                 else:
                     response = requests.post(url, json=data, headers=headers, timeout=timeout)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=timeout)
 
             success = response.status_code == expected_status
             if success:
