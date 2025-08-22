@@ -153,6 +153,39 @@ async def enqueue_network_diagram_processing(note_id: str):
         await NotesStore.set_artifacts(note_id, error_artifacts)
         await NotesStore.update_status(note_id, "failed")
 
+async def enqueue_iisb_processing(client_name: str, issues_text: str, user_id: str):
+    """Process IISB analysis for client issues (Expeditors only)"""
+    try:
+        from .iisb_processor import iisb_processor
+        
+        start = time.time()
+        result = await iisb_processor.process_iisb_input(client_name, issues_text)
+        latency_ms = int((time.time() - start) * 1000)
+        
+        if result.get("success"):
+            # Store IISB analysis results (could be stored in a separate collection)
+            iisb_data = {
+                "client_name": client_name,
+                "user_id": user_id,
+                "analysis_results": result,
+                "created_at": datetime.datetime.utcnow(),
+                "processing_time_ms": latency_ms,
+                "type": "iisb_analysis"
+            }
+            
+            # Store in database (using notes collection for now, could be separate)
+            await db()["iisb_analyses"].insert_one(iisb_data)
+            
+            logger.info(f"IISB analysis completed for client: {client_name}")
+            return result
+        else:
+            logger.error(f"IISB analysis failed for client: {client_name}")
+            return result
+            
+    except Exception as e:
+        logger.error(f"Error in IISB processing: {str(e)}")
+        return {"error": str(e), "success": False}
+
 async def enqueue_git_sync(note_id: str):
     note = await NotesStore.get(note_id)
     if not note:
