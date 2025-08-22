@@ -330,6 +330,15 @@ const PhotoScanScreen = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-4">
       <div className="max-w-md mx-auto">
+        {/* User greeting */}
+        {user && (
+          <div className="mb-4 text-center">
+            <p className="text-sm text-gray-600">
+              Capture magic, <span className="font-semibold text-emerald-600">{user.profile?.first_name || user.username}</span>! ✨
+            </p>
+          </div>
+        )}
+        
         <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-6">
             <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
