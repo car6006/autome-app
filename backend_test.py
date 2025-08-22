@@ -142,13 +142,14 @@ class AutoMeAPITester:
             self.log(f"   Note kind: {response.get('kind', 'N/A')}")
         return success, response
 
-    def test_list_notes(self):
+    def test_list_notes(self, authenticated=False):
         """Test listing all notes"""
         success, response = self.run_test(
-            "List Notes",
+            "List Notes" + (" (Authenticated)" if authenticated else " (Anonymous)"),
             "GET",
             "notes",
-            200
+            200,
+            auth_required=authenticated
         )
         if success:
             notes_count = len(response) if isinstance(response, list) else 0
