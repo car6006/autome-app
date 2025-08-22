@@ -664,6 +664,30 @@ class AutoMeAPITester:
         # Test error handling
         self.test_invalid_endpoints()
         
+        # === EXPEDITORS HIDDEN NETWORK DIAGRAM FEATURE TESTS ===
+        self.log("\n👑 EXPEDITORS NETWORK DIAGRAM FEATURE TESTS")
+        
+        # Test Expeditors user registration
+        if not self.test_expeditors_user_registration():
+            self.log("❌ Expeditors user registration failed - skipping network tests")
+        else:
+            # Test access control - non-Expeditors user should get 404
+            self.test_network_diagram_access_control_non_expeditors()
+            
+            # Test access control - Expeditors user should succeed
+            network_success, network_note_id = self.test_network_diagram_access_control_expeditors()
+            
+            if network_success and network_note_id:
+                # Test processing access control - non-Expeditors should fail
+                if auth_audio_note_id:  # Use regular note for non-Expeditors test
+                    self.test_network_diagram_processing_non_expeditors(auth_audio_note_id)
+                
+                # Test network diagram processing for Expeditors user
+                self.test_network_diagram_processing_expeditors(network_note_id)
+                
+                # Test retrieving network diagram results
+                self.test_network_diagram_results(network_note_id)
+        
         return True
 
     def print_summary(self):
