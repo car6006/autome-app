@@ -15,13 +15,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { 
   Mic, Camera, Upload, Play, Square, Mail, GitBranch, Clock, FileText, 
   Zap, BarChart3, Loader2, User, Settings, UserPlus, LogIn, Sparkles,
-  Crown, Heart
+  Crown, Heart, Network
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthModal from "./components/AuthModal";
 import ProfileScreen from "./components/ProfileScreen";
+import NetworkDiagramScreen from "./components/NetworkDiagramScreen";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
