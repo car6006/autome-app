@@ -94,14 +94,15 @@ class AutoMeAPITester:
             self.log(f"   API Message: {response.get('message', 'N/A')}")
         return success
 
-    def test_create_audio_note(self):
+    def test_create_audio_note(self, authenticated=False):
         """Test creating an audio note"""
         success, response = self.run_test(
-            "Create Audio Note",
+            "Create Audio Note" + (" (Authenticated)" if authenticated else " (Anonymous)"),
             "POST",
             "notes",
             200,
-            data={"title": "Test Audio Note", "kind": "audio"}
+            data={"title": "Test Audio Note", "kind": "audio"},
+            auth_required=authenticated
         )
         if success and 'id' in response:
             note_id = response['id']
@@ -110,14 +111,15 @@ class AutoMeAPITester:
             return note_id
         return None
 
-    def test_create_photo_note(self):
+    def test_create_photo_note(self, authenticated=False):
         """Test creating a photo note"""
         success, response = self.run_test(
-            "Create Photo Note",
+            "Create Photo Note" + (" (Authenticated)" if authenticated else " (Anonymous)"),
             "POST",
             "notes",
             200,
-            data={"title": "Test Photo Note", "kind": "photo"}
+            data={"title": "Test Photo Note", "kind": "photo"},
+            auth_required=authenticated
         )
         if success and 'id' in response:
             note_id = response['id']
