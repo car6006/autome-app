@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import bcrypt
 from jose import JWTError, jwt
-from fastapi import HTTPException, Depends, status
+from fastapi import HTTPException, Depends, status, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Load environment variables
