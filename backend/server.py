@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 
 from store import NotesStore
 from storage import store_file
-from tasks import enqueue_transcription, enqueue_ocr, enqueue_email, enqueue_git_sync, enqueue_network_diagram_processing
+from tasks import enqueue_transcription, enqueue_ocr, enqueue_email, enqueue_git_sync, enqueue_network_diagram_processing, enqueue_iisb_processing
 from auth import (
     AuthService, User, UserCreate, UserLogin, UserResponse, UserProfileUpdate, 
     Token, get_current_user, get_current_user_optional
