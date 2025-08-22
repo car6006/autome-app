@@ -125,6 +125,62 @@ async def create_note(
     note_id = await NotesStore.create(note.title, note.kind, user_id)
     return {"id": note_id, "status": "created"}
 
+# Hidden Expeditors Network Diagram Feature
+@api_router.post("/notes/network-diagram", response_model=Dict[str, str])
+async def create_network_diagram_note(
+    note: NoteCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create network diagram note (HIDDEN - Expeditors only)"""
+    # Check if user has @expeditors.com email
+    if not current_user["email"].endswith("@expeditors.com"):
+        raise HTTPException(
+            status_code=404, 
+            detail="Feature not found"
+        )
+    
+    # Override note kind to network_diagram
+    note_dict = note.dict()
+    note_dict["kind"] = "network_diagram"
+    
+    user_id = current_user["id"]
+    note_id = await NotesStore.create(note_dict["title"], "network_diagram", user_id)
+    return {"id": note_id, "status": "created", "feature": "network_diagram"}
+
+@api_router.post("/notes/{note_id}/process-network")
+async def process_network_diagram(
+    note_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user),
+    file: UploadFile = File(...)
+):
+    """Process network diagram from voice or sketch (HIDDEN - Expeditors only)"""
+    # Check if user has @expeditors.com email
+    if not current_user["email"].endswith("@expeditors.com"):
+        raise HTTPException(
+            status_code=404, 
+            detail="Feature not found"
+        )
+    
+    note = await NotesStore.get(note_id)
+    if not note or note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    if note.get("kind") != "network_diagram":
+        raise HTTPException(status_code=400, detail="Invalid note type for network processing")
+    
+    # Store the file
+    file_content = await file.read()
+    media_key = store_file(file_content, file.filename)
+    
+    # Update note with media key
+    await NotesStore.update_media_key(note_id, media_key)
+    
+    # Queue specialized network processing
+    background_tasks.add_task(enqueue_network_diagram_processing, note_id)
+    
+    return {"message": "Network diagram processing started", "status": "processing"}
+
 @api_router.post("/notes/{note_id}/upload")
 async def upload_media(
     note_id: str,
