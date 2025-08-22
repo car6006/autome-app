@@ -810,21 +810,24 @@ const Navigation = () => {
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <div className="pb-20"> {/* Bottom padding for navigation */}
-          <Routes>
-            <Route path="/" element={<CaptureScreen />} />
-            <Route path="/capture" element={<CaptureScreen />} />
-            <Route path="/scan" element={<PhotoScanScreen />} />
-            <Route path="/notes" element={<NotesScreen />} />
-            <Route path="/metrics" element={<MetricsScreen />} />
-          </Routes>
-        </div>
-        <Navigation />
-        <Toaster />
-      </BrowserRouter>
-    </div>
+    <AuthProvider>
+      <div className="App">
+        <BrowserRouter>
+          <div className="pb-20"> {/* Bottom padding for navigation */}
+            <Routes>
+              <Route path="/" element={<CaptureScreen />} />
+              <Route path="/capture" element={<CaptureScreen />} />
+              <Route path="/scan" element={<PhotoScanScreen />} />
+              <Route path="/notes" element={<NotesScreen />} />
+              <Route path="/metrics" element={<MetricsScreen />} />
+              <Route path="/profile" element={<ProfileScreen />} />
+            </Routes>
+          </div>
+          <Navigation />
+          <Toaster />
+        </BrowserRouter>
+      </div>
+    </AuthProvider>
   );
 }
 
