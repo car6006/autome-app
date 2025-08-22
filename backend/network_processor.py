@@ -2,8 +2,8 @@ import os
 import json
 import logging
 from typing import Dict, List, Any, Optional
-from .providers import stt_transcribe, ocr_read
-from .storage import create_presigned_get_url
+from providers import stt_transcribe, ocr_read
+from storage import create_presigned_get_url
 
 logger = logging.getLogger(__name__)
 
