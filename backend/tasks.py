@@ -121,27 +121,37 @@ async def enqueue_network_diagram_processing(note_id: str):
     signed = create_presigned_get_url(note["media_key"])
     start = time.time()
     
-    # Specialized network diagram processing
-    # This would integrate with network topology analysis tools
-    result = {
-        "network_topology": "Generated network diagram analysis",
-        "devices": ["Router-1", "Switch-A", "Firewall-DMZ"],
-        "connections": ["Router-1 -> Switch-A", "Switch-A -> Firewall-DMZ"],
-        "summary": "Network diagram processed for Expeditors infrastructure"
-    }
+    # Determine input type based on file extension or content
+    file_key = note.get("media_key", "")
+    input_type = "audio" if any(ext in file_key.lower() for ext in ['.mp3', '.wav', '.m4a', '.webm']) else "image"
+    
+    # Process with specialized network diagram processor
+    result = await network_processor.process_network_input(signed, input_type)
     
     latency_ms = int((time.time() - start) * 1000)
     
-    artifacts = {
-        "network_topology": result.get("network_topology", ""),
-        "devices": result.get("devices", []),
-        "connections": result.get("connections", []),
-        "summary": result.get("summary", "")
-    }
-    
-    await NotesStore.set_artifacts(note_id, artifacts)
-    await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
-    await NotesStore.update_status(note_id, "ready")
+    if result.get("success"):
+        artifacts = {
+            "network_topology": result.get("network_topology", {}),
+            "diagram_data": result.get("diagram_data", {}),
+            "insights": result.get("insights", {}),
+            "raw_input": result.get("raw_input", ""),
+            "entities": result.get("entities", {}),
+            "processing_type": "expeditors_network_diagram"
+        }
+        
+        await NotesStore.set_artifacts(note_id, artifacts)
+        await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
+        await NotesStore.update_status(note_id, "ready")
+    else:
+        # Handle processing failure
+        error_artifacts = {
+            "error": result.get("error", "Unknown processing error"),
+            "processing_type": "expeditors_network_diagram",
+            "status": "failed"
+        }
+        await NotesStore.set_artifacts(note_id, error_artifacts)
+        await NotesStore.update_status(note_id, "failed")
 
 async def enqueue_git_sync(note_id: str):
     note = await NotesStore.get(note_id)
