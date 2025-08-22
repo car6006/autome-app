@@ -322,52 +322,67 @@ const NetworkDiagramScreen = () => {
 
         {/* Insights & Recommendations */}
         {insights && (
-          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-gray-50 to-white backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
-                <span>Network Insights</span>
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span>AI-Powered Network Insights</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {insights.optimization_opportunities && insights.optimization_opportunities.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-green-700 mb-2 flex items-center">
-                    <Zap className="w-4 h-4 mr-2" />
+                  <h4 className="font-semibold text-green-700 mb-3 flex items-center">
+                    <Zap className="w-5 h-5 mr-2" />
                     Optimization Opportunities
                   </h4>
-                  {insights.optimization_opportunities.map((opportunity, index) => (
-                    <div key={index} className="p-3 bg-green-50 rounded-lg text-sm">
-                      {opportunity}
-                    </div>
-                  ))}
+                  <div className="space-y-2">
+                    {insights.optimization_opportunities.map((opportunity, index) => (
+                      <div key={index} className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 text-sm">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-green-800">{opportunity}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {insights.risk_assessment && insights.risk_assessment.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-red-700 mb-2 flex items-center">
-                    <AlertTriangle className="w-4 h-4 mr-2" />
+                  <h4 className="font-semibold text-red-700 mb-3 flex items-center">
+                    <AlertTriangle className="w-5 h-5 mr-2" />
                     Risk Assessment
                   </h4>
-                  {insights.risk_assessment.map((risk, index) => (
-                    <div key={index} className="p-3 bg-red-50 rounded-lg text-sm">
-                      {risk}
-                    </div>
-                  ))}
+                  <div className="space-y-2">
+                    {insights.risk_assessment.map((risk, index) => (
+                      <div key={index} className="p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border border-red-200 text-sm">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-red-800">{risk}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {insights.recommendations && insights.recommendations.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-blue-700 mb-2 flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Recommendations
+                  <h4 className="font-semibold text-blue-700 mb-3 flex items-center">
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    Strategic Recommendations
                   </h4>
                   <div className="space-y-2">
                     {insights.recommendations.map((rec, index) => (
-                      <div key={index} className="p-3 bg-blue-50 rounded-lg text-sm">
-                        • {rec}
+                      <div key={index} className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200 text-sm">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
+                          </div>
+                          <span className="text-blue-800">{rec}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
