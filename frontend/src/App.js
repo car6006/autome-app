@@ -37,6 +37,7 @@ const CaptureScreen = () => {
   const [noteTitle, setNoteTitle] = useState("");
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const intervalRef = useRef(null);
   const navigate = useNavigate();
 
