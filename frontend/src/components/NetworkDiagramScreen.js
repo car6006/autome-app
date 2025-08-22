@@ -231,40 +231,58 @@ const NetworkDiagramScreen = () => {
 
     return (
       <div className="space-y-6">
+        {/* Beautiful Flowing Network Visualization */}
+        <FlowingNetworkVisualization 
+          networkData={networkData} 
+          title="Expeditors Supply Chain Network"
+        />
+
         {/* Network Overview */}
         <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-xl">
-              <Network className="w-6 h-6 text-blue-600" />
-              <span>Supply Chain Network Analysis</span>
+              <Sparkles className="w-6 h-6 text-purple-600" />
+              <span>Network Intelligence Analysis</span>
             </CardTitle>
-            <CardDescription>Generated network topology and insights</CardDescription>
+            <CardDescription>AI-powered supply chain insights and recommendations</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <MapPin className="w-6 h-6 text-white" />
+                </div>
                 <div className="text-2xl font-bold text-blue-600">
                   {network_topology?.nodes?.length || 0}
                 </div>
                 <div className="text-sm text-gray-600">Network Nodes</div>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
                 <div className="text-2xl font-bold text-green-600">
                   {network_topology?.edges?.length || 0}
                 </div>
-                <div className="text-sm text-gray-600">Connections</div>
+                <div className="text-sm text-gray-600">Active Flows</div>
               </div>
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <Plane className="w-6 h-6 text-white" />
+                </div>
                 <div className="text-2xl font-bold text-purple-600">
                   {insights?.network_summary?.node_types?.airport || 0}
                 </div>
                 <div className="text-sm text-gray-600">Airports</div>
               </div>
-              <div className="text-center p-3 bg-orange-50 rounded-lg">
+              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+                  <Building className="w-6 h-6 text-white" />
+                </div>
                 <div className="text-2xl font-bold text-orange-600">
                   {insights?.network_summary?.node_types?.warehouse || 0}
                 </div>
-                <div className="text-sm text-gray-600">Warehouses</div>
+                <div className="text-sm text-gray-600">Facilities</div>
               </div>
             </div>
           </CardContent>
