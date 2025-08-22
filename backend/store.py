@@ -31,12 +31,13 @@ class Note(BaseModel):
     ready_at: Optional[datetime] = None
     auto_emailed: bool = False
     auto_git: bool = False
+    user_id: Optional[str] = None  # Link to user who created the note
 
 class NotesStore:
     @staticmethod
-    async def create(title: str, kind: str) -> str:
+    async def create(title: str, kind: str, user_id: Optional[str] = None) -> str:
         """Create a new note and return its ID"""
-        note = Note(title=title, kind=kind)
+        note = Note(title=title, kind=kind, user_id=user_id)
         await db()["notes"].insert_one(note.dict())
         return note.id
     
@@ -78,7 +79,11 @@ class NotesStore:
         )
     
     @staticmethod
-    async def list_recent(limit: int = 50) -> List[Dict[str, Any]]:
-        """List recent notes"""
-        cursor = db()["notes"].find().sort("created_at", -1).limit(limit)
+    async def list_recent(limit: int = 50, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List recent notes (filtered by user if provided)"""
+        query = {}
+        if user_id:
+            query["user_id"] = user_id
+        
+        cursor = db()["notes"].find(query).sort("created_at", -1).limit(limit)
         return await cursor.to_list(length=None)

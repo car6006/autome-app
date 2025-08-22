@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Query
+from fastapi import FastAPI, APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Query, Depends, status
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -14,6 +14,10 @@ from datetime import datetime, timedelta, timezone
 from store import NotesStore
 from storage import store_file
 from tasks import enqueue_transcription, enqueue_ocr, enqueue_email, enqueue_git_sync
+from auth import (
+    AuthService, User, UserCreate, UserLogin, UserResponse, UserProfileUpdate, 
+    Token, get_current_user, get_current_user_optional
+)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,7 +28,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="AUTO-ME Productivity API", version="1.0.0")
+app = FastAPI(title="AUTO-ME Productivity API", version="2.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -47,28 +51,95 @@ class NoteResponse(BaseModel):
     metrics: Dict[str, Any] = {}
     created_at: datetime
     ready_at: Optional[datetime] = None
+    user_id: Optional[str] = None
 
-# Core endpoints
+# Authentication endpoints
+@api_router.post("/auth/register", response_model=Token)
+async def register(user_data: UserCreate):
+    """Register a new user"""
+    user_id = await AuthService.create_user(user_data)
+    user = await AuthService.get_user_by_id(user_id)
+    
+    # Create access token
+    access_token = AuthService.create_access_token(data={"sub": user_id})
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse(**user)
+    )
+
+@api_router.post("/auth/login", response_model=Token)
+async def login(user_data: UserLogin):
+    """Login user"""
+    user = await AuthService.authenticate_user(user_data.email, user_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+    
+    # Create access token
+    access_token = AuthService.create_access_token(data={"sub": user["id"]})
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse(**user)
+    )
+
+@api_router.get("/auth/me", response_model=UserResponse)
+async def get_current_user_profile(current_user: dict = Depends(get_current_user)):
+    """Get current user profile"""
+    return UserResponse(**current_user)
+
+@api_router.put("/auth/me", response_model=UserResponse)
+async def update_profile(
+    profile_data: UserProfileUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user profile"""
+    success = await AuthService.update_user_profile(current_user["id"], profile_data)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to update profile"
+        )
+    
+    # Get updated user
+    updated_user = await AuthService.get_user_by_id(current_user["id"])
+    return UserResponse(**updated_user)
+
+# Core endpoints (updated to work with authentication)
 @api_router.get("/")
 async def root():
-    return {"message": "AUTO-ME Productivity API", "status": "running"}
+    return {"message": "AUTO-ME Productivity API v2.0", "status": "running"}
 
 @api_router.post("/notes", response_model=Dict[str, str])
-async def create_note(note: NoteCreate):
-    """Create a new note"""
-    note_id = await NotesStore.create(note.title, note.kind)
+async def create_note(
+    note: NoteCreate,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Create a new note (authenticated or anonymous)"""
+    user_id = current_user["id"] if current_user else None
+    note_id = await NotesStore.create(note.title, note.kind, user_id)
     return {"id": note_id, "status": "created"}
 
 @api_router.post("/notes/{note_id}/upload")
 async def upload_media(
     note_id: str,
     background_tasks: BackgroundTasks,
+    current_user: Optional[dict] = Depends(get_current_user_optional),
     file: UploadFile = File(...)
 ):
     """Upload media file for a note"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
     
     # Store the file
     file_content = await file.read()
@@ -86,29 +157,46 @@ async def upload_media(
     return {"message": "File uploaded successfully", "status": "processing"}
 
 @api_router.get("/notes/{note_id}", response_model=NoteResponse)
-async def get_note(note_id: str):
+async def get_note(
+    note_id: str,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
     """Get a specific note"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
     return NoteResponse(**note)
 
 @api_router.get("/notes", response_model=List[NoteResponse])
-async def list_notes(limit: int = Query(50, le=100)):
-    """List recent notes"""
-    notes = await NotesStore.list_recent(limit)
+async def list_notes(
+    limit: int = Query(50, le=100),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """List notes (user's notes if authenticated, public notes if not)"""
+    user_id = current_user["id"] if current_user else None
+    notes = await NotesStore.list_recent(limit, user_id)
     return [NoteResponse(**note) for note in notes]
 
 @api_router.post("/notes/{note_id}/email")
 async def send_note_email(
     note_id: str,
     email_req: EmailRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Send note content via email"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
     
     background_tasks.add_task(enqueue_email, note_id, email_req.to, email_req.subject)
     return {"message": "Email queued for delivery"}
@@ -116,23 +204,36 @@ async def send_note_email(
 @api_router.post("/notes/{note_id}/git-sync")
 async def sync_note_to_git(
     note_id: str,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Sync note to Git repository"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
     
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
     background_tasks.add_task(enqueue_git_sync, note_id)
     return {"message": "Git sync queued"}
 
 @api_router.get("/metrics")
-async def get_metrics(days: int = Query(7, ge=1, le=90)) -> Dict[str, Any]:
-    """Get productivity metrics"""
+async def get_metrics(
+    days: int = Query(7, ge=1, le=90),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+) -> Dict[str, Any]:
+    """Get productivity metrics (user-specific if authenticated)"""
     since = datetime.now(timezone.utc) - timedelta(days=days)
     
+    # Build query based on authentication
+    query = {"created_at": {"$gte": since}}
+    if current_user:
+        query["user_id"] = current_user["id"]
+    
     # Get notes from the specified time window
-    cursor = db["notes"].find({"created_at": {"$gte": since}})
+    cursor = db["notes"].find(query)
     notes = await cursor.to_list(None)
     
     total = len(notes)
@@ -153,6 +254,13 @@ async def get_metrics(days: int = Query(7, ge=1, le=90)) -> Dict[str, Any]:
     # Rough time savings estimates
     estimated_minutes_saved = len(audio_notes) * 15 + len(photo_notes) * 10
     
+    # Update user's total time saved if authenticated
+    if current_user:
+        await db["users"].update_one(
+            {"id": current_user["id"]},
+            {"$set": {"total_time_saved": estimated_minutes_saved, "notes_count": total}}
+        )
+    
     return {
         "window_days": days,
         "notes_total": total,
@@ -161,7 +269,8 @@ async def get_metrics(days: int = Query(7, ge=1, le=90)) -> Dict[str, Any]:
         "notes_photo": len(photo_notes),
         "p95_latency_ms": p95,
         "estimated_minutes_saved": estimated_minutes_saved,
-        "success_rate": round(ready / total * 100, 1) if total > 0 else 0
+        "success_rate": round(ready / total * 100, 1) if total > 0 else 0,
+        "user_authenticated": current_user is not None
     }
 
 # Include the router in the main app
