@@ -4,6 +4,7 @@ import logging
 from typing import Dict, List, Any, Optional
 from providers import stt_transcribe, ocr_read
 from storage import create_presigned_get_url
+from expeditors_templates import template_engine
 
 logger = logging.getLogger(__name__)
 
@@ -11,38 +12,78 @@ class NetworkDiagramProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         
-        # Expeditors-specific locations and codes
+        # Expeditors-specific locations and codes (expanded)
         self.expeditors_locations = {
-            'SHA': {'name': 'Shanghai', 'type': 'airport', 'region': 'Asia'},
-            'PVG': {'name': 'Shanghai Pudong', 'type': 'airport', 'region': 'Asia'},
-            'JNB': {'name': 'Johannesburg OR Tambo', 'type': 'airport', 'region': 'Africa'},
-            'HKG': {'name': 'Hong Kong International', 'type': 'airport', 'region': 'Asia'},
-            'FRA': {'name': 'Frankfurt Main', 'type': 'airport', 'region': 'Europe'},
-            'CDG': {'name': 'Paris Charles de Gaulle', 'type': 'airport', 'region': 'Europe'},
-            'ORT': {'name': 'OR Tambo International', 'type': 'airport', 'region': 'Africa'},
+            # Major Asian Airports
+            'SHA': {'name': 'Shanghai Hongqiao', 'type': 'airport', 'region': 'Asia', 'country': 'China', 'coordinates': (31.1979, 121.3362)},
+            'PVG': {'name': 'Shanghai Pudong', 'type': 'airport', 'region': 'Asia', 'country': 'China', 'coordinates': (31.1434, 121.8052)},
+            'HKG': {'name': 'Hong Kong International', 'type': 'airport', 'region': 'Asia', 'country': 'Hong Kong', 'coordinates': (22.3080, 113.9185)},
+            'NRT': {'name': 'Tokyo Narita', 'type': 'airport', 'region': 'Asia', 'country': 'Japan', 'coordinates': (35.7647, 140.3864)},
+            'ICN': {'name': 'Seoul Incheon', 'type': 'airport', 'region': 'Asia', 'country': 'South Korea', 'coordinates': (37.4602, 126.4407)},
+            'SIN': {'name': 'Singapore Changi', 'type': 'airport', 'region': 'Asia', 'country': 'Singapore', 'coordinates': (1.3644, 103.9915)},
+            
+            # African Airports
+            'JNB': {'name': 'Johannesburg OR Tambo', 'type': 'airport', 'region': 'Africa', 'country': 'South Africa', 'coordinates': (-26.1367, 28.2411)},
+            'ORT': {'name': 'OR Tambo International', 'type': 'airport', 'region': 'Africa', 'country': 'South Africa', 'coordinates': (-26.1367, 28.2411)},
+            'CPT': {'name': 'Cape Town International', 'type': 'airport', 'region': 'Africa', 'country': 'South Africa', 'coordinates': (-33.9648, 18.6017)},
+            'DUR': {'name': 'Durban King Shaka', 'type': 'airport', 'region': 'Africa', 'country': 'South Africa', 'coordinates': (-29.6144, 31.1197)},
+            
+            # European Airports  
+            'FRA': {'name': 'Frankfurt Main', 'type': 'airport', 'region': 'Europe', 'country': 'Germany', 'coordinates': (50.0333, 8.5706)},
+            'CDG': {'name': 'Paris Charles de Gaulle', 'type': 'airport', 'region': 'Europe', 'country': 'France', 'coordinates': (49.0097, 2.5479)},
+            'LHR': {'name': 'London Heathrow', 'type': 'airport', 'region': 'Europe', 'country': 'United Kingdom', 'coordinates': (51.4700, -0.4543)},
+            'AMS': {'name': 'Amsterdam Schiphol', 'type': 'airport', 'region': 'Europe', 'country': 'Netherlands', 'coordinates': (52.3086, 4.7639)},
+            
+            # Major Ports
+            'CNSHA': {'name': 'Shanghai Port', 'type': 'port', 'region': 'Asia', 'country': 'China', 'coordinates': (31.2304, 121.4737)},
+            'SGSIN': {'name': 'Singapore Port', 'type': 'port', 'region': 'Asia', 'country': 'Singapore', 'coordinates': (1.2966, 103.8518)},
+            'NLRTM': {'name': 'Rotterdam Port', 'type': 'port', 'region': 'Europe', 'country': 'Netherlands', 'coordinates': (51.9225, 4.4792)},
+            'ZADUR': {'name': 'Durban Port', 'type': 'port', 'region': 'Africa', 'country': 'South Africa', 'coordinates': (-29.8587, 31.0218)},
         }
         
-        # Supply chain flow patterns
+        # Enhanced supply chain flow patterns  
         self.flow_patterns = {
             'airfreight': {
                 'icon': '✈️',
                 'color': '#3498DB',
-                'typical_routes': ['SHA-JNB', 'HKG-JNB', 'FRA-JNB', 'CDG-JNB']
+                'typical_routes': ['SHA-JNB', 'HKG-JNB', 'FRA-JNB', 'CDG-JNB', 'SIN-JNB', 'NRT-JNB'],
+                'characteristics': ['fast', 'high_value', 'time_sensitive'],
+                'transit_time': '1-3 days'
             },
             'warehouse': {
                 'icon': '🏭',
                 'color': '#E67E22', 
-                'operations': ['EI Transit WH', 'Distribution Center', 'Cross-dock']
+                'operations': ['EI Transit WH', 'Distribution Center', 'Cross-dock', 'Consolidation Hub'],
+                'characteristics': ['storage', 'sorting', 'consolidation'],
+                'typical_dwell': '1-5 days'
             },
             'road_transport': {
                 'icon': '🚛',
                 'color': '#27AE60',
-                'services': ['Local delivery', 'Cross-border', 'Last mile']
+                'services': ['Local delivery', 'Cross-border', 'Last mile', 'Regional distribution'],
+                'characteristics': ['flexible', 'door_to_door', 'cost_effective'],
+                'transit_time': '1-7 days'
+            },
+            'ocean_freight': {
+                'icon': '🚢',
+                'color': '#1B4F72',
+                'services': ['Container shipping', 'Bulk cargo', 'FCL', 'LCL'],
+                'characteristics': ['high_volume', 'cost_effective', 'slow'],
+                'transit_time': '14-45 days'
             },
             'customs': {
                 'icon': '📋',
                 'color': '#8E44AD',
-                'processes': ['Clearance', 'Documentation', 'Inspection']
+                'processes': ['Clearance', 'Documentation', 'Inspection', 'Duty payment'],
+                'characteristics': ['regulatory', 'documentation', 'compliance'],
+                'typical_duration': '1-3 days'
+            },
+            'rail_freight': {
+                'icon': '🚂',
+                'color': '#9B59B6',
+                'services': ['Container rail', 'Intermodal', 'Bulk rail'],
+                'characteristics': ['medium_speed', 'eco_friendly', 'scheduled'],
+                'transit_time': '5-15 days'
             }
         }
     
