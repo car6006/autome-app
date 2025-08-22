@@ -747,10 +747,13 @@ const Navigation = () => {
     return (first.charAt(0) + last.charAt(0)).toUpperCase() || user.email?.charAt(0).toUpperCase();
   };
 
+  // Check if user has Expeditors access for hidden features
+  const hasExpeditorsAccess = user && user.email && user.email.endsWith('@expeditors.com');
+
   return (
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 px-4 py-3">
-        <div className="flex justify-around items-center max-w-md mx-auto">
+        <div className={`flex justify-around items-center max-w-md mx-auto ${hasExpeditorsAccess ? 'max-w-lg' : ''}`}>
           <Link to="/capture" className="flex flex-col items-center space-y-1 p-2">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <Mic className="w-5 h-5 text-white" />
@@ -764,6 +767,19 @@ const Navigation = () => {
             </div>
             <span className="text-xs text-gray-600">Scan</span>
           </Link>
+          
+          {/* Hidden Expeditors Network Feature */}
+          {hasExpeditorsAccess && (
+            <Link to="/network" className="flex flex-col items-center space-y-1 p-2">
+              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center relative">
+                <Network className="w-5 h-5 text-white" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gold-400 rounded-full flex items-center justify-center">
+                  <Crown className="w-2 h-2 text-white" />
+                </div>
+              </div>
+              <span className="text-xs text-gray-600">Network</span>
+            </Link>
+          )}
           
           <Link to="/notes" className="flex flex-col items-center space-y-1 p-2">
             <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
