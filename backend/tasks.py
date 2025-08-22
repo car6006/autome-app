@@ -2,6 +2,7 @@ import os, time, json, datetime, subprocess, pathlib
 from store import NotesStore
 from storage import create_presigned_get_url
 from providers import stt_transcribe, ocr_read
+from network_processor import network_processor
 import httpx
 import logging
 
