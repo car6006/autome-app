@@ -222,12 +222,16 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return user
 
 # Optional authentication (for endpoints that work with or without auth)
-async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[Dict[str, Any]]:
+async def get_current_user_optional(authorization: Optional[str] = Header(None)) -> Optional[Dict[str, Any]]:
     """Get current user if authenticated, None otherwise"""
-    if not credentials:
+    if not authorization or not authorization.startswith("Bearer "):
         return None
     
     try:
+        # Create a mock credentials object
+        from fastapi.security import HTTPAuthorizationCredentials
+        token = authorization.split(" ")[1]
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
         return await get_current_user(credentials)
-    except HTTPException:
+    except (HTTPException, IndexError):
         return None
