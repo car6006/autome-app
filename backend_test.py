@@ -224,19 +224,21 @@ class AutoMeAPITester:
         )
         return success
 
-    def test_metrics_endpoint(self):
+    def test_metrics_endpoint(self, authenticated=False):
         """Test productivity metrics endpoint"""
         success, response = self.run_test(
-            "Get Productivity Metrics",
+            "Get Productivity Metrics" + (" (Authenticated)" if authenticated else " (Anonymous)"),
             "GET",
             "metrics?days=7",
-            200
+            200,
+            auth_required=authenticated
         )
         if success:
             self.log(f"   Total notes: {response.get('notes_total', 0)}")
             self.log(f"   Ready notes: {response.get('notes_ready', 0)}")
             self.log(f"   Success rate: {response.get('success_rate', 0)}%")
             self.log(f"   Estimated time saved: {response.get('estimated_minutes_saved', 0)} minutes")
+            self.log(f"   User authenticated: {response.get('user_authenticated', False)}")
         return success
 
     def test_invalid_endpoints(self):
