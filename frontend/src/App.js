@@ -266,6 +266,7 @@ const PhotoScanScreen = () => {
   const [processing, setProcessing] = useState(false);
   const [preview, setPreview] = useState(null);
   const { toast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
