@@ -838,6 +838,7 @@ function App() {
               <Route path="/notes" element={<NotesScreen />} />
               <Route path="/metrics" element={<MetricsScreen />} />
               <Route path="/profile" element={<ProfileScreen />} />
+              <Route path="/network" element={<NetworkDiagramScreen />} />
             </Routes>
           </div>
           <Navigation />
