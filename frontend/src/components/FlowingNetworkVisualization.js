@@ -78,8 +78,7 @@ const FlowingNetworkVisualization = ({ networkData, title = "Supply Chain Networ
         y: 300 + Math.sin(angle) * radius,
         color: getNodeColor(node.type),
         glowColor: getGlowColor(node.type),
-        size: getNodeSize(node.type),
-        icon: getNodeIcon(node.type)
+        size: getNodeSize(node.type)
       };
     });
   };
