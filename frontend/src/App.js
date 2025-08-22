@@ -736,38 +736,75 @@ const MetricsScreen = () => {
 };
 
 const Navigation = () => {
+  const { user, isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const getInitials = () => {
+    if (!user) return 'U';
+    const first = user.profile?.first_name || user.username || '';
+    const last = user.profile?.last_name || '';
+    return (first.charAt(0) + last.charAt(0)).toUpperCase() || user.email?.charAt(0).toUpperCase();
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 px-4 py-3">
-      <div className="flex justify-around items-center max-w-md mx-auto">
-        <Link to="/capture" className="flex flex-col items-center space-y-1 p-2">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <Mic className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xs text-gray-600">Record</span>
-        </Link>
-        
-        <Link to="/scan" className="flex flex-col items-center space-y-1 p-2">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-            <Camera className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xs text-gray-600">Scan</span>
-        </Link>
-        
-        <Link to="/notes" className="flex flex-col items-center space-y-1 p-2">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-            <FileText className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xs text-gray-600">Notes</span>
-        </Link>
-        
-        <Link to="/metrics" className="flex flex-col items-center space-y-1 p-2">
-          <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xs text-gray-600">Stats</span>
-        </Link>
+    <>
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 px-4 py-3">
+        <div className="flex justify-around items-center max-w-md mx-auto">
+          <Link to="/capture" className="flex flex-col items-center space-y-1 p-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Mic className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs text-gray-600">Record</span>
+          </Link>
+          
+          <Link to="/scan" className="flex flex-col items-center space-y-1 p-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs text-gray-600">Scan</span>
+          </Link>
+          
+          <Link to="/notes" className="flex flex-col items-center space-y-1 p-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs text-gray-600">Notes</span>
+          </Link>
+          
+          <Link to="/metrics" className="flex flex-col items-center space-y-1 p-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs text-gray-600">Stats</span>
+          </Link>
+          
+          {/* Profile/Auth Button */}
+          {isAuthenticated ? (
+            <Link to="/profile" className="flex flex-col items-center space-y-1 p-2">
+              <Avatar className="w-10 h-10 border-2 border-violet-200">
+                <AvatarImage src={user?.profile?.avatar_url} />
+                <AvatarFallback className="bg-gradient-to-r from-violet-500 to-pink-500 text-white text-xs font-bold">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-gray-600">Profile</span>
+            </Link>
+          ) : (
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="flex flex-col items-center space-y-1 p-2"
+            >
+              <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-600 rounded-full flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs text-gray-600">Join</span>
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+      
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+    </>
   );
 };
 
