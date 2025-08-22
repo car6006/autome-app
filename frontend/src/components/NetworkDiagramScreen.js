@@ -5,10 +5,11 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
+import FlowingNetworkVisualization from './FlowingNetworkVisualization';
 import { 
   Network, Camera, Mic, Upload, Loader2, MapPin, Truck, 
   Plane, Building, Users, Zap, AlertTriangle, CheckCircle,
-  TrendingUp, Clock, Globe
+  TrendingUp, Clock, Globe, Sparkles, Star
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
