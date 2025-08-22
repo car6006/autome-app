@@ -22,6 +22,9 @@ class AutoMeAPITester:
         self.created_notes = []
         self.auth_token = None
         self.test_user_id = None
+        self.expeditors_token = None
+        self.expeditors_user_id = None
+        self.expeditors_user_data = None
         self.test_user_data = {
             "email": f"test_user_{int(time.time())}@example.com",
             "username": f"testuser_{int(time.time())}",
