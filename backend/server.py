@@ -177,9 +177,67 @@ async def process_network_diagram(
     await NotesStore.update_media_key(note_id, media_key)
     
     # Queue specialized network processing
-    background_tasks.add_task(enqueue_network_diagram_processing, note_id)
+# Hidden IISB Analysis Feature (Expeditors only)
+@api_router.post("/iisb/analyze", response_model=Dict[str, Any])
+async def analyze_client_issues(
+    request: Dict[str, str],
+    current_user: dict = Depends(get_current_user)
+):
+    """Analyze client supply chain issues using IISB framework (HIDDEN - Expeditors only)"""
+    # Check if user has @expeditors.com email
+    if not current_user["email"].endswith("@expeditors.com"):
+        raise HTTPException(
+            status_code=404, 
+            detail="Feature not found"
+        )
     
-    return {"message": "Network diagram processing started", "status": "processing"}
+    client_name = request.get("client_name", "")
+    issues_text = request.get("issues_text", "")
+    
+    if not client_name or not issues_text:
+        raise HTTPException(
+            status_code=400,
+            detail="Client name and issues text are required"
+        )
+    
+    # Process IISB analysis
+    from iisb_processor import iisb_processor
+    result = await iisb_processor.process_iisb_input(client_name, issues_text)
+    
+    return result
+
+@api_router.post("/notes/{note_id}/continue-to-iisb")
+async def continue_to_iisb_analysis(
+    note_id: str,
+    request: Dict[str, str],
+    current_user: dict = Depends(get_current_user)
+):
+    """Continue from Network Diagram to IISB analysis (HIDDEN - Expeditors only)"""
+    # Check if user has @expeditors.com email
+    if not current_user["email"].endswith("@expeditors.com"):
+        raise HTTPException(
+            status_code=404, 
+            detail="Feature not found"
+        )
+    
+    # Verify note exists and belongs to user
+    note = await NotesStore.get(note_id)
+    if not note or note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Extract client name from network diagram artifacts if available
+    client_name = request.get("client_name", "")
+    if not client_name and note.get("artifacts"):
+        # Try to extract client name from note title or artifacts
+        client_name = note.get("title", "").split("-")[0].strip() or "Client"
+    
+    return {
+        "note_id": note_id,
+        "client_name": client_name,
+        "network_completed": note.get("status") == "ready",
+        "ready_for_iisb": True,
+        "message": "Ready to proceed with IISB analysis"
+    }
 
 @api_router.post("/notes/{note_id}/upload")
 async def upload_media(
