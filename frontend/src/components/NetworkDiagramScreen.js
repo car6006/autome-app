@@ -394,13 +394,15 @@ const NetworkDiagramScreen = () => {
 
         <div className="flex space-x-3">
           <Button onClick={resetForm} variant="outline" className="flex-1">
+            <Network className="w-4 h-4 mr-2" />
             Create New Network
           </Button>
           <Button 
             onClick={() => window.print()} 
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white px-6"
           >
-            Export Report
+            <Star className="w-4 h-4 mr-2" />
+            Export Professional Report
           </Button>
         </div>
       </div>
