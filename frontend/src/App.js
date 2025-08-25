@@ -556,7 +556,7 @@ const NotesScreen = () => {
 
   useEffect(() => {
     fetchNotes();
-    const interval = setInterval(fetchNotes, 5000); // Poll every 5 seconds
+    const interval = setInterval(fetchNotes, 3000); // Poll every 3 seconds instead of 5
     
     // Update processing times every second for better UX
     const timeInterval = setInterval(() => {
