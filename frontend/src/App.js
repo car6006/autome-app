@@ -713,6 +713,10 @@ const NotesScreen = () => {
   const [editedTranscript, setEditedTranscript] = useState("");
   const [saving, setSaving] = useState(false);
   const [processingTimes, setProcessingTimes] = useState({});
+  const [generatingReport, setGeneratingReport] = useState({});
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [currentReport, setCurrentReport] = useState(null);
+  const [selectedNotesForBatch, setSelectedNotesForBatch] = useState([]);
   const { toast } = useToast();
 
   useEffect(() => {
