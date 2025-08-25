@@ -357,6 +357,25 @@ async def send_note_email(
     background_tasks.add_task(enqueue_email, note_id, email_req.to, email_req.subject)
     return {"message": "Email queued for delivery"}
 
+@api_router.delete("/notes/{note_id}")
+async def delete_note(
+    note_id: str,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Delete a specific note"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this note")
+    
+    # Delete from database
+    await db["notes"].delete_one({"id": note_id})
+    
+    return {"message": "Note deleted successfully"}
+
 @api_router.get("/notes/{note_id}/export")
 async def export_note(
     note_id: str,
