@@ -135,13 +135,37 @@ const CaptureScreen = () => {
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop();
-      setIsRecording(false);
-      clearInterval(intervalRef.current);
-      toast({ title: "✅ Recording stopped", description: "Processing your audio..." });
+  const handleAudioUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate audio file type
+      const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/webm', 'audio/ogg'];
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|webm|ogg|mpeg)$/i)) {
+        toast({ 
+          title: "Invalid file type", 
+          description: "Please select an audio file (MP3, WAV, M4A, WebM, OGG)", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      setUploadedFile(file);
+      setAudioSource("upload");
+      setAudioBlob(null); // Clear any recorded audio
+      
+      toast({ 
+        title: "🎵 Audio file selected", 
+        description: `${file.name} ready for processing` 
+      });
     }
+  };
+
+  const clearAudio = () => {
+    setAudioBlob(null);
+    setUploadedFile(null);
+    setAudioSource("record");
+    setRecordingTime(0);
+    setAudioLevels([]);
   };
 
   const uploadAndProcess = async () => {
