@@ -236,6 +236,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "PREMIUM FEATURE VERIFIED: Batch report generation working perfectly. /api/notes/batch-report endpoint combines multiple notes into comprehensive business analysis with sections: Executive Summary, Comprehensive Analysis, Strategic Recommendations, Action Plan, Risk Assessment, Follow-up & Monitoring. Successfully tested with 3 notes producing 5350+ character synthesized reports in 20-25 seconds. Proper error handling for empty lists and invalid note IDs. Feature is PRODUCTION READY."
+      - working: true
+        agent: "testing"
+        comment: "IMPROVED BATCH REPORT FORMATTING VERIFIED: The new clean, rich-text batch report formatting is working perfectly! ✅ CLEAN FORMATTING: Batch reports generate with NO markdown symbols (###, **), proper ALL CAPS section headers, and professional bullet points using • symbol. ✅ BATCH-SPECIFIC SECTIONS: Reports include comprehensive sections like EXECUTIVE SUMMARY, COMPREHENSIVE ANALYSIS, STRATEGIC RECOMMENDATIONS, IMPLEMENTATION ROADMAP, SUCCESS METRICS, RISK ASSESSMENT, and STAKEHOLDER INVOLVEMENT. ✅ ENHANCED CONTENT: Batch reports are substantially longer (4000-5000+ characters) with 30+ bullet points, combining insights from multiple sources into cohesive strategic analysis. ✅ PROFESSIONAL QUALITY: Reports use executive-ready business language with actionable recommendations and proper structure. The batch report formatting delivers professional, synthesized analysis suitable for executive decision-making!"
 
   - task: "Audio Upload Functionality - Record Page"
     implemented: true
