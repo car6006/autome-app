@@ -190,45 +190,47 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
-          {/* Premium Features */}
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-100 to-pink-100">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Crown className="w-5 h-5 text-yellow-600" />
-                <span>Premium Features</span>
-                <Badge className="bg-yellow-100 text-yellow-800">@expeditors.com</Badge>
-              </CardTitle>
-              <CardDescription>Exclusive features for Expeditors team members</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
-                    <Network className="w-4 h-4 text-purple-600" />
-                    <span>Network Diagram Mapper</span>
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Generate supply chain network diagrams</li>
-                    <li>• Voice or sketch input supported</li>
-                    <li>• Professional PowerPoint-ready visuals</li>
-                    <li>• Airport code and warehouse recognition</li>
-                  </ul>
+          {/* Premium Features - Only show to Expeditors users */}
+          {hasExpeditorsAccess && (
+            <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-100 to-pink-100">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Crown className="w-5 h-5 text-yellow-600" />
+                  <span>Premium Features</span>
+                  <Badge className="bg-yellow-100 text-yellow-800">@expeditors.com</Badge>
+                </CardTitle>
+                <CardDescription>Exclusive features for Expeditors team members</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+                      <Network className="w-4 h-4 text-purple-600" />
+                      <span>Network Diagram Mapper</span>
+                    </h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Generate supply chain network diagrams</li>
+                      <li>• Voice or sketch input supported</li>
+                      <li>• Professional PowerPoint-ready visuals</li>
+                      <li>• Airport code and warehouse recognition</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+                      <BarChart3 className="w-4 h-4 text-green-600" />
+                      <span>IISB Analysis</span>
+                    </h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Issues, Impact, Solutions, Benefits framework</li>
+                      <li>• Client supply chain issue documentation</li>
+                      <li>• Structured analysis for sales teams</li>
+                      <li>• Integration with network diagrams</li>
+                    </ul>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
-                    <BarChart3 className="w-4 h-4 text-green-600" />
-                    <span>IISB Analysis</span>
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Issues, Impact, Solutions, Benefits framework</li>
-                    <li>• Client supply chain issue documentation</li>
-                    <li>• Structured analysis for sales teams</li>
-                    <li>• Integration with network diagrams</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Analytics */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
