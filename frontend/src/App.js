@@ -443,6 +443,9 @@ const NotesScreen = () => {
   const [selectedNote, setSelectedNote] = useState(null);
   const [emailTo, setEmailTo] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
+  const [editingNote, setEditingNote] = useState(null);
+  const [editedTranscript, setEditedTranscript] = useState("");
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
