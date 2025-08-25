@@ -404,6 +404,197 @@ async def delete_note(
     
     return {"message": "Note deleted successfully"}
 
+@api_router.post("/notes/{note_id}/generate-report")
+async def generate_professional_report(
+    note_id: str,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Generate a professional report with insights and action items"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    content = artifacts.get("transcript") or artifacts.get("text", "")
+    
+    if not content:
+        raise HTTPException(status_code=400, detail="No content available to generate report")
+    
+    try:
+        # Use OpenAI to generate professional insights
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        prompt = f"""
+        You are a professional business analyst. Based on the following content, create a comprehensive professional report.
+
+        Content to analyze:
+        {content}
+
+        Generate a structured professional report with the following sections:
+
+        1. EXECUTIVE SUMMARY (2-3 sentences highlighting the main points)
+        2. KEY INSIGHTS (3-5 bullet points of important findings)
+        3. ACTION ITEMS (Specific, actionable next steps)
+        4. PRIORITIES (Categorize action items by priority: High, Medium, Low)
+        5. RECOMMENDATIONS (Strategic recommendations based on the content)
+        6. FOLLOW-UP ITEMS (Things to monitor or revisit)
+
+        Format the response in clean, professional language suitable for business communication.
+        Use bullet points and clear headings for easy readability.
+        Be specific and actionable in your recommendations.
+        """
+        
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 1500,
+                    "temperature": 0.3
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            
+            ai_analysis = response.json()
+            report_content = ai_analysis["choices"][0]["message"]["content"]
+            
+            # Store the report in artifacts
+            updated_artifacts = {**artifacts, "professional_report": report_content}
+            await NotesStore.set_artifacts(note_id, updated_artifacts)
+            
+            return {
+                "report": report_content,
+                "note_title": note["title"],
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "note_id": note_id
+            }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+@api_router.post("/notes/batch-report")
+async def generate_batch_report(
+    note_ids: List[str],
+    title: str = "Combined Analysis Report",
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Generate a combined professional report from multiple notes"""
+    if not note_ids:
+        raise HTTPException(status_code=400, detail="No notes provided")
+    
+    try:
+        combined_content = []
+        note_titles = []
+        
+        # Collect content from all notes
+        for note_id in note_ids:
+            note = await NotesStore.get(note_id)
+            if not note:
+                continue
+                
+            # Check user permissions
+            if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+                continue
+                
+            artifacts = note.get("artifacts", {})
+            content = artifacts.get("transcript") or artifacts.get("text", "")
+            
+            if content:
+                note_titles.append(note["title"])
+                combined_content.append(f"## {note['title']}\n{content}")
+        
+        if not combined_content:
+            raise HTTPException(status_code=400, detail="No accessible content found in provided notes")
+        
+        # Generate comprehensive report
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        full_content = "\n\n".join(combined_content)
+        
+        prompt = f"""
+        You are a senior business consultant creating a comprehensive analysis report. 
+        Below is content from multiple sources that need to be synthesized into a professional report.
+
+        Combined Content:
+        {full_content}
+
+        Create a comprehensive professional report with these sections:
+
+        1. EXECUTIVE SUMMARY
+        - Overall situation assessment
+        - Key themes across all content
+        - Critical findings (3-4 sentences)
+
+        2. COMPREHENSIVE ANALYSIS
+        - Major insights from combined content
+        - Patterns and connections between different sources
+        - Important details that impact decision-making
+
+        3. STRATEGIC RECOMMENDATIONS
+        - High-impact actions to take immediately
+        - Medium-term strategic initiatives  
+        - Long-term considerations
+
+        4. ACTION PLAN
+        - Immediate next steps (next 1-2 weeks)
+        - Short-term goals (next 1-3 months)
+        - Success metrics to track
+
+        5. RISK ASSESSMENT
+        - Potential challenges or obstacles
+        - Mitigation strategies
+
+        6. FOLLOW-UP & MONITORING
+        - Key metrics to track
+        - Review schedule recommendations
+        - Stakeholders to involve
+
+        Format professionally with clear headings, bullet points, and actionable language.
+        Synthesize information across sources rather than just listing items.
+        Focus on business impact and practical implementation.
+        """
+        
+        async with httpx.AsyncClient(timeout=90) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 2000,
+                    "temperature": 0.2
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            
+            ai_analysis = response.json()
+            report_content = ai_analysis["choices"][0]["message"]["content"]
+            
+            return {
+                "report": report_content,
+                "title": title,
+                "source_notes": note_titles,
+                "note_count": len(note_titles),
+                "generated_at": datetime.now(timezone.utc).isoformat()
+            }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate batch report: {str(e)}")
+
 @api_router.get("/notes/{note_id}/export")
 async def export_note(
     note_id: str,
