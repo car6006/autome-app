@@ -113,6 +113,7 @@ const NetworkDiagramScreen = () => {
     const file = event.target.files[0];
     if (file) {
       setSelectedFile(file);
+      setInputMethod('sketch');
       
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
@@ -122,6 +123,40 @@ const NetworkDiagramScreen = () => {
         setPreview({ type: 'audio', name: file.name });
       }
     }
+  };
+
+  const handleAudioUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate audio file type
+      const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/webm', 'audio/ogg'];
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|webm|ogg|mpeg)$/i)) {
+        toast({ 
+          title: "Invalid file type", 
+          description: "Please select an audio file (MP3, WAV, M4A, WebM, OGG)", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      setUploadedAudio(file);
+      setSelectedFile(file);
+      setInputMethod('audio_upload');
+      setPreview({ type: 'audio', name: file.name, uploaded: true });
+      
+      toast({ 
+        title: "🎵 Audio file selected", 
+        description: `${file.name} ready for network analysis` 
+      });
+    }
+  };
+
+  const clearInput = () => {
+    setSelectedFile(null);
+    setUploadedAudio(null);
+    setPreview(null);
+    setRecordingTime(0);
+    setInputMethod('voice');
   };
 
   const processNetworkDiagram = async () => {
