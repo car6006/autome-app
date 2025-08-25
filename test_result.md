@@ -366,8 +366,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix email delivery functionality"
-    - "Implement file upload for scan feature"
+    - "Multi-file Upload for Handwritten Notes"
+    - "Professional Report Generation - Single Note"
+    - "Professional Report Generation - Batch Reports"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
