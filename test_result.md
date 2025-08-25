@@ -121,7 +121,7 @@ backend:
     implemented: true
     working: true
     file: "storage.py, providers.py, tasks.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
