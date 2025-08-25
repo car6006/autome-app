@@ -1066,13 +1066,36 @@ const NotesScreen = () => {
     );
   };
 
-  const syncToGit = async (noteId) => {
-    try {
-      await axios.post(`${API}/notes/${noteId}/git-sync`);
-      toast({ title: "🔄 Git sync started", description: "Note will be pushed to repository" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to sync to Git", variant: "destructive" });
-    }
+  const formatReportText = (text) => {
+    // Convert the clean report text to properly formatted HTML
+    let formatted = text;
+    
+    // Convert section headers (ALL CAPS followed by newline) to styled headers
+    formatted = formatted.replace(/^([A-Z\s&]+)$/gm, '<h3 class="text-lg font-bold text-gray-800 mt-6 mb-3 border-b border-gray-200 pb-2">$1</h3>');
+    
+    // Convert subsection headers (Title Case with colons)
+    formatted = formatted.replace(/^([A-Z][A-Za-z\s\-()]+):$/gm, '<h4 class="text-md font-semibold text-gray-700 mt-4 mb-2">$1:</h4>');
+    
+    // Convert bullet points to properly styled lists
+    formatted = formatted.replace(/^• (.+)$/gm, '<li class="ml-4 mb-1 text-gray-700">$1</li>');
+    
+    // Wrap consecutive list items in ul tags
+    formatted = formatted.replace(/(<li[^>]*>.*<\/li>\s*)+/gs, '<ul class="list-disc pl-6 mb-4 space-y-1">$&</ul>');
+    
+    // Convert line breaks to proper spacing
+    formatted = formatted.replace(/\n\n/g, '</p><p class="mb-4 text-gray-700 leading-relaxed">');
+    formatted = formatted.replace(/^\s*(.+)$/gm, '<p class="mb-4 text-gray-700 leading-relaxed">$1</p>');
+    
+    // Clean up extra paragraph tags around headers and lists
+    formatted = formatted.replace(/<p[^>]*><h([1-6])[^>]*>/g, '<h$1');
+    formatted = formatted.replace(/<\/h([1-6])><\/p>/g, '</h$1>');
+    formatted = formatted.replace(/<p[^>]*><ul[^>]*>/g, '<ul class="list-disc pl-6 mb-4 space-y-1">');
+    formatted = formatted.replace(/<\/ul><\/p>/g, '</ul>');
+    
+    // Remove empty paragraphs
+    formatted = formatted.replace(/<p[^>]*>\s*<\/p>/g, '');
+    
+    return formatted;
   };
 
   const getStatusColor = (status) => {
