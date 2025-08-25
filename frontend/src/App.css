@@ -6,6 +6,12 @@
   box-sizing: border-box;
 }
 
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -17,7 +23,47 @@ body {
 
 .App {
   min-height: 100vh;
+  width: 100%;
   overflow-x: hidden;
+}
+
+/* Ensure all containers respect viewport */
+.min-h-screen {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Mobile-first responsive containers */
+.container-mobile {
+  width: 100%;
+  max-width: 100vw;
+  padding: 0 1rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .container-mobile {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-mobile {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-mobile {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-mobile {
+    max-width: 1280px;
+  }
 }
 
 /* Custom scrollbar */
