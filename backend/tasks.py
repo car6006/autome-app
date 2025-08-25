@@ -119,11 +119,20 @@ async def enqueue_email(note_id: str, to_list: list, subject: str):
     if not note:
         logger.error(f"Note not found: {note_id}")
         return
+    
+    try:
+        art = note["artifacts"]
+        body = art.get("summary") or art.get("transcript") or art.get("text") or ""
+        if not body:
+            body = f"Note: {note['title']}\nNo content available yet."
         
-    art = note["artifacts"]
-    body = art.get("summary") or art.get("transcript") or art.get("text") or ""
-    html = f"<h3>{note['title']}</h3><p>{body}</p>"
-    await send_email(to_list, subject, html)
+        html = f"<h3>{note['title']}</h3><p>{body.replace(chr(10), '<br>')}</p>"
+        await send_email(to_list, subject, html)
+        logger.info(f"Email sent for note {note_id} to {len(to_list)} recipients")
+        
+    except Exception as e:
+        logger.error(f"Email delivery failed for note {note_id}: {str(e)}")
+        raise
 
 async def enqueue_network_diagram_processing(note_id: str):
     """Process network diagram from voice or sketch (Expeditors only)"""
