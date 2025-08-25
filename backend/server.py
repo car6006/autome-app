@@ -375,13 +375,15 @@ async def export_note(
     artifacts = note.get("artifacts", {})
     
     if format == "json":
-        return JSONResponse(content={
+        # Convert datetime to string for JSON serialization
+        export_data = {
             "id": note["id"],
             "title": note["title"],
             "kind": note["kind"],
-            "created_at": note["created_at"],
+            "created_at": note["created_at"].isoformat() if hasattr(note["created_at"], 'isoformat') else str(note["created_at"]),
             "artifacts": artifacts
-        })
+        }
+        return JSONResponse(content=export_data)
     
     elif format == "md":
         content = f"# {note['title']}\n\n"
