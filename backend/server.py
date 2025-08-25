@@ -444,23 +444,39 @@ async def generate_professional_report(
             raise HTTPException(status_code=500, detail="AI service not configured")
         
         prompt = f"""
-        You are a professional business analyst. Based on the following content, create a comprehensive professional report.
+        You are a senior executive assistant creating a professional business report. Based on the following content, create a clean, well-formatted business analysis.
 
         Content to analyze:
         {content}
 
-        Generate a structured professional report with the following sections:
+        Create a comprehensive professional report with these sections. Use clean formatting with clear headings and bullet points - NO MARKDOWN SYMBOLS like ### or **. Format as clean text with proper structure:
 
-        1. EXECUTIVE SUMMARY (2-3 sentences highlighting the main points)
-        2. KEY INSIGHTS (3-5 bullet points of important findings)
-        3. ACTION ITEMS (Specific, actionable next steps)
-        4. PRIORITIES (Categorize action items by priority: High, Medium, Low)
-        5. RECOMMENDATIONS (Strategic recommendations based on the content)
-        6. FOLLOW-UP ITEMS (Things to monitor or revisit)
+        EXECUTIVE SUMMARY
+        Write 2-3 sentences highlighting the main points and overall situation
 
-        Format the response in clean, professional language suitable for business communication.
-        Use bullet points and clear headings for easy readability.
-        Be specific and actionable in your recommendations.
+        KEY INSIGHTS  
+        List 4-6 important findings as bullet points starting with •
+
+        STRATEGIC RECOMMENDATIONS
+        List 3-5 high-impact recommendations as bullet points starting with •
+
+        ACTION ITEMS
+        List specific, actionable next steps as bullet points starting with •
+        - Include timeframes where appropriate (immediate, 1-3 months, etc.)
+        - Be specific about who should be responsible
+
+        PRIORITIES
+        Categorize the action items:
+        HIGH PRIORITY (next 2 weeks):
+        • [list items]
+        
+        MEDIUM PRIORITY (next 1-3 months):
+        • [list items]
+
+        FOLLOW-UP & MONITORING
+        List key metrics to track and review schedule as bullet points starting with •
+
+        Use professional business language. Make it executive-ready. Use clear section headings in CAPS, bullet points with •, and write in complete sentences. Do NOT use markdown formatting symbols.
         """
         
         async with httpx.AsyncClient(timeout=60) as client:
