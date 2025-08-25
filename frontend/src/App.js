@@ -525,6 +525,7 @@ const PhotoScanScreen = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*,.pdf"
+              multiple
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -538,26 +539,105 @@ const PhotoScanScreen = () => {
               className="hidden"
             />
             
-            {preview && (
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="pt-6">
-                  {preview === 'PDF' ? (
-                    <div className="w-full h-48 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex flex-col items-center justify-center">
-                      <div className="text-6xl mb-2">📄</div>
-                      <p className="text-lg font-semibold text-gray-700">PDF Document</p>
-                      <p className="text-sm text-gray-500">{selectedFile?.name}</p>
-                    </div>
-                  ) : preview === 'FILE' ? (
-                    <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-blue-100 rounded-lg flex flex-col items-center justify-center">
-                      <div className="text-6xl mb-2">📁</div>
-                      <p className="text-lg font-semibold text-gray-700">Document</p>
-                      <p className="text-sm text-gray-500">{selectedFile?.name}</p>
-                    </div>
-                  ) : (
-                    <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
-                  )}
-                </CardContent>
-              </Card>
+            {/* Multi-file Previews */}
+            {previews.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-800">Selected Files ({previews.length})</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedFiles([]);
+                      setPreviews([]);
+                      setUploadProgress([]);
+                    }}
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                
+                <div className="grid gap-3 max-h-64 overflow-y-auto">
+                  {previews.map((preview, index) => (
+                    <Card key={index} className="bg-blue-50 border-blue-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          {/* File Preview */}
+                          <div className="flex-shrink-0">
+                            {preview.type === 'PDF' ? (
+                              <div className="w-16 h-16 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center">
+                                <div className="text-2xl">📄</div>
+                              </div>
+                            ) : preview.type === 'FILE' ? (
+                              <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-blue-100 rounded-lg flex items-center justify-center">
+                                <div className="text-2xl">📁</div>
+                              </div>
+                            ) : preview.src ? (
+                              <img src={preview.src} alt={`Preview ${index + 1}`} className="w-16 h-16 object-cover rounded-lg" />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-200 rounded-lg animate-pulse"></div>
+                            )}
+                          </div>
+                          
+                          {/* File Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              Page {index + 1}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {preview.name}
+                            </p>
+                            
+                            {/* Upload Progress */}
+                            {uploadProgress[index] && (
+                              <div className="mt-2">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-gray-600 capitalize">
+                                    {uploadProgress[index].status}
+                                  </span>
+                                  {uploadProgress[index].status === 'uploading' && (
+                                    <span>{uploadProgress[index].progress}%</span>
+                                  )}
+                                </div>
+                                {uploadProgress[index].status === 'uploading' && (
+                                  <div className="w-full bg-blue-200 rounded-full h-1 mt-1">
+                                    <div 
+                                      className="bg-blue-600 h-1 rounded-full transition-all" 
+                                      style={{width: `${uploadProgress[index].progress}%`}}
+                                    ></div>
+                                  </div>
+                                )}
+                                {uploadProgress[index].status === 'processing' && (
+                                  <div className="w-full bg-green-200 rounded-full h-1 mt-1">
+                                    <div className="bg-green-600 h-1 rounded-full animate-pulse w-full"></div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Remove File Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newFiles = selectedFiles.filter((_, i) => i !== index);
+                              const newPreviews = previews.filter((_, i) => i !== index);
+                              const newProgress = uploadProgress.filter((_, i) => i !== index);
+                              setSelectedFiles(newFiles);
+                              setPreviews(newPreviews);
+                              setUploadProgress(newProgress);
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             )}
             
             <div className="grid grid-cols-2 gap-3">
