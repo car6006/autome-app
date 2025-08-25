@@ -1244,6 +1244,37 @@ const NotesScreen = () => {
                         JSON
                       </Button>
                     </div>
+                    
+                    {/* Professional Report Generation */}
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => generateProfessionalReport(note.id)}
+                        disabled={generatingReport[note.id]}
+                        className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white"
+                      >
+                        {generatingReport[note.id] ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <FileBarChart className="w-3 h-3 mr-1" />
+                            Professional Report
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant={selectedNotesForBatch.includes(note.id) ? "default" : "outline"}
+                        onClick={() => toggleNoteSelection(note.id)}
+                        className={selectedNotesForBatch.includes(note.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                      >
+                        {selectedNotesForBatch.includes(note.id) ? "✓" : "+"}
+                      </Button>
+                    </div>
                   </div>
                 )}
                 
