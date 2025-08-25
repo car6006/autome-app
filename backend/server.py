@@ -22,6 +22,33 @@ from auth import (
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# API Key validation on startup
+def validate_api_keys():
+    """Validate critical API keys on startup"""
+    whisper_key = os.environ.get('WHISPER_API_KEY')
+    gcv_key = os.environ.get('GCV_API_KEY')
+    sendgrid_key = os.environ.get('SENDGRID_API_KEY')
+    
+    warnings = []
+    if not whisper_key or whisper_key == 'your_openai_api_key_here':
+        warnings.append("⚠️  WHISPER_API_KEY is missing or invalid - audio transcription will fail")
+    if not gcv_key or gcv_key == 'your_google_vision_api_key_here':
+        warnings.append("⚠️  GCV_API_KEY is missing or invalid - OCR processing will fail")
+    if not sendgrid_key or sendgrid_key == 'your_sendgrid_api_key_here':
+        warnings.append("⚠️  SENDGRID_API_KEY is missing or invalid - email delivery will fail")
+    
+    if warnings:
+        print("\n" + "="*80)
+        print("🚨 API KEY VALIDATION WARNINGS:")
+        for warning in warnings:
+            print(warning)
+        print("="*80 + "\n")
+    else:
+        print("✅ All API keys appear to be configured")
+
+# Validate keys on startup
+validate_api_keys()
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
