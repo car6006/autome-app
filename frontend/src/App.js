@@ -521,12 +521,42 @@ const NotesScreen = () => {
   const fetchNotes = async () => {
     try {
       const response = await axios.get(`${API}/notes`);
-      setNotes(response.data);
+      const fetchedNotes = response.data;
+      
+      // Track processing times for notes that are processing
+      const updatedProcessingTimes = { ...processingTimes };
+      
+      fetchedNotes.forEach(note => {
+        if (note.status === 'processing' || note.status === 'uploading') {
+          if (!updatedProcessingTimes[note.id]) {
+            // Start tracking time for new processing notes
+            updatedProcessingTimes[note.id] = Date.now();
+          }
+        } else {
+          // Remove tracking for completed notes
+          delete updatedProcessingTimes[note.id];
+        }
+      });
+      
+      setProcessingTimes(updatedProcessingTimes);
+      setNotes(fetchedNotes);
     } catch (error) {
       console.error('Error fetching notes:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getProcessingTime = (noteId) => {
+    if (!processingTimes[noteId]) return 0;
+    return Math.floor((Date.now() - processingTimes[noteId]) / 1000);
+  };
+
+  const formatProcessingTime = (seconds) => {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
   };
 
   const sendEmail = async (noteId) => {
