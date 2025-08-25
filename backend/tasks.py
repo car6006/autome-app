@@ -1,4 +1,5 @@
 import os, time, json, datetime, subprocess, pathlib
+import asyncio
 from store import NotesStore, db
 from storage import create_presigned_get_url
 from providers import stt_transcribe, ocr_read
