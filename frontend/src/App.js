@@ -1242,10 +1242,10 @@ const Navigation = () => {
         </div>
       </div>
       
-      {/* Floating Help Button */}
-      <Link to="/help" className="fixed top-6 right-6 z-50">
-        <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300">
-          <HelpCircle className="w-6 h-6 text-white" />
+      {/* Floating Help Button - Smaller and better positioned */}
+      <Link to="/help" className="fixed bottom-24 right-4 z-50 md:top-6 md:right-6 md:bottom-auto">
+        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
+          <HelpCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
       </Link>
       
