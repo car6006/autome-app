@@ -1373,6 +1373,98 @@ const NotesScreen = () => {
             </CardContent>
           </Card>
         )}
+        
+        {/* Professional Report Modal */}
+        {showReportModal && currentReport && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <FileBarChart className="w-6 h-6 mr-3 text-indigo-600" />
+                    Professional Business Report
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    {currentReport.type === 'batch' 
+                      ? `Combined analysis from ${currentReport.data.note_count} notes`
+                      : `Analysis for: ${currentReport.data.note_title}`
+                    }
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowReportModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[70vh]">
+                <div className="prose max-w-none">
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg mb-6">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">
+                        Generated: {new Date(currentReport.data.generated_at).toLocaleString()}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadReport(
+                            currentReport.data.report, 
+                            currentReport.type === 'batch' 
+                              ? `batch-report-${Date.now()}` 
+                              : `report-${currentReport.noteId}`
+                          )}
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                    {currentReport.data.report}
+                  </div>
+                  
+                  {currentReport.type === 'batch' && currentReport.data.source_notes && (
+                    <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-semibold text-gray-800 mb-2">Source Notes:</h4>
+                      <ul className="text-sm text-gray-600">
+                        {currentReport.data.source_notes.map((title, index) => (
+                          <li key={index} className="mb-1">• {title}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReportModal(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => downloadReport(
+                    currentReport.data.report, 
+                    currentReport.type === 'batch' 
+                      ? `batch-report-${Date.now()}` 
+                      : `report-${currentReport.noteId}`
+                  )}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Report
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
