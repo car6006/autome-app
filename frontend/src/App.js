@@ -1061,6 +1061,7 @@ function App() {
               <Route path="/profile" element={<ProfileScreen />} />
               <Route path="/network" element={<NetworkDiagramScreen />} />
               <Route path="/iisb" element={<IISBAnalysisScreen />} />
+              <Route path="/help" element={<HelpGuide />} />
             </Routes>
           </div>
           <Navigation />
