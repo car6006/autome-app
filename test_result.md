@@ -402,9 +402,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Multi-file Upload for Handwritten Notes"
-    - "Professional Report Generation - Single Note"
-    - "Professional Report Generation - Batch Reports"
+    - "Audio Upload Functionality - Record Page"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
