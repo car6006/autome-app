@@ -1,8 +1,17 @@
 from __future__ import annotations
 import base64, os, tempfile, httpx, asyncio
 import logging
+import subprocess
+import math
+import time
+import uuid
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Constants
+OPENAI_MAX_FILE_SIZE = 24 * 1024 * 1024  # 24MB to be safe (OpenAI limit is 25MB)
+CHUNK_DURATION_SECONDS = 300  # 5 minutes per chunk
 
 OPENAI_STT = "openai"
 AZURE_OCR = "azure"
