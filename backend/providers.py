@@ -57,12 +57,67 @@ async def stt_transcribe(file_url: str) -> dict:
     
     raise RuntimeError("Unsupported STT_PROVIDER")
 
-async def ocr_read(file_url: str) -> dict:
-    which = (os.getenv("OCR_PROVIDER") or GCV_OCR).lower()
+async def ocr_read(file_url: str):
+    """
+    Perform OCR on image using OpenAI Vision API
+    """
+    which = (os.getenv("OCR_PROVIDER") or "openai").lower()
     local = await _download(file_url)
     
     try:
-        if which == GCV_OCR:
+        if which == "openai":
+            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+            if not api_key:
+                return {"text":"", "summary":"", "actions":[], "note":"missing OPENAI_API_KEY"}
+            
+            # Convert image to base64
+            with open(local, "rb") as f:
+                image_data = base64.b64encode(f.read()).decode()
+                
+            # Determine image format
+            image_format = "jpeg"
+            if local.lower().endswith('.png'):
+                image_format = "png"
+            elif local.lower().endswith('.webp'):
+                image_format = "webp"
+            
+            # Use OpenAI Vision API
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Extract all text from this image. Return only the extracted text, no explanations or formatting. If no text is found, return 'No text detected'."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/{image_format};base64,{image_data}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "max_tokens": 1000
+            }
+            
+            async with httpx.AsyncClient(timeout=60) as client:
+                r = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    json=payload,
+                    headers={"Authorization": f"Bearer {api_key}"}
+                )
+                r.raise_for_status()
+                data = r.json()
+                
+                text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                return {"text": text, "summary":"", "actions":[]}
+        
+        elif which == "gcv":
+            # Keep Google Vision as fallback
             api_key = os.getenv("GCV_API_KEY")
             if not api_key:
                 return {"text":"", "summary":"", "actions":[], "note":"missing GCV_API_KEY"}
