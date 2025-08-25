@@ -804,10 +804,66 @@ const NotesScreen = () => {
                   </div>
                 )}
                 
-                {note.status === 'processing' && (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                    <span className="text-sm text-gray-600">Processing...</span>
+                {(note.status === 'processing' || note.status === 'uploading') && (
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800">
+                            {note.status === 'uploading' ? 'Uploading...' : 'Processing...'}
+                          </span>
+                        </div>
+                        <span className="text-xs text-blue-600 font-mono">
+                          {formatProcessingTime(getProcessingTime(note.id))}
+                        </span>
+                      </div>
+                      
+                      <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                        <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                      </div>
+                      
+                      <div className="text-xs text-blue-700">
+                        {note.status === 'uploading' && 'Uploading file to server...'}
+                        {note.status === 'processing' && note.kind === 'audio' && 'AI transcribing your audio...'}
+                        {note.status === 'processing' && note.kind === 'photo' && 'AI extracting text from image...'}
+                        {note.status === 'processing' && note.kind === 'network_diagram' && 'Processing network diagram...'}
+                      </div>
+                      
+                      {getProcessingTime(note.id) > 30 && (
+                        <div className="mt-2 text-xs text-orange-600">
+                          <span>⏱️ This is taking longer than usual. Large files may need more time.</span>
+                        </div>
+                      )}
+                      
+                      {getProcessingTime(note.id) > 120 && (
+                        <div className="mt-1 text-xs text-red-600">
+                          <span>⚠️ Processing seems stuck. Try refreshing the page.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {note.status === 'failed' && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">!</span>
+                      </div>
+                      <span className="text-sm font-medium text-red-800">Processing Failed</span>
+                    </div>
+                    <div className="text-xs text-red-700">
+                      {note.artifacts?.error ? (
+                        <span>Error: {note.artifacts.error}</span>
+                      ) : (
+                        <span>
+                          {note.kind === 'audio' && 'Audio transcription failed. Check audio quality and try again.'}
+                          {note.kind === 'photo' && 'OCR processing failed. Ensure image is clear and readable.'}
+                          {!note.kind.match(/audio|photo/) && 'Processing failed. Please try again.'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 
