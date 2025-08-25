@@ -267,8 +267,50 @@ async def upload_media(
         background_tasks.add_task(enqueue_transcription, note_id)
     elif note["kind"] == "photo":
         background_tasks.add_task(enqueue_ocr, note_id)
+    elif note["kind"] == "network_diagram":
+        background_tasks.add_task(enqueue_network_diagram_processing, note_id)
     
     return {"message": "File uploaded successfully", "status": "processing"}
+
+@api_router.post("/upload-file")
+async def upload_file_for_scan(
+    background_tasks: BackgroundTasks,
+    current_user: Optional[dict] = Depends(get_current_user_optional),
+    file: UploadFile = File(...),
+    title: str = Form("Uploaded Document")
+):
+    """Upload file directly for OCR processing (new scan feature)"""
+    
+    # Validate file type
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.pdf'}
+    file_ext = os.path.splitext(file.filename or '')[1].lower()
+    
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Unsupported file type. Allowed types: {', '.join(allowed_extensions)}"
+        )
+    
+    # Create note for the upload
+    user_id = current_user["id"] if current_user else None
+    note_id = await NotesStore.create(title, "photo", user_id)
+    
+    # Store the file
+    file_content = await file.read()
+    media_key = store_file(file_content, file.filename)
+    
+    # Update note with media key
+    await NotesStore.update_media_key(note_id, media_key)
+    
+    # Queue OCR processing
+    background_tasks.add_task(enqueue_ocr, note_id)
+    
+    return {
+        "id": note_id,
+        "message": "File uploaded successfully",
+        "status": "processing",
+        "filename": file.filename
+    }
 
 @api_router.get("/notes/{note_id}", response_model=NoteResponse)
 async def get_note(
