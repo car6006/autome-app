@@ -1048,12 +1048,23 @@ const NotesScreen = () => {
     }
   };
 
-  const downloadReport = (report, filename) => {
+  const downloadReport = (report, filename, noteTitle = null) => {
+    // Use note title if provided, otherwise use the provided filename
+    let finalFilename = filename;
+    if (noteTitle) {
+      // Clean the note title for use as filename
+      finalFilename = noteTitle
+        .replace(/[^a-zA-Z0-9\s\-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .trim() // Remove leading/trailing spaces
+        .substring(0, 50); // Limit length to 50 characters
+    }
+    
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${filename}.txt`;
+    a.download = `${finalFilename}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
