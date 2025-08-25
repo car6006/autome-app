@@ -661,7 +661,7 @@ const PhotoScanScreen = () => {
               </Button>
             </div>
             
-            {selectedFile && (
+            {selectedFiles.length > 0 && (
               <Button 
                 onClick={uploadAndProcess} 
                 disabled={processing || !noteTitle.trim()}
