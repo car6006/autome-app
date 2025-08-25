@@ -662,24 +662,38 @@ const PhotoScanScreen = () => {
             </div>
             
             {selectedFiles.length > 0 && (
-              <Button 
-                onClick={uploadAndProcess} 
-                disabled={processing || !noteTitle.trim()}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3"
-                size="lg"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-5 h-5 mr-2" />
-                    Extract Text
-                  </>
+              <div className="space-y-3">
+                <Button 
+                  onClick={uploadAndProcess} 
+                  disabled={processing || !noteTitle.trim()}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3"
+                  size="lg"
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Processing {selectedFiles.length} Files...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 mr-2" />
+                      Process {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
+                    </>
+                  )}
+                </Button>
+                
+                {processing && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Batch Processing in Progress</span>
+                    </div>
+                    <p className="text-xs text-purple-600">
+                      Processing multiple files simultaneously. Each file will be processed separately for optimal results.
+                    </p>
+                  </div>
                 )}
-              </Button>
+              </div>
             )}
           </CardContent>
         </Card>
