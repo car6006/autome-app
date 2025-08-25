@@ -363,10 +363,19 @@ const PhotoScanScreen = () => {
     if (file) {
       setSelectedFile(file);
       
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target.result);
-      reader.readAsDataURL(file);
+      // Create preview based on file type
+      if (file.type === 'application/pdf') {
+        // For PDFs, show a PDF icon instead of trying to preview
+        setPreview('PDF');
+      } else if (file.type.startsWith('image/')) {
+        // For images, create normal preview
+        const reader = new FileReader();
+        reader.onload = (e) => setPreview(e.target.result);
+        reader.readAsDataURL(file);
+      } else {
+        // For other file types
+        setPreview('FILE');
+      }
     }
   };
 
