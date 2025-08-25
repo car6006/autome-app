@@ -55,29 +55,36 @@ async def ocr_read(file_url: str) -> dict:
     which = (os.getenv("OCR_PROVIDER") or GCV_OCR).lower()
     local = await _download(file_url)
     
-    if which == GCV_OCR:
-        api_key = os.getenv("GCV_API_KEY")
-        if not api_key:
-            return {"text":"", "summary":"", "actions":[], "note":"missing GCV_API_KEY"}
+    try:
+        if which == GCV_OCR:
+            api_key = os.getenv("GCV_API_KEY")
+            if not api_key:
+                return {"text":"", "summary":"", "actions":[], "note":"missing GCV_API_KEY"}
+            
+            with open(local, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            
+            payload = {
+                "requests": [{
+                    "image": {"content": b64},
+                    "features": [{"type": "DOCUMENT_TEXT_DETECTION"}]
+                }]
+            }
+            
+            async with httpx.AsyncClient(timeout=120) as client:
+                r = await client.post(
+                    f"https://vision.googleapis.com/v1/images:annotate?key={api_key}",
+                    json=payload
+                )
+                r.raise_for_status()
+                data = r.json()
+                text = data.get("responses",[{}])[0].get("fullTextAnnotation",{}).get("text","") or ""
+                return {"text": text, "summary":"", "actions":[]}
         
-        with open(local, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-        
-        payload = {
-            "requests": [{
-                "image": {"content": b64},
-                "features": [{"type": "DOCUMENT_TEXT_DETECTION"}]
-            }]
-        }
-        
-        async with httpx.AsyncClient(timeout=120) as client:
-            r = await client.post(
-                f"https://vision.googleapis.com/v1/images:annotate?key={api_key}",
-                json=payload
-            )
-            r.raise_for_status()
-            data = r.json()
-            text = data.get("responses",[{}])[0].get("fullTextAnnotation",{}).get("text","") or ""
-            return {"text": text, "summary":"", "actions":[]}
-    
-    raise RuntimeError("Unsupported OCR_PROVIDER")
+        raise RuntimeError("Unsupported OCR_PROVIDER")
+    finally:
+        # Clean up temporary file
+        try:
+            os.unlink(local)
+        except Exception as e:
+            logger.warning(f"Failed to clean up temp file {local}: {e}")
