@@ -9,6 +9,12 @@ AZURE_OCR = "azure"
 GCV_OCR = "gcv"
 
 async def _download(url: str) -> str:
+    """Download file from URL or return local path if it's a local file"""
+    # Check if it's a local file path
+    if os.path.exists(url):
+        return url
+    
+    # Otherwise download from URL
     async with httpx.AsyncClient(timeout=60) as client:
         r = await client.get(url, follow_redirects=True)
         r.raise_for_status()
