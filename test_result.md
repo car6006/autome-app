@@ -307,13 +307,14 @@ metadata:
 test_plan:
   current_focus:
     - "Fix notes stuck in processing status"
-    - "Fix email delivery functionality"
-    - "Fix authentication - hide NOTES from unauthenticated users"
-    - "Add save method to Review & Edit transcript screen"
-  stuck_tasks: []
+    - "Fix export functionality for notes"
+  stuck_tasks:
+    - "Fix notes stuck in processing status"
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
     message: "Database cleanup completed successfully. All test notes deleted, user data preserved. Starting systematic bug fixing process with backend issues first, then frontend issues."
+  - agent: "testing"
+    message: "BACKEND TESTING COMPLETED. CRITICAL BUG FOUND: Notes processing fails due to storage.py returning file:// URLs while providers.py expects HTTP URLs. This affects all audio/photo processing. Email delivery API working. File upload for scan implemented and working. Export partially working (TXT/MD work, JSON fails). Error handling working properly. Main agent needs to fix the URL protocol mismatch in storage system."
