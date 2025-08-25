@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Constants
 OPENAI_MAX_FILE_SIZE = 24 * 1024 * 1024  # 24MB to be safe (OpenAI limit is 25MB)
-CHUNK_DURATION_SECONDS = 300  # 5 minutes per chunk
+CHUNK_DURATION_SECONDS = 240  # 4 minutes per chunk (reduced from 5 for better reliability)
 
 OPENAI_STT = "openai"
 AZURE_OCR = "azure"
