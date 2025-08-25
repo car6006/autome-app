@@ -396,61 +396,91 @@ const PhotoScanScreen = () => {
   };
 
   const uploadAndProcess = async () => {
-    if (!selectedFile || !noteTitle.trim()) {
-      toast({ title: "Missing info", description: "Please add a title and select a file", variant: "destructive" });
+    if (selectedFiles.length === 0 || !noteTitle.trim()) {
+      toast({ title: "Missing info", description: "Please add a title and select files", variant: "destructive" });
       return;
     }
 
     setProcessing(true);
+    const allNoteIds = [];
+    
     try {
-      // Step 1: Create note
-      toast({ title: "📝 Creating note...", description: "Setting up your document scan" });
-      const noteResponse = await axios.post(`${API}/notes`, {
-        title: noteTitle,
-        kind: "photo"
-      });
+      toast({ title: "📝 Starting batch processing...", description: `Processing ${selectedFiles.length} files` });
       
-      const noteId = noteResponse.data.id;
-      
-      // Step 2: Upload file with progress
-      const fileType = selectedFile.type === 'application/pdf' ? 'PDF' : 'file';
-      toast({ title: `📤 Uploading ${fileType}...`, description: "Preparing for text extraction" });
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      
-      await axios.post(`${API}/notes/${noteId}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          if (percentCompleted < 100) {
-            toast({ 
-              title: `📤 Uploading... ${percentCompleted}%`,
-              description: `Please wait while we upload your ${fileType}`,
-              duration: 1000
-            });
+      // Process each file
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileNumber = i + 1;
+        const fileName = file.name || `File ${fileNumber}`;
+        
+        // Update progress for this file
+        setUploadProgress(prev => prev.map((p, idx) => 
+          idx === i ? { ...p, status: 'creating' } : p
+        ));
+        
+        // Step 1: Create note for this file
+        const noteTitle_file = selectedFiles.length > 1 
+          ? `${noteTitle} - Page ${fileNumber} (${fileName})`
+          : noteTitle;
+          
+        const noteResponse = await axios.post(`${API}/notes`, {
+          title: noteTitle_file,
+          kind: "photo"
+        });
+        
+        const noteId = noteResponse.data.id;
+        allNoteIds.push(noteId);
+        
+        // Step 2: Upload file
+        setUploadProgress(prev => prev.map((p, idx) => 
+          idx === i ? { ...p, status: 'uploading' } : p
+        ));
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        await axios.post(`${API}/notes/${noteId}/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(prev => prev.map((p, idx) => 
+              idx === i ? { ...p, progress: percentCompleted } : p
+            ));
           }
-        }
-      });
+        });
+        
+        // Mark as processing
+        setUploadProgress(prev => prev.map((p, idx) => 
+          idx === i ? { ...p, status: 'processing', progress: 100 } : p
+        ));
+        
+        toast({ 
+          title: `✅ File ${fileNumber}/${selectedFiles.length} uploaded`, 
+          description: `${fileName} is now processing`,
+          duration: 1000
+        });
+      }
       
-      // Step 3: Success
+      // Success message
       toast({ 
-        title: "🚀 Upload Complete!", 
-        description: `Your ${fileType} is now being processed for text extraction. Check the Notes tab to see progress.` 
+        title: "🚀 Batch Upload Complete!", 
+        description: `All ${selectedFiles.length} files are now being processed. Check the Notes tab for results.` 
       });
       
       // Reset form
-      setSelectedFile(null);
-      setPreview(null);
+      setSelectedFiles([]);
+      setPreviews([]);
+      setUploadProgress([]);
       setNoteTitle("");
       
-      // Navigate to notes view to see processing
-      setTimeout(() => navigate('/notes'), 1500);
+      // Navigate to notes view
+      setTimeout(() => navigate('/notes'), 2000);
       
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Batch upload error:', error);
       toast({ 
         title: "Error", 
-        description: error.response?.data?.detail || "Failed to process file. Please try again.", 
+        description: error.response?.data?.detail || "Failed to process files. Please try again.", 
         variant: "destructive" 
       });
     } finally {
