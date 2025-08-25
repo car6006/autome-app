@@ -178,15 +178,19 @@ const CaptureScreen = () => {
   };
 
   const uploadAndProcess = async () => {
-    if (!audioBlob || !noteTitle.trim()) {
-      toast({ title: "Missing info", description: "Please add a title and record audio", variant: "destructive" });
+    const hasAudio = audioBlob || uploadedFile;
+    const audioToProcess = audioSource === "upload" ? uploadedFile : audioBlob;
+    
+    if (!hasAudio || !noteTitle.trim()) {
+      toast({ title: "Missing info", description: "Please add a title and record/upload audio", variant: "destructive" });
       return;
     }
 
     setProcessing(true);
     try {
       // Step 1: Create note
-      toast({ title: "📝 Creating note...", description: "Setting up your audio note" });
+      const sourceDescription = audioSource === "upload" ? "uploaded audio file" : "recorded audio";
+      toast({ title: "📝 Creating note...", description: `Setting up your ${sourceDescription}` });
       const noteResponse = await axios.post(`${API}/notes`, {
         title: noteTitle,
         kind: "audio"
@@ -197,7 +201,12 @@ const CaptureScreen = () => {
       // Step 2: Upload audio with progress
       toast({ title: "📤 Uploading audio...", description: "This may take a moment for large files" });
       const formData = new FormData();
-      formData.append('file', audioBlob, 'recording.webm');
+      
+      if (audioSource === "upload") {
+        formData.append('file', uploadedFile, uploadedFile.name);
+      } else {
+        formData.append('file', audioBlob, 'recording.webm');
+      }
       
       await axios.post(`${API}/notes/${noteId}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -216,13 +225,12 @@ const CaptureScreen = () => {
       // Step 3: Success
       toast({ 
         title: "🚀 Upload Complete!", 
-        description: "Your audio is now being processed by AI. Check the Notes tab to see progress." 
+        description: `Your ${sourceDescription} is now being processed by AI. Check the Notes tab to see progress.` 
       });
       
       // Reset form
-      setAudioBlob(null);
+      clearAudio();
       setNoteTitle("");
-      setRecordingTime(0);
       
       // Navigate to notes view to see processing
       setTimeout(() => navigate('/notes'), 1500);
