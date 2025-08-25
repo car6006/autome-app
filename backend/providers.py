@@ -26,19 +26,28 @@ async def stt_transcribe(file_url: str) -> dict:
         
         local = await _download(file_url)
         form = {"model": "whisper-1", "response_format": "json"}
-        files = {"file": open(local, "rb")}
         
-        async with httpx.AsyncClient(timeout=300) as client:
-            r = await client.post(
-                f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
-                data=form,
-                files=files,
-                headers={"Authorization": f"Bearer {key}"}
-            )
-            r.raise_for_status()
-            data = r.json()
-            text = data.get("text","")
-            return {"text": text, "summary": "", "actions": []}
+        try:
+            with open(local, "rb") as audio_file:
+                files = {"file": audio_file}
+                
+                async with httpx.AsyncClient(timeout=300) as client:
+                    r = await client.post(
+                        f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
+                        data=form,
+                        files=files,
+                        headers={"Authorization": f"Bearer {key}"}
+                    )
+                    r.raise_for_status()
+                    data = r.json()
+                    text = data.get("text","")
+                    return {"text": text, "summary": "", "actions": []}
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(local)
+            except Exception as e:
+                logger.warning(f"Failed to clean up temp file {local}: {e}")
     
     raise RuntimeError("Unsupported STT_PROVIDER")
 
