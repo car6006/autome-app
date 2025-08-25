@@ -24,13 +24,16 @@ const NetworkDiagramScreen = () => {
   const [recordingAudio, setRecordingAudio] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadedAudio, setUploadedAudio] = useState(null);
   const [preview, setPreview] = useState(null);
   const [networkData, setNetworkData] = useState(null);
   const [currentStep, setCurrentStep] = useState('input'); // input, processing, results
+  const [inputMethod, setInputMethod] = useState('voice'); // voice, sketch, audio_upload
   
   const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef(null);
+  const audioUploadRef = useRef(null);
   const intervalRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
