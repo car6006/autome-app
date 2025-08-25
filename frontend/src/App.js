@@ -223,10 +223,38 @@ const CaptureScreen = () => {
             {isRecording && (
               <Card className="bg-red-50 border-red-200">
                 <CardContent className="pt-6">
-                  <div className="flex items-center justify-center space-x-3">
+                  <div className="flex items-center justify-center space-x-3 mb-4">
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="text-red-700 font-mono text-lg">{formatTime(recordingTime)}</span>
                   </div>
+                  
+                  {/* Audio Waveform Visualization */}
+                  <div className="mb-3">
+                    <div className="flex items-end justify-center space-x-1 h-16">
+                      {audioLevels.length > 0 ? (
+                        audioLevels.map((level, i) => (
+                          <div
+                            key={i}
+                            className="bg-red-500 w-2 rounded-t transition-all duration-75"
+                            style={{ height: `${Math.max(level, 10)}%` }}
+                          />
+                        ))
+                      ) : (
+                        // Fallback bars when no levels detected
+                        Array.from({ length: 20 }, (_, i) => (
+                          <div
+                            key={i}
+                            className="bg-red-300 w-2 rounded-t animate-pulse"
+                            style={{ 
+                              height: `${20 + Math.sin(Date.now() / 1000 + i) * 15}%`,
+                              animationDelay: `${i * 50}ms`
+                            }}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  
                   <div className="mt-3">
                     <div className="w-full bg-red-200 rounded-full h-2">
                       <div className="bg-red-500 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
