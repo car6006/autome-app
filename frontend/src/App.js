@@ -372,6 +372,15 @@ const PhotoScanScreen = () => {
               className="hidden"
             />
             
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
             {preview && (
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="pt-6">
