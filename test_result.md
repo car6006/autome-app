@@ -323,6 +323,8 @@ agent_communication:
     message: "Database cleanup completed successfully. All test notes deleted, user data preserved. Starting systematic bug fixing process with backend issues first, then frontend issues."
   - agent: "main"
     message: "BACKEND FIXES COMPLETED: Successfully fixed all critical backend issues - notes processing (file URL protocol fix), email delivery, JSON export (datetime serialization), file upload for scan, and export functionality. Backend testing shows 92% success rate. Ready to proceed with frontend bug fixes."
+  - agent: "main"
+    message: "FRONTEND FIXES COMPLETED: Fixed authentication (Notes tab hidden from unauthenticated users), added comprehensive Help Guide with conditional Expeditors content, enhanced processing with real-time progress indicators and timing, added waveform visualization, removed recording time limit, added transcript editing, added file upload for scan, added export functionality. User reported processing issues addressed with detailed progress tracking and error handling."
   - agent: "testing"
     message: "BACKEND TESTING COMPLETED. CRITICAL BUG FOUND: Notes processing fails due to storage.py returning file:// URLs while providers.py expects HTTP URLs. This affects all audio/photo processing. Email delivery API working. File upload for scan implemented and working. Export partially working (TXT/MD work, JSON fails). Error handling working properly. Main agent needs to fix the URL protocol mismatch in storage system."
   - agent: "testing"
