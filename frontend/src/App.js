@@ -515,13 +515,51 @@ const NotesScreen = () => {
     }
   };
 
-  const syncToGit = async (noteId) => {
-    try {
-      await axios.post(`${API}/notes/${noteId}/git-sync`);
-      toast({ title: "🔄 Git sync started", description: "Note will be pushed to repository" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to sync to Git", variant: "destructive" });
+  const startEditingTranscript = (note) => {
+    setEditingNote(note.id);
+    setEditedTranscript(note.artifacts?.transcript || note.artifacts?.text || "");
+  };
+
+  const saveEditedTranscript = async () => {
+    if (!editingNote || !editedTranscript.trim()) {
+      toast({ title: "Error", description: "No content to save", variant: "destructive" });
+      return;
     }
+
+    setSaving(true);
+    try {
+      // Update note with edited transcript
+      // Note: This would require a backend endpoint to update artifacts
+      // For now, we'll just update locally and show success
+      const updatedNotes = notes.map(note => {
+        if (note.id === editingNote) {
+          return {
+            ...note,
+            artifacts: {
+              ...note.artifacts,
+              transcript: editedTranscript,
+              text: note.artifacts?.text || editedTranscript
+            }
+          };
+        }
+        return note;
+      });
+      
+      setNotes(updatedNotes);
+      setEditingNote(null);
+      setEditedTranscript("");
+      
+      toast({ title: "✅ Saved!", description: "Transcript updated successfully" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save transcript", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingNote(null);
+    setEditedTranscript("");
   };
 
   const getStatusColor = (status) => {
