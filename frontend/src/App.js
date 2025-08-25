@@ -272,6 +272,7 @@ const PhotoScanScreen = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
