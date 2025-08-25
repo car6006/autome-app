@@ -287,7 +287,7 @@ const PhotoScanScreen = () => {
   };
 
   const takePicture = () => {
-    fileInputRef.current?.click();
+    cameraInputRef.current?.click();
   };
 
   const uploadAndProcess = async () => {
