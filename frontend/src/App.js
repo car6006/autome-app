@@ -647,7 +647,7 @@ const PhotoScanScreen = () => {
                 size="lg"
               >
                 <Camera className="w-5 h-5 mr-2" />
-                {selectedFile ? 'New Photo' : 'Take Photo'}
+                {selectedFiles.length > 0 ? 'New Photo' : 'Take Photo'}
               </Button>
               
               <Button 
