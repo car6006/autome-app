@@ -167,7 +167,7 @@ backend:
 
   - task: "Fix export functionality for notes"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
@@ -176,6 +176,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Export functionality partially working. TXT and MD formats work correctly. JSON export fails with 500 error - likely due to datetime serialization issue in created_at field. /api/notes/{id}/export endpoint exists with proper format validation."
+      - working: true
+        agent: "testing"
+        comment: "JSON EXPORT FIX VERIFIED: JSON export is now working perfectly. Returns 200 status with properly serialized datetime fields. Tested multiple notes and all JSON exports contain required fields (id, title, kind, created_at) with proper datetime serialization using isoformat(). The datetime serialization issue has been completely resolved."
 
   - task: "Fix time and efficiency scoring accuracy"
     implemented: true
