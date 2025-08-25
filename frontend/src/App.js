@@ -148,7 +148,8 @@ const CaptureScreen = () => {
 
     setProcessing(true);
     try {
-      // Create note
+      // Step 1: Create note
+      toast({ title: "📝 Creating note...", description: "Setting up your audio note" });
       const noteResponse = await axios.post(`${API}/notes`, {
         title: noteTitle,
         kind: "audio"
@@ -156,26 +157,46 @@ const CaptureScreen = () => {
       
       const noteId = noteResponse.data.id;
       
-      // Upload audio
+      // Step 2: Upload audio with progress
+      toast({ title: "📤 Uploading audio...", description: "This may take a moment for large files" });
       const formData = new FormData();
       formData.append('file', audioBlob, 'recording.webm');
       
       await axios.post(`${API}/notes/${noteId}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          if (percentCompleted < 100) {
+            toast({ 
+              title: `📤 Uploading... ${percentCompleted}%`,
+              description: "Please wait while we upload your audio",
+              duration: 1000
+            });
+          }
+        }
       });
       
-      toast({ title: "🚀 Success!", description: "Audio uploaded and processing started" });
+      // Step 3: Success
+      toast({ 
+        title: "🚀 Upload Complete!", 
+        description: "Your audio is now being processed by AI. Check the Notes tab to see progress." 
+      });
       
       // Reset form
       setAudioBlob(null);
       setNoteTitle("");
       setRecordingTime(0);
       
-      // Navigate to notes view
-      setTimeout(() => navigate('/notes'), 1000);
+      // Navigate to notes view to see processing
+      setTimeout(() => navigate('/notes'), 1500);
       
     } catch (error) {
-      toast({ title: "Error", description: "Failed to process audio", variant: "destructive" });
+      console.error('Upload error:', error);
+      toast({ 
+        title: "Error", 
+        description: error.response?.data?.detail || "Failed to process audio. Please try again.", 
+        variant: "destructive" 
+      });
     } finally {
       setProcessing(false);
     }
