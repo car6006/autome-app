@@ -11,8 +11,12 @@ logger = logging.getLogger(__name__)
 # Minimal SendGrid via HTTP API (no SDK)
 async def send_email(to_list, subject, html):
     key = os.getenv("SENDGRID_API_KEY")
-    if not key or not to_list:
-        logger.warning("SendGrid API key missing or no recipients")
+    if not key:
+        logger.error("SendGrid API key missing")
+        raise ValueError("SendGrid API key not configured")
+    
+    if not to_list:
+        logger.warning("No recipients provided for email")
         return
     
     payload = {
@@ -22,13 +26,21 @@ async def send_email(to_list, subject, html):
         "content": [{"type":"text/html","value": html}],
     }
     
-    async with httpx.AsyncClient(timeout=30) as client:
-        r = await client.post(
-            "https://api.sendgrid.com/v3/mail/send",
-            headers={"Authorization": f"Bearer {key}"},
-            json=payload
-        )
-        r.raise_for_status()
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={"Authorization": f"Bearer {key}"},
+                json=payload
+            )
+            r.raise_for_status()
+            logger.info(f"Email sent successfully to {len(to_list)} recipients")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"SendGrid API error: {e.response.status_code} - {e.response.text}")
+        raise
+    except Exception as e:
+        logger.error(f"Email sending failed: {str(e)}")
+        raise
 
 def _repo_url_with_pat(repo_url: str, pat: str) -> str:
     if not pat or not repo_url.startswith("https://"):
