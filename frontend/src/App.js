@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { 
   Mic, Camera, Upload, Play, Square, Mail, GitBranch, Clock, FileText, 
   Zap, BarChart3, Loader2, User, Settings, UserPlus, LogIn, Sparkles,
-  Crown, Heart, Network, Download, Edit, Save, HelpCircle
+  Crown, Heart, Network, Download, Edit, Save, HelpCircle, Trash2, Archive
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
