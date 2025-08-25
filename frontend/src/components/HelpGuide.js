@@ -513,7 +513,7 @@ const HelpGuide = () => {
                 <Separator />
                 <div>
                   <h4 className="font-semibold text-gray-800">Processing stuck or taking too long?</h4>
-                  <p className="text-sm text-gray-600">Large files (>25MB) are automatically chunked and may take longer. Look for warning messages after 30 seconds. If stuck after 2+ minutes, refresh the page.</p>
+                  <p className="text-sm text-gray-600">Large files (over 25MB) are automatically chunked and may take longer. Look for warning messages after 30 seconds. If stuck after 2+ minutes, refresh the page.</p>
                 </div>
                 <Separator />
                 <div>
