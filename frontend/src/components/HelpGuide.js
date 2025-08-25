@@ -138,19 +138,23 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
-          {/* Photo Scanning */}
+          {/* Photo Scanning & Multi-File Upload */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Camera className="w-5 h-5 text-green-600" />
-                <span>Photo Scanning & OCR</span>
+                <span>Photo Scanning & Multi-File Upload</span>
+                <Badge className="bg-green-100 text-green-800">Enhanced</Badge>
               </CardTitle>
-              <CardDescription>Extract text from images and documents</CardDescription>
+              <CardDescription>Extract text from single images or batch process multiple pages</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">📷 Capture Options</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Camera className="w-4 h-4 text-green-600" />
+                    <span>Single File Options</span>
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Camera className="w-4 h-4 text-green-600" />
@@ -163,6 +167,37 @@ const HelpGuide = () => {
                   </div>
                 </div>
                 <div>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Layers className="w-4 h-4 text-purple-600" />
+                    <span>Multi-File Upload</span>
+                    <Badge variant="secondary" className="text-xs">NEW</Badge>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Select multiple files at once</li>
+                    <li>• Perfect for handwritten notes (5+ pages)</li>
+                    <li>• Individual preview for each file</li>
+                    <li>• Batch processing with progress tracking</li>
+                    <li>• Automatic page numbering</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                  <Layers className="w-4 h-4 text-purple-600" />
+                  <span>Multi-File Workflow</span>
+                </h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• <strong>Select Files:</strong> Choose multiple images/PDFs simultaneously</li>
+                  <li>• <strong>Preview & Organize:</strong> See thumbnails, reorder, remove files</li>
+                  <li>• <strong>Batch Process:</strong> Each file becomes a separate note with page numbers</li>
+                  <li>• <strong>Track Progress:</strong> Monitor upload and processing status for each file</li>
+                  <li>• <strong>Individual Results:</strong> Each page gets its own transcription and analysis</li>
+                </ul>
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
                   <h4 className="font-semibold text-gray-800 mb-2">🎯 Supported Formats</h4>
                   <div className="flex flex-wrap gap-1">
                     <Badge variant="secondary">JPG</Badge>
@@ -173,15 +208,15 @@ const HelpGuide = () => {
                     <Badge variant="secondary">WEBP</Badge>
                   </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">💡 Tips for Better Results</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Ensure good lighting and clear focus</li>
-                  <li>• Keep text horizontal and readable</li>
-                  <li>• Avoid shadows and glare</li>
-                  <li>• Higher resolution images work better</li>
-                </ul>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">💡 Tips for Better Results</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Ensure good lighting and clear focus</li>
+                    <li>• Keep text horizontal and readable</li>
+                    <li>• Avoid shadows and glare</li>
+                    <li>• Higher resolution images work better</li>
+                  </ul>
+                </div>
               </div>
             </CardContent>
           </Card>
