@@ -782,12 +782,15 @@ const Navigation = () => {
             </Link>
           )}
           
-          <Link to="/notes" className="flex flex-col items-center space-y-1 p-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs text-gray-600">Notes</span>
-          </Link>
+          {/* Notes tab - only show to authenticated users */}
+          {isAuthenticated && (
+            <Link to="/notes" className="flex flex-col items-center space-y-1 p-2">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs text-gray-600">Notes</span>
+            </Link>
+          )}
           
           <Link to="/metrics" className="flex flex-col items-center space-y-1 p-2">
             <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
