@@ -431,6 +431,8 @@ async def export_note(
                 content += f"- {action}\n"
         
         return Response(content=content, media_type="text/plain")
+
+@api_router.post("/notes/{note_id}/git-sync")
 async def sync_note_to_git(
     note_id: str,
     background_tasks: BackgroundTasks,
