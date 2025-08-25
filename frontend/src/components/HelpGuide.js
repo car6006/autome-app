@@ -6,8 +6,14 @@ import {
   Mic, Camera, Upload, FileText, Mail, Download, Edit, 
   Crown, Network, BarChart3, User, Zap
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const HelpGuide = () => {
+  const { user } = useAuth();
+  
+  // Check if user has Expeditors access
+  const hasExpeditorsAccess = user && user.email && user.email.endsWith('@expeditors.com');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
       <div className="max-w-4xl mx-auto">
