@@ -67,37 +67,73 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
-          {/* Voice Recording */}
+          {/* Voice Recording & Audio Upload */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Mic className="w-5 h-5 text-blue-600" />
-                <span>Voice Recording</span>
+                <span>Voice Recording & Audio Upload</span>
+                <Badge className="bg-green-100 text-green-800">Enhanced</Badge>
               </CardTitle>
-              <CardDescription>Capture high-quality audio notes</CardDescription>
+              <CardDescription>Capture or upload audio with unlimited file size support</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">📝 Best Practices</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Mic className="w-4 h-4 text-blue-600" />
+                    <span>Live Recording</span>
+                  </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Speak clearly and at normal pace</li>
-                    <li>• Minimize background noise</li>
-                    <li>• Hold device 6-12 inches from mouth</li>
-                    <li>• Add descriptive note titles</li>
+                    <li>• Real-time waveform visualization</li>
                     <li>• No time limit - record as long as needed</li>
+                    <li>• High-quality audio capture</li>
+                    <li>• Automatic noise suppression</li>
+                    <li>• One-click start/stop recording</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">⚡ Features</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Upload className="w-4 h-4 text-green-600" />
+                    <span>Audio File Upload</span>
+                    <Badge variant="secondary" className="text-xs">NEW</Badge>
+                  </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Real-time waveform visualization</li>
-                    <li>• High-quality audio capture</li>
-                    <li>• Automatic transcription via OpenAI</li>
-                    <li>• Edit transcripts after processing</li>
-                    <li>• Export in multiple formats</li>
+                    <li>• Upload existing recordings</li>
+                    <li>• Support for MP3, WAV, M4A, WebM, OGG</li>
+                    <li>• <strong>No file size limit!</strong></li>
+                    <li>• Automatic chunking for large files</li>
+                    <li>• Perfect for long meetings (2+ hours)</li>
                   </ul>
                 </div>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                  <Scissors className="w-4 h-4 text-blue-600" />
+                  <span>Large File Processing</span>
+                  <Badge className="bg-blue-100 text-blue-800">Advanced</Badge>
+                </h4>
+                <p className="text-sm text-gray-600 mb-2">
+                  Files over 25MB are automatically split into 5-minute segments for optimal processing:
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Automatic detection and chunking</li>
+                  <li>• Each segment processed individually</li>
+                  <li>• Transcripts combined with part markers</li>
+                  <li>• No quality loss during processing</li>
+                  <li>• Works with any audio length</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">💡 Best Practices</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• For live recording: Speak clearly at normal pace, minimize background noise</li>
+                  <li>• For uploads: Use high-quality recordings when possible</li>
+                  <li>• Large files: Be patient - processing may take several minutes</li>
+                  <li>• Add descriptive titles for easy organization</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
