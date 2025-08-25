@@ -47,7 +47,8 @@ async def cleanup_database():
             print(f"  • {title} (ID: {note_id}, Created: {created_at})")
             
             # Check if this is the target note to preserve
-            if "Sales Meeting 25-082025" in title:
+            # Look for variations: "Sales Meeting 25-082025" or "Sales Meeting 25-08-2025"
+            if "Sales Meeting" in title and ("25-082025" in title or "25-08-2025" in title):
                 target_note = note
                 print(f"    ✅ PRESERVING THIS ENTRY")
             else:
