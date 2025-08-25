@@ -588,23 +588,56 @@ const NotesScreen = () => {
                 )}
                 
                 {note.status === 'ready' && (
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedNote(selectedNote === note.id ? null : note.id)}
-                      className="flex-1"
-                    >
-                      <Mail className="w-4 h-4 mr-1" />
-                      Email
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => syncToGit(note.id)}
-                    >
-                      <GitBranch className="w-4 h-4" />
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedNote(selectedNote === note.id ? null : note.id)}
+                        className="flex-1"
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => syncToGit(note.id)}
+                      >
+                        <GitBranch className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Export buttons */}
+                    <div className="flex space-x-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => exportNote(note.id, 'txt')}
+                        className="flex-1"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        TXT
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => exportNote(note.id, 'md')}
+                        className="flex-1"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        MD
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => exportNote(note.id, 'json')}
+                        className="flex-1"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        JSON
+                      </Button>
+                    </div>
                   </div>
                 )}
                 
