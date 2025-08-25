@@ -9,6 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import uuid
+import httpx
 from datetime import datetime, timedelta, timezone
 
 from store import NotesStore
