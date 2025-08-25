@@ -481,12 +481,34 @@ const NotesScreen = () => {
     }
   };
 
-  const syncToGit = async (noteId) => {
+  const exportNote = async (noteId, format = 'txt') => {
     try {
-      await axios.post(`${API}/notes/${noteId}/git-sync`);
-      toast({ title: "🔄 Git sync started", description: "Note will be pushed to repository" });
+      const response = await axios.get(`${API}/notes/${noteId}/export?format=${format}`, {
+        responseType: format === 'json' ? 'json' : 'blob'
+      });
+      
+      if (format === 'json') {
+        // For JSON, download as file
+        const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `note-${noteId.substr(0, 8)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        // For txt/md, response is already a blob
+        const url = URL.createObjectURL(response.data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `note-${noteId.substr(0, 8)}.${format}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      
+      toast({ title: "📁 Export successful", description: `Note exported as ${format.toUpperCase()}` });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to sync to Git", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to export note", variant: "destructive" });
     }
   };
 
