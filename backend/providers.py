@@ -95,7 +95,7 @@ async def transcribe_audio_chunk(chunk_path: str, api_key: str) -> str:
             files = {"file": audio_file}
             form = {"model": "whisper-1", "response_format": "json"}
             
-            async with httpx.AsyncClient(timeout=300) as client:
+            async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout per chunk
                 r = await client.post(
                     f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
                     data=form,
