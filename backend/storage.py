@@ -18,6 +18,13 @@ def store_file(file_data: bytes, filename: str) -> str:
     
     return file_key
 
+def get_file_path(file_key: str) -> Path:
+    """Get local file path for stored file"""
+    file_path = STORAGE_DIR / file_key
+    if file_path.exists():
+        return file_path
+    raise FileNotFoundError(f"File not found: {file_key}")
+
 def get_file_url(file_key: str) -> str:
     """Get URL for accessing stored file"""
     file_path = STORAGE_DIR / file_key
@@ -26,5 +33,6 @@ def get_file_url(file_key: str) -> str:
     raise FileNotFoundError(f"File not found: {file_key}")
 
 def create_presigned_get_url(file_key: str) -> str:
-    """Create a presigned URL for file access (simplified for local storage)"""
-    return get_file_url(file_key)
+    """Create a presigned URL for file access (returns local path for processing)"""
+    file_path = get_file_path(file_key)
+    return str(file_path)  # Return absolute path for local processing
