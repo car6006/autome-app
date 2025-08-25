@@ -92,20 +92,27 @@ async def enqueue_ocr(note_id: str):
         logger.error(f"Note not found: {note_id}")
         return
         
-    signed = create_presigned_get_url(note["media_key"])
-    start = time.time()
-    result = await ocr_read(signed)
-    latency_ms = int((time.time() - start) * 1000)
-    
-    artifacts = {
-        "text": result.get("text",""),
-        "summary": result.get("summary",""),
-        "actions": result.get("actions",[])
-    }
-    
-    await NotesStore.set_artifacts(note_id, artifacts)
-    await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
-    await NotesStore.update_status(note_id, "ready")
+    try:
+        signed = create_presigned_get_url(note["media_key"])
+        start = time.time()
+        result = await ocr_read(signed)
+        latency_ms = int((time.time() - start) * 1000)
+        
+        artifacts = {
+            "text": result.get("text",""),
+            "summary": result.get("summary",""),
+            "actions": result.get("actions",[])
+        }
+        
+        await NotesStore.set_artifacts(note_id, artifacts)
+        await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
+        await NotesStore.update_status(note_id, "ready")
+        logger.info(f"OCR completed for note {note_id}")
+        
+    except Exception as e:
+        logger.error(f"OCR failed for note {note_id}: {str(e)}")
+        await NotesStore.update_status(note_id, "failed")
+        await NotesStore.set_artifacts(note_id, {"error": str(e)})
 
 async def enqueue_email(note_id: str, to_list: list, subject: str):
     note = await NotesStore.get(note_id)
