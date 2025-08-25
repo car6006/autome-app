@@ -366,8 +366,7 @@ const PhotoScanScreen = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
-              capture="environment"
+              accept="image/*,.pdf"
               onChange={handleFileSelect}
               className="hidden"
             />
