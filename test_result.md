@@ -101,3 +101,195 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  User reported 10 critical bugs in the AUTO-ME productivity app:
+  1. Unauthenticated users still see activities under "NOTES"
+  2. A comprehensive "How To / Help Me" guide is needed
+  3. Notes are stuck in "processing" and not finalizing
+  4. Audio recording visual wave pattern is not working
+  5. Recording stops after 100%, but needs to support longer recordings
+  6. "Review & Edit transcript" screen lacks a save method
+  7. Email delivery is not working
+  8. Export function is missing in audio transcripts
+  9. "Scan" feature only has "take photo" and needs "upload file" option
+  10. The CROP function for scanned images is not working
+  Additional: Time and efficiency scoring is inaccurate/dodgy, Frontend cache needs optimization
+
+backend:
+  - task: "Fix notes stuck in processing status"
+    implemented: false
+    working: false
+    file: "server.py, tasks.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported notes get stuck in processing and never finalize"
+
+  - task: "Fix email delivery functionality"
+    implemented: true
+    working: false
+    file: "server.py, tasks.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"  
+        comment: "User reported email delivery is not working"
+
+  - task: "Implement file upload for scan feature"
+    implemented: false
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User wants file upload option in addition to camera capture"
+
+  - task: "Fix time and efficiency scoring accuracy"
+    implemented: true
+    working: false
+    file: "server.py, tasks.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported scoring is inaccurate/dodgy"
+
+frontend:
+  - task: "Fix authentication - hide NOTES from unauthenticated users"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Unauthenticated users can still see activities under NOTES"
+
+  - task: "Fix audio recording wave pattern visualization"
+    implemented: true
+    working: false
+    file: "App.js or related components"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Audio recording visual wave pattern is not working"
+
+  - task: "Extend recording support beyond 100%"
+    implemented: true
+    working: false
+    file: "App.js or related components"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Recording stops after 100%, needs to support longer recordings"
+
+  - task: "Add save method to Review & Edit transcript screen"
+    implemented: false
+    working: false
+    file: "App.js or related components"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Review & Edit transcript screen lacks a save method"
+
+  - task: "Add file upload option to Scan feature"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Scan feature only has take photo, needs upload file option"
+
+  - task: "Fix CROP function for scanned images"
+    implemented: true
+    working: false
+    file: "App.js or related components"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "CROP function for scanned images is not working"
+
+  - task: "Add export function for audio transcripts"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Export function is missing in audio transcripts"
+
+  - task: "Create comprehensive How To / Help Me guide"
+    implemented: false
+    working: false
+    file: "New component needed"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User needs comprehensive How To / Help Me guide"
+
+  - task: "Optimize frontend cache and loading performance"
+    implemented: false
+    working: false
+    file: "Multiple files"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Frontend cache needs to be cleared and optimized for faster loading"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Fix notes stuck in processing status"
+    - "Fix email delivery functionality"
+    - "Fix authentication - hide NOTES from unauthenticated users"
+    - "Add save method to Review & Edit transcript screen"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Database cleanup completed successfully. All test notes deleted, user data preserved. Starting systematic bug fixing process with backend issues first, then frontend issues."
