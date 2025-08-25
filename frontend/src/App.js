@@ -24,6 +24,7 @@ import AuthModal from "./components/AuthModal";
 import ProfileScreen from "./components/ProfileScreen";
 import NetworkDiagramScreen from "./components/NetworkDiagramScreen";
 import IISBAnalysisScreen from "./components/IISBAnalysisScreen";
+import HelpGuide from "./components/HelpGuide";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
