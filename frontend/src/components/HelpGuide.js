@@ -493,33 +493,64 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
-          {/* Troubleshooting */}
+          {/* Troubleshooting & FAQ */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>🔧 Troubleshooting</CardTitle>
+              <CardTitle>🔧 Troubleshooting & FAQ</CardTitle>
               <CardDescription>Common issues and solutions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div>
                   <h4 className="font-semibold text-gray-800">Recording not working?</h4>
-                  <p className="text-sm text-gray-600">Check microphone permissions in your browser settings</p>
+                  <p className="text-sm text-gray-600">Check microphone permissions in your browser settings. Try refreshing the page and allowing microphone access when prompted.</p>
                 </div>
                 <Separator />
                 <div>
                   <h4 className="font-semibold text-gray-800">Camera not accessible?</h4>
-                  <p className="text-sm text-gray-600">Allow camera access when prompted, or use file upload instead</p>
+                  <p className="text-sm text-gray-600">Allow camera access when prompted, or use the "Upload File" option instead for existing photos.</p>
                 </div>
                 <Separator />
                 <div>
-                  <h4 className="font-semibold text-gray-800">Processing stuck?</h4>
-                  <p className="text-sm text-gray-600">Wait a few moments and refresh. Large files may take longer to process.</p>
+                  <h4 className="font-semibold text-gray-800">Processing stuck or taking too long?</h4>
+                  <p className="text-sm text-gray-600">Large files (>25MB) are automatically chunked and may take longer. Look for warning messages after 30 seconds. If stuck after 2+ minutes, refresh the page.</p>
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="font-semibold text-gray-800">File upload failed or unsupported format?</h4>
+                  <p className="text-sm text-gray-600">Supported audio: MP3, WAV, M4A, WebM, OGG. Supported images: JPG, PNG, PDF, TIFF, BMP, WEBP. Check file size and format.</p>
                 </div>
                 <Separator />
                 <div>
                   <h4 className="font-semibold text-gray-800">Poor transcription quality?</h4>
-                  <p className="text-sm text-gray-600">Ensure clear audio with minimal background noise. Use the edit feature to make corrections.</p>
+                  <p className="text-sm text-gray-600">Ensure clear audio with minimal background noise. Use the edit feature to make corrections. Higher quality recordings produce better results.</p>
                 </div>
+                <Separator />
+                <div>
+                  <h4 className="font-semibold text-gray-800">Multi-file upload not working?</h4>
+                  <p className="text-sm text-gray-600">Make sure to select multiple files at once. Each file will be processed separately. Use "Clear All" if you need to start over.</p>
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="font-semibold text-gray-800">Professional reports not generating?</h4>
+                  <p className="text-sm text-gray-600">Ensure your note has processed content (transcript or extracted text). Reports require substantial content to generate meaningful analysis.</p>
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="font-semibold text-gray-800">App running slowly or not loading?</h4>
+                  <p className="text-sm text-gray-600">Clear your browser cache and cookies. The app is optimized for modern browsers (Chrome, Firefox, Safari, Edge).</p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2">💡 Pro Tips</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Use descriptive note titles for better organization</li>
+                  <li>• Process notes during off-peak hours for faster results</li>
+                  <li>• Upload high-quality files for best transcription accuracy</li>
+                  <li>• Use batch processing for multiple related documents</li>
+                  <li>• Regular browser updates ensure optimal performance</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
