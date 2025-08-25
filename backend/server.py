@@ -553,46 +553,55 @@ async def generate_batch_report(
         full_content = "\n\n".join(combined_content)
         
         prompt = f"""
-        You are a senior business consultant creating a comprehensive analysis report. 
-        Below is content from multiple sources that need to be synthesized into a professional report.
+        You are a senior business consultant creating a comprehensive executive report. 
+        Below is content from multiple sources that need to be synthesized into a professional business analysis.
 
         Combined Content:
         {full_content}
 
-        Create a comprehensive professional report with these sections:
+        Create a comprehensive professional report with these sections. Use clean formatting with clear headings and bullet points - NO MARKDOWN SYMBOLS like ### or **:
 
-        1. EXECUTIVE SUMMARY
-        - Overall situation assessment
-        - Key themes across all content
-        - Critical findings (3-4 sentences)
+        EXECUTIVE SUMMARY
+        - Overall situation assessment across all content
+        - Key themes and critical findings (3-4 sentences)
 
-        2. COMPREHENSIVE ANALYSIS
-        - Major insights from combined content
+        COMPREHENSIVE ANALYSIS
+        - Major insights from combined content as bullet points starting with •
         - Patterns and connections between different sources
         - Important details that impact decision-making
 
-        3. STRATEGIC RECOMMENDATIONS
-        - High-impact actions to take immediately
-        - Medium-term strategic initiatives  
-        - Long-term considerations
+        STRATEGIC RECOMMENDATIONS
+        HIGH-IMPACT ACTIONS (Immediate - next 2 weeks):
+        • [list specific actions]
 
-        4. ACTION PLAN
-        - Immediate next steps (next 1-2 weeks)
-        - Short-term goals (next 1-3 months)
-        - Success metrics to track
+        MEDIUM-TERM INITIATIVES (next 1-3 months):
+        • [list strategic initiatives]
 
-        5. RISK ASSESSMENT
-        - Potential challenges or obstacles
-        - Mitigation strategies
+        LONG-TERM CONSIDERATIONS (3+ months):
+        • [list long-term items]
 
-        6. FOLLOW-UP & MONITORING
-        - Key metrics to track
-        - Review schedule recommendations
-        - Stakeholders to involve
+        IMPLEMENTATION ROADMAP
+        WEEK 1-2:
+        • [immediate next steps]
 
-        Format professionally with clear headings, bullet points, and actionable language.
-        Synthesize information across sources rather than just listing items.
-        Focus on business impact and practical implementation.
+        MONTH 1-3:
+        • [short-term goals]
+
+        SUCCESS METRICS:
+        • [key metrics to track]
+
+        RISK ASSESSMENT
+        POTENTIAL CHALLENGES:
+        • [list potential obstacles]
+
+        MITIGATION STRATEGIES:
+        • [list mitigation approaches]
+
+        STAKEHOLDER INVOLVEMENT
+        • [key stakeholders to involve]
+        • [communication plan recommendations]
+
+        Use professional business language with clear structure. Format as clean text with proper headings in CAPS and bullet points with •. Do NOT use markdown formatting symbols like ### or **.
         """
         
         async with httpx.AsyncClient(timeout=90) as client:
