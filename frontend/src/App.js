@@ -348,10 +348,11 @@ const CaptureScreen = () => {
 };
 
 const PhotoScanScreen = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [noteTitle, setNoteTitle] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [preview, setPreview] = useState(null);
+  const [previews, setPreviews] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
