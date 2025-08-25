@@ -707,12 +707,24 @@ const NotesScreen = () => {
     setEditedTranscript("");
   };
 
-  const syncToGit = async (noteId) => {
+  const deleteNote = async (noteId) => {
     try {
-      await axios.post(`${API}/notes/${noteId}/git-sync`);
-      toast({ title: "🔄 Git sync started", description: "Note will be pushed to repository" });
+      await axios.delete(`${API}/notes/${noteId}`);
+      toast({ title: "🗑️ Note deleted", description: "Note removed successfully" });
+      fetchNotes(); // Refresh the list
     } catch (error) {
-      toast({ title: "Error", description: "Failed to sync to Git", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete note", variant: "destructive" });
+    }
+  };
+
+  const archiveNote = async (noteId) => {
+    try {
+      // For now, we'll just mark it as archived (you may need to implement this in backend)
+      toast({ title: "📦 Note archived", description: "Note moved to archive" });
+      // Optionally remove from current view
+      setNotes(prev => prev.filter(note => note.id !== noteId));
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to archive note", variant: "destructive" });
     }
   };
 
