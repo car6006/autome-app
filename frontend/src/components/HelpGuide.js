@@ -221,7 +221,92 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
-          {/* Managing Notes */}
+          {/* Professional Report Generation */}
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileBarChart className="w-5 h-5 text-indigo-600" />
+                <span>Professional Report Generation</span>
+                <Badge className="bg-indigo-100 text-indigo-800">AI-Powered</Badge>
+              </CardTitle>
+              <CardDescription>Transform raw notes into executive-ready business analysis</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <FileBarChart className="w-4 h-4 text-indigo-600" />
+                    <span>Individual Reports</span>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Generate professional analysis from any note</li>
+                    <li>• AI identifies key insights and action items</li>
+                    <li>• Executive summary with strategic recommendations</li>
+                    <li>• Priority categorization (High/Medium/Low)</li>
+                    <li>• Follow-up items and success metrics</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-purple-600" />
+                    <span>Batch Reports</span>
+                    <Badge variant="secondary" className="text-xs">Advanced</Badge>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Combine multiple notes into comprehensive report</li>
+                    <li>• Cross-analysis of themes and patterns</li>
+                    <li>• Strategic synthesis across sources</li>
+                    <li>• Risk assessment and mitigation strategies</li>
+                    <li>• Implementation roadmap with timelines</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-indigo-100 to-purple-100 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                  <span>Report Structure</span>
+                </h4>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Individual Reports:</p>
+                    <ul className="text-xs text-gray-600 space-y-1 mt-1">
+                      <li>• Executive Summary</li>
+                      <li>• Key Insights</li>
+                      <li>• Action Items</li>
+                      <li>• Priorities</li>
+                      <li>• Recommendations</li>
+                      <li>• Follow-up Items</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Batch Reports:</p>
+                    <ul className="text-xs text-gray-600 space-y-1 mt-1">
+                      <li>• Comprehensive Analysis</li>
+                      <li>• Strategic Recommendations</li>
+                      <li>• Action Plan with Timeline</li>
+                      <li>• Risk Assessment</li>
+                      <li>• Success Metrics</li>
+                      <li>• Stakeholder Involvement</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                  <Download className="w-4 h-4 text-green-600" />
+                  <span>How to Use</span>
+                </h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• <strong>Single Report:</strong> Click "Professional Report" button on any processed note</li>
+                  <li>• <strong>Batch Report:</strong> Select multiple notes using the "+" button, then click "Batch Report"</li>
+                  <li>• <strong>Download:</strong> Save reports as professional text documents</li>
+                  <li>• <strong>Share:</strong> Copy content for presentations or email to stakeholders</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
