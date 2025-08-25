@@ -555,6 +555,7 @@ const NetworkDiagramScreen = () => {
                   onClick={startRecording} 
                   variant="outline"
                   className="w-full py-3"
+                  disabled={uploadedAudio || selectedFile}
                 >
                   <Mic className="w-5 h-5 mr-2" />
                   Record Network Description
@@ -576,6 +577,33 @@ const NetworkDiagramScreen = () => {
             <div className="text-center">
               <span className="text-sm text-gray-500">or</span>
             </div>
+
+            {/* Audio File Upload */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">Upload Audio File</Label>
+              
+              <input
+                ref={audioUploadRef}
+                type="file"
+                accept="audio/*"
+                onChange={handleAudioUpload}
+                className="hidden"
+              />
+              
+              <Button 
+                onClick={() => audioUploadRef.current?.click()} 
+                variant="outline"
+                className="w-full py-3"
+                disabled={recordingAudio || (selectedFile && inputMethod !== 'audio_upload')}
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                Upload Audio Recording
+              </Button>
+            </div>
+            
+            <div className="text-center">
+              <span className="text-sm text-gray-500">or</span>
+            </div>
             
             {/* Photo Upload */}
             <div className="space-y-3">
@@ -584,7 +612,7 @@ const NetworkDiagramScreen = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,audio/*"
+                accept="image/*"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -593,9 +621,10 @@ const NetworkDiagramScreen = () => {
                 onClick={() => fileInputRef.current?.click()} 
                 variant="outline"
                 className="w-full py-3"
+                disabled={recordingAudio || uploadedAudio}
               >
                 <Camera className="w-5 h-5 mr-2" />
-                Upload Sketch or Audio
+                Upload Network Sketch
               </Button>
             </div>
             
