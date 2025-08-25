@@ -1542,8 +1542,11 @@ const NotesScreen = () => {
                           onClick={() => downloadReport(
                             currentReport.data.report, 
                             currentReport.type === 'batch' 
-                              ? `batch-report-${Date.now()}` 
-                              : `report-${currentReport.noteId}`
+                              ? `Batch Report ${Date.now()}` 
+                              : `Report ${currentReport.noteId}`,
+                            currentReport.type === 'batch' 
+                              ? currentReport.data.title
+                              : currentReport.data.note_title
                           )}
                         >
                           <Download className="w-4 h-4 mr-1" />
