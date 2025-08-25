@@ -382,7 +382,8 @@ const PhotoScanScreen = () => {
 
     setProcessing(true);
     try {
-      // Create note
+      // Step 1: Create note
+      toast({ title: "📝 Creating note...", description: "Setting up your photo scan" });
       const noteResponse = await axios.post(`${API}/notes`, {
         title: noteTitle,
         kind: "photo"
@@ -390,26 +391,46 @@ const PhotoScanScreen = () => {
       
       const noteId = noteResponse.data.id;
       
-      // Upload image
+      // Step 2: Upload image with progress
+      toast({ title: "📤 Uploading image...", description: "Preparing for OCR processing" });
       const formData = new FormData();
       formData.append('file', selectedFile);
       
       await axios.post(`${API}/notes/${noteId}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          if (percentCompleted < 100) {
+            toast({ 
+              title: `📤 Uploading... ${percentCompleted}%`,
+              description: "Please wait while we upload your image",
+              duration: 1000
+            });
+          }
+        }
       });
       
-      toast({ title: "🚀 Success!", description: "Photo uploaded and OCR processing started" });
+      // Step 3: Success
+      toast({ 
+        title: "🚀 Upload Complete!", 
+        description: "Your image is now being processed for text extraction. Check the Notes tab to see progress." 
+      });
       
       // Reset form
       setSelectedFile(null);
       setPreview(null);
       setNoteTitle("");
       
-      // Navigate to notes view
-      setTimeout(() => navigate('/notes'), 1000);
+      // Navigate to notes view to see processing
+      setTimeout(() => navigate('/notes'), 1500);
       
     } catch (error) {
-      toast({ title: "Error", description: "Failed to process photo", variant: "destructive" });
+      console.error('Upload error:', error);
+      toast({ 
+        title: "Error", 
+        description: error.response?.data?.detail || "Failed to process photo. Please try again.", 
+        variant: "destructive" 
+      });
     } finally {
       setProcessing(false);
     }
