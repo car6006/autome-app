@@ -125,35 +125,91 @@ async def _download(url: str) -> str:
             f.write(r.content)
         return path
 
-async def stt_transcribe(file_url: str) -> dict:
-    provider = (os.getenv("STT_PROVIDER") or OPENAI_STT).lower()
-    if provider == OPENAI_STT:
-        key = os.getenv("WHISPER_API_KEY")
-        if not key:
-            return {"text":"", "summary":"", "actions":[], "note":"missing WHISPER_API_KEY"}
-        
+async def stt_transcribe(file_url: str):
+    """
+    Perform speech-to-text transcription with automatic chunking for large files
+    """
+    key = os.getenv("WHISPER_API_KEY")
+    if not key:
+        return {"text": "", "summary": "", "actions": [], "note": "missing WHISPER_API_KEY"}
+    
+    if (os.getenv("STT_PROVIDER") or OPENAI_STT).lower() == OPENAI_STT:
         local = await _download(file_url)
-        form = {"model": "whisper-1", "response_format": "json"}
         
         try:
-            with open(local, "rb") as audio_file:
-                files = {"file": audio_file}
+            # Check file size
+            file_size = os.path.getsize(local)
+            logger.info(f"Audio file size: {file_size / (1024*1024):.1f} MB")
+            
+            if file_size <= OPENAI_MAX_FILE_SIZE:
+                # Small file - process normally
+                logger.info("File size OK, processing directly")
                 
-                async with httpx.AsyncClient(timeout=300) as client:
-                    r = await client.post(
-                        f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
-                        data=form,
-                        files=files,
-                        headers={"Authorization": f"Bearer {key}"}
-                    )
-                    r.raise_for_status()
-                    data = r.json()
-                    text = data.get("text","")
-                    return {"text": text, "summary": "", "actions": []}
+                with open(local, "rb") as audio_file:
+                    files = {"file": audio_file}
+                    form = {"model": "whisper-1", "response_format": "json"}
+                    
+                    async with httpx.AsyncClient(timeout=300) as client:
+                        r = await client.post(
+                            f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
+                            data=form,
+                            files=files,
+                            headers={"Authorization": f"Bearer {key}"}
+                        )
+                        r.raise_for_status()
+                        data = r.json()
+                        text = data.get("text", "")
+                        return {"text": text, "summary": "", "actions": []}
+            
+            else:
+                # Large file - split into chunks
+                logger.info(f"File too large ({file_size / (1024*1024):.1f} MB), splitting into chunks")
+                
+                chunks = await split_audio_file(local)
+                if not chunks:
+                    return {"text": "", "summary": "", "actions": [], "note": "Failed to split audio file"}
+                
+                logger.info(f"Processing {len(chunks)} audio chunks")
+                transcriptions = []
+                
+                # Process each chunk
+                for i, chunk_path in enumerate(chunks):
+                    try:
+                        logger.info(f"Transcribing chunk {i+1}/{len(chunks)}")
+                        chunk_text = await transcribe_audio_chunk(chunk_path, key)
+                        
+                        if chunk_text.strip():
+                            # Add chunk number for long transcriptions
+                            if len(chunks) > 1:
+                                transcriptions.append(f"[Part {i+1}] {chunk_text}")
+                            else:
+                                transcriptions.append(chunk_text)
+                        
+                    except Exception as e:
+                        logger.error(f"Error processing chunk {i+1}: {e}")
+                        transcriptions.append(f"[Part {i+1}] Error processing this segment")
+                    
+                    finally:
+                        # Clean up chunk file
+                        try:
+                            os.unlink(chunk_path)
+                        except:
+                            pass
+                
+                # Combine all transcriptions
+                full_text = " ".join(transcriptions).strip()
+                
+                if not full_text:
+                    return {"text": "", "summary": "", "actions": [], "note": "No transcription generated from chunks"}
+                
+                logger.info(f"Successfully transcribed {len(chunks)} chunks, total length: {len(full_text)} characters")
+                return {"text": full_text, "summary": "", "actions": []}
+                
         finally:
-            # Clean up temporary file
+            # Clean up original temporary file
             try:
-                os.unlink(local)
+                if local != file_url:  # Only delete if it was downloaded
+                    os.unlink(local)
             except Exception as e:
                 logger.warning(f"Failed to clean up temp file {local}: {e}")
     
