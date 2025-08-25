@@ -893,13 +893,92 @@ const NotesScreen = () => {
     }
   };
 
-  const syncToGit = async (noteId) => {
+  const generateProfessionalReport = async (noteId) => {
+    setGeneratingReport(prev => ({ ...prev, [noteId]: true }));
+    
     try {
-      await axios.post(`${API}/notes/${noteId}/git-sync`);
-      toast({ title: "🔄 Git sync started", description: "Note will be pushed to repository" });
+      const response = await axios.post(`${API}/notes/${noteId}/generate-report`);
+      
+      setCurrentReport({
+        type: 'single',
+        data: response.data,
+        noteId: noteId
+      });
+      setShowReportModal(true);
+      
+      toast({ 
+        title: "📊 Professional Report Generated", 
+        description: "Your AI-powered business analysis is ready" 
+      });
+      
     } catch (error) {
-      toast({ title: "Error", description: "Failed to sync to Git", variant: "destructive" });
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate report. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingReport(prev => ({ ...prev, [noteId]: false }));
     }
+  };
+
+  const generateBatchReport = async () => {
+    if (selectedNotesForBatch.length === 0) {
+      toast({ 
+        title: "No notes selected", 
+        description: "Please select notes to include in the batch report", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setGeneratingReport(prev => ({ ...prev, batch: true }));
+    
+    try {
+      const response = await axios.post(`${API}/notes/batch-report`, {
+        note_ids: selectedNotesForBatch,
+        title: `Batch Analysis Report - ${new Date().toLocaleDateString()}`
+      });
+      
+      setCurrentReport({
+        type: 'batch',
+        data: response.data
+      });
+      setShowReportModal(true);
+      setSelectedNotesForBatch([]);
+      
+      toast({ 
+        title: "📊 Batch Report Generated", 
+        description: `Combined analysis from ${response.data.note_count} notes is ready` 
+      });
+      
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate batch report. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingReport(prev => ({ ...prev, batch: false }));
+    }
+  };
+
+  const downloadReport = (report, filename) => {
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleNoteSelection = (noteId) => {
+    setSelectedNotesForBatch(prev => 
+      prev.includes(noteId) 
+        ? prev.filter(id => id !== noteId)
+        : [...prev, noteId]
+    );
   };
 
   const getStatusColor = (status) => {
