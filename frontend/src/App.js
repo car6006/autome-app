@@ -406,7 +406,7 @@ const CaptureScreen = () => {
               />
             </div>
             
-            {audioBlob && (
+            {(audioBlob || uploadedFile) && (
               <Button 
                 onClick={uploadAndProcess} 
                 disabled={processing || !noteTitle.trim()}
@@ -416,12 +416,12 @@ const CaptureScreen = () => {
                 {processing ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processing...
+                    Processing {audioSource === "upload" ? "Upload" : "Recording"}...
                   </>
                 ) : (
                   <>
-                    <Upload className="w-5 h-5 mr-2" />
-                    Process Audio
+                    <Zap className="w-5 h-5 mr-2" />
+                    Process {audioSource === "upload" ? "Audio File" : "Recording"}
                   </>
                 )}
               </Button>
