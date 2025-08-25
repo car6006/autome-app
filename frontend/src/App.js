@@ -385,14 +385,14 @@ const PhotoScanScreen = () => {
 
   const uploadAndProcess = async () => {
     if (!selectedFile || !noteTitle.trim()) {
-      toast({ title: "Missing info", description: "Please add a title and select an image", variant: "destructive" });
+      toast({ title: "Missing info", description: "Please add a title and select a file", variant: "destructive" });
       return;
     }
 
     setProcessing(true);
     try {
       // Step 1: Create note
-      toast({ title: "📝 Creating note...", description: "Setting up your photo scan" });
+      toast({ title: "📝 Creating note...", description: "Setting up your document scan" });
       const noteResponse = await axios.post(`${API}/notes`, {
         title: noteTitle,
         kind: "photo"
@@ -400,8 +400,9 @@ const PhotoScanScreen = () => {
       
       const noteId = noteResponse.data.id;
       
-      // Step 2: Upload image with progress
-      toast({ title: "📤 Uploading image...", description: "Preparing for OCR processing" });
+      // Step 2: Upload file with progress
+      const fileType = selectedFile.type === 'application/pdf' ? 'PDF' : 'file';
+      toast({ title: `📤 Uploading ${fileType}...`, description: "Preparing for text extraction" });
       const formData = new FormData();
       formData.append('file', selectedFile);
       
@@ -412,7 +413,7 @@ const PhotoScanScreen = () => {
           if (percentCompleted < 100) {
             toast({ 
               title: `📤 Uploading... ${percentCompleted}%`,
-              description: "Please wait while we upload your image",
+              description: `Please wait while we upload your ${fileType}`,
               duration: 1000
             });
           }
@@ -422,7 +423,7 @@ const PhotoScanScreen = () => {
       // Step 3: Success
       toast({ 
         title: "🚀 Upload Complete!", 
-        description: "Your image is now being processed for text extraction. Check the Notes tab to see progress." 
+        description: `Your ${fileType} is now being processed for text extraction. Check the Notes tab to see progress.` 
       });
       
       // Reset form
@@ -437,7 +438,7 @@ const PhotoScanScreen = () => {
       console.error('Upload error:', error);
       toast({ 
         title: "Error", 
-        description: error.response?.data?.detail || "Failed to process photo. Please try again.", 
+        description: error.response?.data?.detail || "Failed to process file. Please try again.", 
         variant: "destructive" 
       });
     } finally {
