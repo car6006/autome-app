@@ -632,16 +632,41 @@ const NetworkDiagramScreen = () => {
             {preview && (
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="pt-4">
-                  {preview.type === 'image' ? (
-                    <img src={preview.url} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
-                  ) : (
-                    <div className="flex items-center justify-center space-x-3">
-                      <Mic className="w-5 h-5 text-blue-600" />
-                      <span className="text-blue-700 font-medium">
-                        {preview.duration ? `Audio recorded (${formatTime(preview.duration)})` : preview.name || 'Audio file ready'}
-                      </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {preview.type === 'image' ? (
+                        <>
+                          <Camera className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <span className="text-blue-700 font-medium">Network sketch uploaded</span>
+                            <div className="mt-2">
+                              <img src={preview.url} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {preview.uploaded ? <Upload className="w-5 h-5 text-blue-600" /> : <Mic className="w-5 h-5 text-blue-600" />}
+                          <div>
+                            <span className="text-blue-700 font-medium">
+                              {preview.uploaded ? "Audio file uploaded" : `Audio recorded (${formatTime(preview.duration || 0)})`}
+                            </span>
+                            {preview.name && (
+                              <p className="text-xs text-blue-600 mt-1">{preview.name}</p>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
-                  )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearInput}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      ✕
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
