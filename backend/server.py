@@ -357,7 +357,80 @@ async def send_note_email(
     background_tasks.add_task(enqueue_email, note_id, email_req.to, email_req.subject)
     return {"message": "Email queued for delivery"}
 
-@api_router.post("/notes/{note_id}/git-sync")
+@api_router.get("/notes/{note_id}/export")
+async def export_note(
+    note_id: str,
+    format: str = Query("txt", regex="^(txt|md|json)$"),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Export note in various formats (txt, md, json)"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    
+    if format == "json":
+        return JSONResponse(content={
+            "id": note["id"],
+            "title": note["title"],
+            "kind": note["kind"],
+            "created_at": note["created_at"],
+            "artifacts": artifacts
+        })
+    
+    elif format == "md":
+        content = f"# {note['title']}\n\n"
+        content += f"**Created:** {note['created_at']}\n"
+        content += f"**Type:** {note['kind']}\n\n"
+        
+        if artifacts.get("transcript"):
+            content += "## Transcript\n\n"
+            content += artifacts["transcript"] + "\n\n"
+        
+        if artifacts.get("text"):
+            content += "## OCR Text\n\n"
+            content += artifacts["text"] + "\n\n"
+        
+        if artifacts.get("summary"):
+            content += "## Summary\n\n"
+            content += artifacts["summary"] + "\n\n"
+        
+        if artifacts.get("actions"):
+            content += "## Action Items\n\n"
+            for action in artifacts["actions"]:
+                content += f"- {action}\n"
+        
+        return Response(content=content, media_type="text/markdown")
+    
+    else:  # txt format
+        content = f"{note['title']}\n"
+        content += "=" * len(note['title']) + "\n\n"
+        content += f"Created: {note['created_at']}\n"
+        content += f"Type: {note['kind']}\n\n"
+        
+        if artifacts.get("transcript"):
+            content += "TRANSCRIPT:\n"
+            content += artifacts["transcript"] + "\n\n"
+        
+        if artifacts.get("text"):
+            content += "OCR TEXT:\n"
+            content += artifacts["text"] + "\n\n"
+        
+        if artifacts.get("summary"):
+            content += "SUMMARY:\n"
+            content += artifacts["summary"] + "\n\n"
+        
+        if artifacts.get("actions"):
+            content += "ACTION ITEMS:\n"
+            for action in artifacts["actions"]:
+                content += f"- {action}\n"
+        
+        return Response(content=content, media_type="text/plain")
 async def sync_note_to_git(
     note_id: str,
     background_tasks: BackgroundTasks,
