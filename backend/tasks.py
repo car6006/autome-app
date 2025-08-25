@@ -80,7 +80,16 @@ async def enqueue_transcription(note_id: str):
     try:
         signed = create_presigned_get_url(note["media_key"])
         start = time.time()
-        result = await stt_transcribe(signed)
+        
+        # Add timeout for transcription to prevent hanging
+        try:
+            result = await asyncio.wait_for(stt_transcribe(signed), timeout=300)  # 5 minute timeout
+        except asyncio.TimeoutError:
+            logger.error(f"Transcription timeout for note {note_id}")
+            await NotesStore.update_status(note_id, "failed")
+            await NotesStore.set_artifacts(note_id, {"error": "Transcription timed out after 5 minutes. Please try with a shorter audio file."})
+            return
+            
         latency_ms = int((time.time() - start) * 1000)
         
         artifacts = {
