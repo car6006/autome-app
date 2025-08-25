@@ -1542,9 +1542,10 @@ const NotesScreen = () => {
                     </div>
                   </div>
                   
-                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                    {currentReport.data.report}
-                  </div>
+                  <div 
+                    className="text-gray-800 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: formatReportText(currentReport.data.report) }}
+                  />
                   
                   {currentReport.type === 'batch' && currentReport.data.source_notes && (
                     <div className="mt-8 p-4 bg-gray-50 rounded-lg">
