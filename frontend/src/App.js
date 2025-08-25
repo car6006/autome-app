@@ -39,9 +39,11 @@ const CaptureScreen = () => {
   const [audioBlob, setAudioBlob] = useState(null);
   const [noteTitle, setNoteTitle] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [audioLevels, setAudioLevels] = useState([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const intervalRef = useRef(null);
+  const analyzerRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
