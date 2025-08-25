@@ -410,14 +410,14 @@ const HelpGuide = () => {
             </Card>
           )}
 
-          {/* Analytics */}
+          {/* Analytics & Performance */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <BarChart3 className="w-5 h-5 text-orange-600" />
-                <span>Productivity Analytics</span>
+                <span>Productivity Analytics & Performance</span>
               </CardTitle>
-              <CardDescription>Track your efficiency and time savings</CardDescription>
+              <CardDescription>Track efficiency and monitor processing performance</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
@@ -429,6 +429,7 @@ const HelpGuide = () => {
                     <li>• Average processing time</li>
                     <li>• Estimated time saved</li>
                     <li>• Content type breakdown</li>
+                    <li>• Processing status monitoring</li>
                   </ul>
                 </div>
                 <div>
@@ -436,10 +437,25 @@ const HelpGuide = () => {
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• Audio notes: ~15 minutes saved each</li>
                     <li>• Photo scans: ~10 minutes saved each</li>
-                    <li>• Automatic calculation of total impact</li>
+                    <li>• Large files: Automatic chunking efficiency</li>
+                    <li>• Batch operations: Bulk processing savings</li>
                     <li>• Weekly and monthly trends</li>
                   </ul>
                 </div>
+              </div>
+              
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-orange-600" />
+                  <span>Real-Time Processing Status</span>
+                </h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• <strong>Live Timer:</strong> See exactly how long processing takes</li>
+                  <li>• <strong>Status Updates:</strong> uploading → processing → ready</li>
+                  <li>• <strong>Progress Indicators:</strong> Visual progress bars and animations</li>
+                  <li>• <strong>Warning System:</strong> Alerts for unusually long processing times</li>
+                  <li>• <strong>Error Handling:</strong> Clear error messages with next steps</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
