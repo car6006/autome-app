@@ -331,38 +331,79 @@ const CaptureScreen = () => {
               </Card>
             )}
             
-            {audioBlob && !isRecording && (
+            {/* Audio file display */}
+            {(audioBlob || uploadedFile) && !isRecording && (
               <Card className="bg-green-50 border-green-200">
                 <CardContent className="pt-6">
-                  <div className="flex items-center justify-center space-x-3">
-                    <FileText className="w-5 h-5 text-green-600" />
-                    <span className="text-green-700 font-medium">Recording ready ({formatTime(recordingTime)})</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-green-600" />
+                      <div>
+                        <span className="text-green-700 font-medium">
+                          {audioSource === "upload" ? "Audio file uploaded" : `Recording ready (${formatTime(recordingTime)})`}
+                        </span>
+                        {uploadedFile && (
+                          <p className="text-xs text-green-600 mt-1">{uploadedFile.name}</p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAudio}
+                      className="text-green-600 hover:text-green-700"
+                    >
+                      ✕
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             )}
-            
-            <div className="flex space-x-3">
-              {!isRecording ? (
+
+            {/* Recording/Upload Controls */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {!isRecording ? (
+                  <Button 
+                    onClick={startRecording} 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3"
+                    size="lg"
+                    disabled={uploadedFile}
+                  >
+                    <Mic className="w-5 h-5 mr-2" />
+                    Record Audio
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={stopRecording} 
+                    variant="destructive" 
+                    className="py-3"
+                    size="lg"
+                  >
+                    <Square className="w-5 h-5 mr-2" />
+                    Stop Recording
+                  </Button>
+                )}
+                
                 <Button 
-                  onClick={startRecording} 
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3"
+                  onClick={() => audioUploadRef.current?.click()} 
+                  variant="outline"
+                  className="border-2 border-dashed border-blue-300 hover:border-blue-500 py-3"
                   size="lg"
+                  disabled={isRecording || audioBlob}
                 >
-                  <Mic className="w-5 h-5 mr-2" />
-                  Start Recording
+                  <Upload className="w-5 h-5 mr-2" />
+                  Upload Audio
                 </Button>
-              ) : (
-                <Button 
-                  onClick={stopRecording} 
-                  variant="destructive" 
-                  className="flex-1 py-3"
-                  size="lg"
-                >
-                  <Square className="w-5 h-5 mr-2" />
-                  Stop Recording
-                </Button>
-              )}
+              </div>
+              
+              <input
+                ref={audioUploadRef}
+                type="file"
+                accept="audio/*"
+                onChange={handleAudioUpload}
+                className="hidden"
+              />
             </div>
             
             {audioBlob && (
