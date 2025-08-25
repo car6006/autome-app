@@ -82,12 +82,30 @@ async def enqueue_transcription(note_id: str):
         start = time.time()
         
         # Add timeout for transcription to prevent hanging
+        # Calculate dynamic timeout based on file size and expected processing time
         try:
-            result = await asyncio.wait_for(stt_transcribe(signed), timeout=300)  # 5 minute timeout
+            # Get file size to estimate processing time
+            signed = create_presigned_get_url(note["media_key"])
+            
+            # For large files, allow much more time
+            import os
+            try:
+                if os.path.exists(signed):
+                    file_size = os.path.getsize(signed)
+                    # Allow 2 minutes per MB, minimum 10 minutes, maximum 30 minutes
+                    timeout_seconds = min(max(600, (file_size // (1024*1024)) * 120), 1800)
+                else:
+                    timeout_seconds = 1200  # 20 minutes default
+            except:
+                timeout_seconds = 1200  # 20 minutes default
+                
+            logger.info(f"Using timeout of {timeout_seconds} seconds ({timeout_seconds//60} minutes) for transcription")
+            
+            result = await asyncio.wait_for(stt_transcribe(signed), timeout=timeout_seconds)
         except asyncio.TimeoutError:
-            logger.error(f"Transcription timeout for note {note_id}")
+            logger.error(f"Transcription timeout for note {note_id} after {timeout_seconds} seconds")
             await NotesStore.update_status(note_id, "failed")
-            await NotesStore.set_artifacts(note_id, {"error": "Transcription timed out after 5 minutes. Please try with a shorter audio file."})
+            await NotesStore.set_artifacts(note_id, {"error": f"Transcription timed out after {timeout_seconds//60} minutes. This is an unusually long processing time - please try again or contact support if the issue persists."})
             return
             
         latency_ms = int((time.time() - start) * 1000)
