@@ -307,21 +307,30 @@ async def upload_file_for_scan(
     file: UploadFile = File(...),
     title: str = Form("Uploaded Document")
 ):
-    """Upload file directly for OCR processing (new scan feature)"""
+    """Upload file directly for processing (scan or audio)"""
     
     # Validate file type
-    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.pdf'}
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.pdf'}
+    audio_extensions = {'.mp3', '.wav', '.m4a', '.webm', '.ogg', '.mpeg'}
+    allowed_extensions = image_extensions | audio_extensions
+    
     file_ext = os.path.splitext(file.filename or '')[1].lower()
     
     if file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400, 
-            detail=f"Unsupported file type. Allowed types: {', '.join(allowed_extensions)}"
+            detail=f"Unsupported file type. Allowed: Images ({', '.join(image_extensions)}), Audio ({', '.join(audio_extensions)})"
         )
+    
+    # Determine note kind based on file type
+    if file_ext in audio_extensions or file.content_type.startswith('audio/'):
+        note_kind = "audio"
+    else:
+        note_kind = "photo"
     
     # Create note for the upload
     user_id = current_user["id"] if current_user else None
-    note_id = await NotesStore.create(title, "photo", user_id)
+    note_id = await NotesStore.create(title, note_kind, user_id)
     
     # Store the file
     file_content = await file.read()
@@ -330,14 +339,18 @@ async def upload_file_for_scan(
     # Update note with media key
     await NotesStore.update_media_key(note_id, media_key)
     
-    # Queue OCR processing
-    background_tasks.add_task(enqueue_ocr, note_id)
+    # Queue appropriate processing
+    if note_kind == "audio":
+        background_tasks.add_task(enqueue_transcription, note_id)
+    else:
+        background_tasks.add_task(enqueue_ocr, note_id)
     
     return {
         "id": note_id,
-        "message": "File uploaded successfully",
+        "message": f"{'Audio' if note_kind == 'audio' else 'File'} uploaded successfully",
         "status": "processing",
-        "filename": file.filename
+        "filename": file.filename,
+        "kind": note_kind
     }
 
 @api_router.get("/notes/{note_id}", response_model=NoteResponse)
