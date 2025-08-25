@@ -509,6 +509,7 @@ const NotesScreen = () => {
   const [editingNote, setEditingNote] = useState(null);
   const [editedTranscript, setEditedTranscript] = useState("");
   const [saving, setSaving] = useState(false);
+  const [processingTimes, setProcessingTimes] = useState({});
   const { toast } = useToast();
 
   useEffect(() => {
