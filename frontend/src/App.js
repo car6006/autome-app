@@ -168,6 +168,15 @@ const CaptureScreen = () => {
     setAudioLevels([]);
   };
 
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      clearInterval(intervalRef.current);
+      toast({ title: "✅ Recording stopped", description: "Processing your audio..." });
+    }
+  };
+
   const uploadAndProcess = async () => {
     if (!audioBlob || !noteTitle.trim()) {
       toast({ title: "Missing info", description: "Please add a title and record audio", variant: "destructive" });
