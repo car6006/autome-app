@@ -1041,6 +1041,13 @@ const Navigation = () => {
         </div>
       </div>
       
+      {/* Floating Help Button */}
+      <Link to="/help" className="fixed top-6 right-6 z-50">
+        <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300">
+          <HelpCircle className="w-6 h-6 text-white" />
+        </div>
+      </Link>
+      
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </>
   );
