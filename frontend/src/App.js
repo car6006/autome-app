@@ -380,14 +380,26 @@ const PhotoScanScreen = () => {
               </Card>
             )}
             
-            <Button 
-              onClick={takePicture} 
-              className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-3"
-              size="lg"
-            >
-              <Camera className="w-5 h-5 mr-2" />
-              {selectedFile ? 'Choose Different Photo' : 'Take Photo'}
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                onClick={takePicture} 
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-3"
+                size="lg"
+              >
+                <Camera className="w-5 h-5 mr-2" />
+                {selectedFile ? 'New Photo' : 'Take Photo'}
+              </Button>
+              
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                variant="outline"
+                className="border-2 border-dashed border-blue-300 hover:border-blue-500 py-3"
+                size="lg"
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                Upload File
+              </Button>
+            </div>
             
             {selectedFile && (
               <Button 
