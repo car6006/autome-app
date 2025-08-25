@@ -117,7 +117,16 @@ async def enqueue_ocr(note_id: str):
     try:
         signed = create_presigned_get_url(note["media_key"])
         start = time.time()
-        result = await ocr_read(signed)
+        
+        # Add timeout for OCR to prevent hanging
+        try:
+            result = await asyncio.wait_for(ocr_read(signed), timeout=180)  # 3 minute timeout
+        except asyncio.TimeoutError:
+            logger.error(f"OCR timeout for note {note_id}")
+            await NotesStore.update_status(note_id, "failed")
+            await NotesStore.set_artifacts(note_id, {"error": "OCR processing timed out after 3 minutes. Please try with a smaller or clearer image."})
+            return
+            
         latency_ms = int((time.time() - start) * 1000)
         
         artifacts = {
