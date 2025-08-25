@@ -1012,8 +1012,47 @@ const NotesScreen = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Notes</h1>
-          <p className="text-gray-600">Manage and share your captured content</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Notes</h1>
+              <p className="text-gray-600">Manage and share your captured content</p>
+            </div>
+            
+            {/* Batch Report Controls */}
+            {selectedNotesForBatch.length > 0 && (
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 px-3 py-1 rounded-full">
+                  <span className="text-sm font-medium text-blue-800">
+                    {selectedNotesForBatch.length} selected
+                  </span>
+                </div>
+                <Button
+                  onClick={generateBatchReport}
+                  disabled={generatingReport.batch}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                >
+                  {generatingReport.batch ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-4 h-4 mr-2" />
+                      Batch Report
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedNotesForBatch([])}
+                  size="sm"
+                >
+                  Clear
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
