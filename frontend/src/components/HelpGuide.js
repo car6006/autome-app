@@ -4,7 +4,8 @@ import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { 
   Mic, Camera, Upload, FileText, Mail, Download, Edit, 
-  Crown, Network, BarChart3, User, Zap
+  Crown, Network, BarChart3, User, Zap, FileBarChart, Users, 
+  Clock, Layers, Scissors, Sparkles
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -19,7 +20,7 @@ const HelpGuide = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">AUTO-ME Help Guide</h1>
-          <p className="text-gray-600">Learn how to maximize your productivity with AUTO-ME</p>
+          <p className="text-gray-600">Master your productivity with AI-powered features</p>
         </div>
 
         <div className="space-y-6">
@@ -30,30 +31,37 @@ const HelpGuide = () => {
                 <Zap className="w-5 h-5 text-yellow-600" />
                 <span>Quick Start</span>
               </CardTitle>
-              <CardDescription>Get started in 3 easy steps</CardDescription>
+              <CardDescription>Get started in 4 easy steps</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-bold">1</span>
                   </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Record or Scan</h3>
-                  <p className="text-sm text-gray-600">Capture audio notes or scan documents</p>
+                  <h3 className="font-semibold text-gray-800 mb-2">Record or Upload</h3>
+                  <p className="text-sm text-gray-600">Record live or upload existing audio/documents</p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="w-12 h-12 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
                     <span className="text-green-600 font-bold">2</span>
                   </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Process</h3>
-                  <p className="text-sm text-gray-600">AI automatically transcribes and extracts text</p>
+                  <h3 className="font-semibold text-gray-800 mb-2">AI Processing</h3>
+                  <p className="text-sm text-gray-600">Automatic transcription and text extraction</p>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="w-12 h-12 mx-auto mb-3 bg-purple-100 rounded-full flex items-center justify-center">
                     <span className="text-purple-600 font-bold">3</span>
                   </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Generate Reports</h3>
+                  <p className="text-sm text-gray-600">Create professional business analysis</p>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span className="text-orange-600 font-bold">4</span>
+                  </div>
                   <h3 className="font-semibold text-gray-800 mb-2">Share & Export</h3>
-                  <p className="text-sm text-gray-600">Email, export, or sync your processed content</p>
+                  <p className="text-sm text-gray-600">Email, export, or sync your content</p>
                 </div>
               </div>
             </CardContent>
