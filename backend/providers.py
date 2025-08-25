@@ -70,6 +70,35 @@ async def ocr_read(file_url: str):
             if not api_key:
                 return {"text":"", "summary":"", "actions":[], "note":"missing OPENAI_API_KEY"}
             
+            # Check if it's a PDF file
+            if local.lower().endswith('.pdf'):
+                try:
+                    # For PDFs, we'll extract text directly using a simple approach
+                    # Note: This is a basic implementation. For production, consider using PyPDF2 or similar
+                    with open(local, "rb") as f:
+                        content = f.read()
+                    
+                    # Try to extract text from PDF (very basic approach)
+                    text_content = ""
+                    try:
+                        # Convert bytes to string and look for readable text
+                        content_str = content.decode('latin1', errors='ignore')
+                        # Simple text extraction - look for readable characters
+                        import re
+                        text_matches = re.findall(r'[A-Za-z0-9\s\.,!?;:()"\'-]+', content_str)
+                        text_content = ' '.join([match.strip() for match in text_matches if len(match.strip()) > 3])
+                        
+                        if len(text_content) < 10:
+                            return {"text": "PDF text extraction failed. This PDF may contain images or be encrypted. Please try converting to an image format (PNG/JPG) first.", "summary": "", "actions": []}
+                        
+                        return {"text": text_content[:2000], "summary": "", "actions": []}  # Limit to 2000 chars
+                    except Exception as e:
+                        return {"text": "PDF processing not fully supported yet. Please convert your PDF to an image (PNG/JPG) for better OCR results.", "summary": "", "actions": []}
+                        
+                except Exception as e:
+                    return {"text": "PDF processing failed. Please try uploading an image format (PNG, JPG) instead.", "summary": "", "actions": []}
+            
+            # For image files, continue with OpenAI Vision API
             # Convert image to base64
             with open(local, "rb") as f:
                 image_data = base64.b64encode(f.read()).decode()
@@ -80,6 +109,8 @@ async def ocr_read(file_url: str):
                 image_format = "png"
             elif local.lower().endswith('.webp'):
                 image_format = "webp"
+            elif local.lower().endswith('.gif'):
+                return {"text": "GIF files are not supported for OCR. Please use PNG or JPG.", "summary": "", "actions": []}
             
             # Use OpenAI Vision API
             payload = {
