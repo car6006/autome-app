@@ -1585,8 +1585,11 @@ const NotesScreen = () => {
                   onClick={() => downloadReport(
                     currentReport.data.report, 
                     currentReport.type === 'batch' 
-                      ? `batch-report-${Date.now()}` 
-                      : `report-${currentReport.noteId}`
+                      ? `Batch Report ${Date.now()}` 
+                      : `Report ${currentReport.noteId}`,
+                    currentReport.type === 'batch' 
+                      ? currentReport.data.title
+                      : currentReport.data.note_title
                   )}
                   className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
                 >
