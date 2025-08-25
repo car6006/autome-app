@@ -515,7 +515,16 @@ const NotesScreen = () => {
   useEffect(() => {
     fetchNotes();
     const interval = setInterval(fetchNotes, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
+    
+    // Update processing times every second for better UX
+    const timeInterval = setInterval(() => {
+      setProcessingTimes(prev => ({ ...prev })); // Trigger re-render for time updates
+    }, 1000);
+    
+    return () => {
+      clearInterval(interval);
+      clearInterval(timeInterval);
+    };
   }, []);
 
   const fetchNotes = async () => {
