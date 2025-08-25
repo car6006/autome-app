@@ -360,23 +360,34 @@ const PhotoScanScreen = () => {
   const cameraInputRef = useRef(null);
 
   const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
+    const files = Array.from(event.target.files);
+    if (files.length > 0) {
+      setSelectedFiles(files);
       
-      // Create preview based on file type
-      if (file.type === 'application/pdf') {
-        // For PDFs, show a PDF icon instead of trying to preview
-        setPreview('PDF');
-      } else if (file.type.startsWith('image/')) {
-        // For images, create normal preview
-        const reader = new FileReader();
-        reader.onload = (e) => setPreview(e.target.result);
-        reader.readAsDataURL(file);
-      } else {
-        // For other file types
-        setPreview('FILE');
-      }
+      // Create previews for each file
+      const newPreviews = [];
+      const newProgress = [];
+      
+      files.forEach((file, index) => {
+        newProgress.push({ progress: 0, status: 'ready' });
+        
+        if (file.type === 'application/pdf') {
+          newPreviews.push({ type: 'PDF', name: file.name, file });
+        } else if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            newPreviews[index] = { type: 'IMAGE', name: file.name, src: e.target.result, file };
+            setPreviews([...newPreviews]);
+          };
+          reader.readAsDataURL(file);
+          newPreviews.push({ type: 'IMAGE', name: file.name, src: null, file });
+        } else {
+          newPreviews.push({ type: 'FILE', name: file.name, file });
+        }
+      });
+      
+      setPreviews(newPreviews);
+      setUploadProgress(newProgress);
     }
   };
 
