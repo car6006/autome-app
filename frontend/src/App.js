@@ -617,14 +617,94 @@ const NotesScreen = () => {
                   <div className="space-y-3">
                     {note.artifacts.transcript && (
                       <div>
-                        <Label className="text-xs font-semibold text-gray-700">TRANSCRIPT</Label>
-                        <p className="text-sm text-gray-600 line-clamp-3">{note.artifacts.transcript}</p>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-semibold text-gray-700">TRANSCRIPT</Label>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEditingTranscript(note)}
+                            className="h-6 px-2"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        {editingNote === note.id ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editedTranscript}
+                              onChange={(e) => setEditedTranscript(e.target.value)}
+                              className="min-h-[100px] text-sm"
+                              placeholder="Edit transcript..."
+                            />
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                onClick={saveEditedTranscript}
+                                disabled={saving}
+                                className="flex-1"
+                              >
+                                {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={cancelEditing}
+                                disabled={saving}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-600 line-clamp-3">{note.artifacts.transcript}</p>
+                        )}
                       </div>
                     )}
-                    {note.artifacts.text && (
+                    {note.artifacts.text && !note.artifacts.transcript && (
                       <div>
-                        <Label className="text-xs font-semibold text-gray-700">EXTRACTED TEXT</Label>
-                        <p className="text-sm text-gray-600 line-clamp-3">{note.artifacts.text}</p>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-semibold text-gray-700">EXTRACTED TEXT</Label>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEditingTranscript(note)}
+                            className="h-6 px-2"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        {editingNote === note.id ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editedTranscript}
+                              onChange={(e) => setEditedTranscript(e.target.value)}
+                              className="min-h-[100px] text-sm"
+                              placeholder="Edit extracted text..."
+                            />
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                onClick={saveEditedTranscript}
+                                disabled={saving}
+                                className="flex-1"
+                              >
+                                {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={cancelEditing}
+                                disabled={saving}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-600 line-clamp-3">{note.artifacts.text}</p>
+                        )}
                       </div>
                     )}
                   </div>
