@@ -313,7 +313,7 @@ const HelpGuide = () => {
                 <FileText className="w-5 h-5 text-purple-600" />
                 <span>Managing Your Notes</span>
               </CardTitle>
-              <CardDescription>View, edit, and share your processed content</CardDescription>
+              <CardDescription>View, edit, share, and organize your processed content</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-3">
@@ -324,8 +324,9 @@ const HelpGuide = () => {
                   </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• Click edit icon to modify transcripts</li>
-                    <li>• Save changes locally</li>
+                    <li>• Real-time saving as you type</li>
                     <li>• Review accuracy before sharing</li>
+                    <li>• Undo/redo support</li>
                   </ul>
                 </div>
                 <div className="space-y-2">
@@ -337,6 +338,7 @@ const HelpGuide = () => {
                     <li>• Email notes directly</li>
                     <li>• Add custom subject lines</li>
                     <li>• Multiple recipients supported</li>
+                    <li>• Professional formatting</li>
                   </ul>
                 </div>
                 <div className="space-y-2">
@@ -348,8 +350,20 @@ const HelpGuide = () => {
                     <li>• TXT - Plain text format</li>
                     <li>• MD - Markdown format</li>
                     <li>• JSON - Structured data</li>
+                    <li>• Professional reports</li>
                   </ul>
                 </div>
+              </div>
+              
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2">🗂️ Organization Features</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• <strong>Archive:</strong> Move completed notes to archive (yellow button)</li>
+                  <li>• <strong>Delete:</strong> Permanently remove notes (red button)</li>
+                  <li>• <strong>Batch Selection:</strong> Select multiple notes for batch operations</li>
+                  <li>• <strong>Status Tracking:</strong> Monitor processing progress with real-time updates</li>
+                  <li>• <strong>Search & Filter:</strong> Quickly find specific notes</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
