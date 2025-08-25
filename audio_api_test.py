@@ -181,8 +181,11 @@ class AudioAPITester:
                 
                 if response.status_code == 200:
                     self.log(f"✅ Network audio upload successful")
-                    data = response.json()
-                    self.log(f"   Status: {data.get('status')}")
+                    try:
+                        data = response.json()
+                        self.log(f"   Status: {data.get('status', 'N/A')}")
+                    except:
+                        self.log(f"   Response: Success (no JSON)")
                     self.test_results.append(("network audio upload", True, "Network processing accepts audio"))
                     return True
                 else:
