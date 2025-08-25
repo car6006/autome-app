@@ -312,10 +312,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix notes stuck in processing status"
-    - "Fix export functionality for notes"
-  stuck_tasks:
-    - "Fix notes stuck in processing status"
+    - "Fix email delivery functionality"
+    - "Implement file upload for scan feature"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
