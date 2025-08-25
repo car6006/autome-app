@@ -38,13 +38,16 @@ const CaptureScreen = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [noteTitle, setNoteTitle] = useState("");
   const [processing, setProcessing] = useState(false);
   const [audioLevels, setAudioLevels] = useState([]);
+  const [audioSource, setAudioSource] = useState("record"); // "record" or "upload"
   const { toast } = useToast();
   const { user } = useAuth();
   const intervalRef = useRef(null);
   const analyzerRef = useRef(null);
+  const audioUploadRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
