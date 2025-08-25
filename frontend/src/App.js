@@ -498,7 +498,21 @@ const PhotoScanScreen = () => {
             {preview && (
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="pt-6">
-                  <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                  {preview === 'PDF' ? (
+                    <div className="w-full h-48 bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex flex-col items-center justify-center">
+                      <div className="text-6xl mb-2">📄</div>
+                      <p className="text-lg font-semibold text-gray-700">PDF Document</p>
+                      <p className="text-sm text-gray-500">{selectedFile?.name}</p>
+                    </div>
+                  ) : preview === 'FILE' ? (
+                    <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-blue-100 rounded-lg flex flex-col items-center justify-center">
+                      <div className="text-6xl mb-2">📁</div>
+                      <p className="text-lg font-semibold text-gray-700">Document</p>
+                      <p className="text-sm text-gray-500">{selectedFile?.name}</p>
+                    </div>
+                  ) : (
+                    <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                  )}
                 </CardContent>
               </Card>
             )}
