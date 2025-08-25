@@ -68,6 +68,34 @@ const CaptureScreen = () => {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
       
+      // Set up audio analysis for waveform
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyzer = audioContext.createAnalyser();
+      analyzer.fftSize = 256;
+      source.connect(analyzer);
+      analyzerRef.current = analyzer;
+      
+      // Start waveform animation
+      const animateWaveform = () => {
+        if (isRecording) {
+          const bufferLength = analyzer.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          analyzer.getByteFrequencyData(dataArray);
+          
+          // Generate wave levels (simplified visualization)
+          const levels = [];
+          for (let i = 0; i < 20; i++) {
+            const level = dataArray[i * 2] || 0;
+            levels.push(Math.min(level / 255 * 100, 100));
+          }
+          setAudioLevels(levels);
+          
+          if (isRecording) {
+            requestAnimationFrame(animateWaveform);
+          }
+        }
+      };
+      
       mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
       });
@@ -83,11 +111,15 @@ const CaptureScreen = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         setAudioBlob(blob);
         stream.getTracks().forEach(track => track.stop());
+        setAudioLevels([]);
       };
       
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
+      
+      // Start waveform animation
+      requestAnimationFrame(animateWaveform);
       
       intervalRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
