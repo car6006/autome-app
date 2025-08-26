@@ -1798,7 +1798,7 @@ const MetricsScreen = () => {
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <Card className={`${theme.cardClass}`}>
             <CardHeader>
               <CardTitle className="text-xl">Content Breakdown</CardTitle>
             </CardHeader>
@@ -1806,7 +1806,7 @@ const MetricsScreen = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Mic className="w-5 h-5 text-blue-600" />
+                    <Mic className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-blue-600'}`} />
                     <span>Audio Notes</span>
                   </div>
                   <Badge variant="secondary">{metrics?.notes_audio || 0}</Badge>
