@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, validator
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pathlib import Path
