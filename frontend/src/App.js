@@ -866,8 +866,8 @@ const NotesScreen = () => {
   const branding = getBrandingElements(user);
 
   useEffect(() => {
-    fetchNotes();
-    const interval = setInterval(fetchNotes, 3000); // Poll every 3 seconds instead of 5
+    fetchNotes(showArchived);
+    const interval = setInterval(() => fetchNotes(showArchived), 3000); // Poll every 3 seconds instead of 5
     
     // Update processing times every second for better UX
     const timeInterval = setInterval(() => {
@@ -878,7 +878,7 @@ const NotesScreen = () => {
       clearInterval(interval);
       clearInterval(timeInterval);
     };
-  }, []);
+  }, [showArchived]);
 
   const fetchNotes = async (includeArchived = false) => {
     try {
