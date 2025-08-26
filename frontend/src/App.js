@@ -858,6 +858,7 @@ const NotesScreen = () => {
   const [showMeetingMinutesPreview, setShowMeetingMinutesPreview] = useState(false);
   const [meetingMinutes, setMeetingMinutes] = useState("");
   const [generatingMinutes, setGeneratingMinutes] = useState(false);
+  const [currentNoteForMinutes, setCurrentNoteForMinutes] = useState(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
