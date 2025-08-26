@@ -383,6 +383,14 @@ const CaptureScreen = () => {
       mediaRecorder.stop();
       setIsRecording(false);
       clearInterval(intervalRef.current);
+      
+      // Release wake lock
+      if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+        console.log('Wake lock released - screen can sleep normally');
+      }
+      
       toast({ title: "✅ Recording stopped", description: "Processing your audio..." });
     }
   };
