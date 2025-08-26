@@ -850,6 +850,9 @@ const NotesScreen = () => {
   const [currentReport, setCurrentReport] = useState(null);
   const [selectedNotesForBatch, setSelectedNotesForBatch] = useState([]);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
 
   useEffect(() => {
     fetchNotes();
