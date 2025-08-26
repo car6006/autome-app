@@ -257,7 +257,7 @@ const CaptureScreen = () => {
   };
 
   return (
-    <div className={`min-h-screen p-4 ${theme.gradientBg}`}>
+    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : theme.gradientBg}`}>
       <div className="max-w-md mx-auto">
         {/* User greeting with Expeditors branding */}
         {user && (
@@ -271,8 +271,8 @@ const CaptureScreen = () => {
                 />
               </div>
             )}
-            <p className={`text-sm ${theme.isExpeditors ? 'text-gray-300' : 'text-gray-600'}`}>
-              Hey there, <span className={`font-semibold ${theme.accentColor}`}>
+            <p className={`text-sm ${theme.isExpeditors ? 'text-gray-700' : 'text-gray-600'}`}>
+              Hey there, <span className={`font-semibold ${theme.isExpeditors ? 'text-red-600' : theme.accentColor}`}>
                 {user.profile?.first_name || user.username}
               </span>! 👋
             </p>
@@ -280,7 +280,7 @@ const CaptureScreen = () => {
         )}
         
         <Card className={`${theme.cardClass}`}>
-          <CardHeader className={`${theme.headerClass}`}>
+          <CardHeader className={`${theme.isExpeditors ? 'text-center pb-6' : theme.headerClass}`}>
             <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
               theme.isExpeditors 
                 ? 'bg-gradient-to-r from-red-600 to-red-700' 
@@ -288,10 +288,10 @@ const CaptureScreen = () => {
             }`}>
               <Mic className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className={`text-2xl font-bold ${theme.isExpeditors ? 'text-white' : 'text-gray-800'}`}>
+            <CardTitle className={`text-2xl font-bold ${theme.isExpeditors ? 'text-gray-800' : 'text-gray-800'}`}>
               Voice Capture
             </CardTitle>
-            <CardDescription className={`${theme.isExpeditors ? 'text-gray-200' : 'text-gray-600'}`}>
+            <CardDescription className={`${theme.isExpeditors ? 'text-gray-600' : 'text-gray-600'}`}>
               Record audio for instant transcription
             </CardDescription>
           </CardHeader>
