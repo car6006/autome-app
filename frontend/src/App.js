@@ -1195,7 +1195,7 @@ const NotesScreen = () => {
   };
 
   const generateMeetingMinutes = async (note) => {
-    setGeneratingMinutes(true);
+    setGeneratingMinutes(prev => ({...prev, [note.id]: true}));
     try {
       const response = await axios.post(`${API}/notes/${note.id}/generate-meeting-minutes`);
       
@@ -1215,7 +1215,7 @@ const NotesScreen = () => {
         variant: "destructive" 
       });
     } finally {
-      setGeneratingMinutes(false);
+      setGeneratingMinutes(prev => ({...prev, [note.id]: false}));
     }
   };
 
