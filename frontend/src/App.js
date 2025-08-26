@@ -1760,10 +1760,14 @@ const MetricsScreen = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <Card className={`${theme.cardClass}`}>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                    : 'bg-gradient-to-r from-purple-500 to-pink-600'
+                }`}>
                   <Zap className="w-6 h-6 text-white" />
                 </div>
                 <div>
