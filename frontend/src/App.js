@@ -1783,7 +1783,8 @@ const NotesScreen = () => {
                         <span>
                           {note.kind === 'audio' && 'Audio transcription failed. Check audio quality and try again.'}
                           {note.kind === 'photo' && 'OCR processing failed. Ensure image is clear and readable.'}
-                          {!note.kind.match(/audio|photo/) && 'Processing failed. Please try again.'}
+                          {note.kind === 'text' && 'Text note processing failed. Please try again.'}
+                          {!note.kind.match(/audio|photo|text/) && 'Processing failed. Please try again.'}
                         </span>
                       )}
                     </div>
