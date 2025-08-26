@@ -2300,17 +2300,6 @@ const Navigation = () => {
       <div className={`fixed bottom-0 left-0 right-0 ${theme.navClass} px-4 py-3`}>
         <div className={`flex justify-around items-center max-w-md mx-auto ${hasExpeditorsAccess ? 'max-w-lg' : ''}`}>
           
-          {/* Show Expeditors Logo for Expeditors users */}
-          {branding.showLogo && (
-            <div className="absolute left-4 top-2">
-              <img 
-                src={branding.logoPath} 
-                alt="Expeditors" 
-                className="expeditors-logo"
-              />
-            </div>
-          )}
-          
           <Link to="/capture" className="flex flex-col items-center space-y-1 p-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
               theme.isExpeditors 
