@@ -879,15 +879,18 @@ const NotesScreen = () => {
     };
   }, []);
 
-  const fetchNotes = async () => {
+  const fetchNotes = async (includeArchived = false) => {
     try {
-      const response = await axios.get(`${API}/notes`);
-      const fetchedNotes = response.data;
+      const response = await axios.get(`${API}/notes${includeArchived ? '?include_archived=true' : ''}`);
+      const allNotes = response.data;
+      
+      // Filter notes based on archive status
+      const filteredNotes = includeArchived ? allNotes : allNotes.filter(note => !note.archived);
       
       // Track processing times for notes that are processing
       const updatedProcessingTimes = { ...processingTimes };
       
-      fetchedNotes.forEach(note => {
+      filteredNotes.forEach(note => {
         if (note.status === 'processing' || note.status === 'uploading') {
           if (!updatedProcessingTimes[note.id]) {
             // Start tracking time for new processing notes
@@ -900,9 +903,10 @@ const NotesScreen = () => {
       });
       
       setProcessingTimes(updatedProcessingTimes);
-      setNotes(fetchedNotes);
+      setNotes(filteredNotes);
     } catch (error) {
       console.error('Error fetching notes:', error);
+      toast({ title: "Error", description: "Failed to load notes", variant: "destructive" });
     } finally {
       setLoading(false);
     }
