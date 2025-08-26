@@ -1283,7 +1283,8 @@ async def generate_batch_report(
             }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate batch report: {str(e)}")
+        logger.error(f"Batch report generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Batch report generation temporarily unavailable")
 
 @api_router.get("/notes/{note_id}/export")
 async def export_note(
