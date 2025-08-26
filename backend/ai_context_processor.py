@@ -1,0 +1,278 @@
+import logging
+from typing import Dict, Any, Optional, List
+import re
+
+logger = logging.getLogger(__name__)
+
+class AIContextProcessor:
+    """Dynamic AI context generation based on user profession and content type"""
+    
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        
+        # Profession-based context templates
+        self.profession_contexts = {
+            # Logistics & Supply Chain
+            'logistics': {
+                'keywords': ['logistics', 'supply chain', 'freight', 'cargo', 'shipping', 'distribution', 'warehouse'],
+                'analysis_focus': [
+                    'Cost optimization opportunities',
+                    'Supply chain risks and mitigation strategies',
+                    'Operational efficiency improvements',
+                    'Vendor/carrier performance analysis',
+                    'Inventory management insights',
+                    'Transportation mode recommendations',
+                    'Cross-border compliance considerations'
+                ],
+                'terminology': 'logistics terminology (FOB, CIF, LCL, FCL, etc.)',
+                'metrics': ['cost per shipment', 'transit times', 'delivery reliability', 'inventory turnover'],
+                'stakeholders': ['suppliers', 'carriers', 'customs', 'customers', 'distribution centers']
+            },
+            
+            # Construction & Trades
+            'construction': {
+                'keywords': ['construction', 'building', 'contractor', 'site', 'materials', 'safety', 'project'],
+                'analysis_focus': [
+                    'Project timeline and milestone analysis',
+                    'Safety risk assessment and compliance',
+                    'Material cost optimization',
+                    'Labor productivity insights',
+                    'Quality control recommendations',
+                    'Regulatory compliance requirements',
+                    'Equipment utilization efficiency'
+                ],
+                'terminology': 'construction terminology (BOQ, RFI, CO, etc.)',
+                'metrics': ['project progress', 'cost per square meter', 'safety incidents', 'material waste'],
+                'stakeholders': ['architects', 'engineers', 'contractors', 'inspectors', 'clients']
+            },
+            
+            # Automotive (Panel Beater, Mechanic)
+            'automotive': {
+                'keywords': ['automotive', 'panel', 'paint', 'repair', 'vehicle', 'insurance', 'customer'],
+                'analysis_focus': [
+                    'Repair process efficiency analysis',
+                    'Cost estimation accuracy',
+                    'Quality control standards',
+                    'Customer satisfaction insights',
+                    'Insurance claim processing',
+                    'Workflow optimization opportunities',
+                    'Equipment maintenance recommendations'
+                ],
+                'terminology': 'automotive repair terminology',
+                'metrics': ['repair time', 'cost per job', 'customer satisfaction', 'rework rates'],
+                'stakeholders': ['customers', 'insurance companies', 'parts suppliers', 'inspectors']
+            },
+            
+            # Sales & CRM
+            'sales': {
+                'keywords': ['sales', 'customer', 'client', 'deal', 'pipeline', 'revenue', 'target'],
+                'analysis_focus': [
+                    'Sales pipeline analysis and forecasting',
+                    'Customer relationship insights',
+                    'Revenue optimization opportunities',
+                    'Market trends and competitive analysis',
+                    'Sales process improvement recommendations',
+                    'Customer retention strategies',
+                    'Territory performance analysis'
+                ],
+                'terminology': 'sales and CRM terminology',
+                'metrics': ['conversion rates', 'average deal size', 'sales cycle length', 'customer lifetime value'],
+                'stakeholders': ['prospects', 'customers', 'partners', 'sales team', 'management']
+            },
+            
+            # Healthcare
+            'healthcare': {
+                'keywords': ['patient', 'medical', 'healthcare', 'clinical', 'treatment', 'diagnosis'],
+                'analysis_focus': [
+                    'Patient care quality improvements',
+                    'Clinical workflow optimization',
+                    'Compliance and regulatory considerations',
+                    'Resource allocation efficiency',
+                    'Patient satisfaction insights',
+                    'Risk management recommendations',
+                    'Technology integration opportunities'
+                ],
+                'terminology': 'medical terminology',
+                'metrics': ['patient outcomes', 'treatment times', 'satisfaction scores', 'readmission rates'],
+                'stakeholders': ['patients', 'medical staff', 'administrators', 'regulators']
+            },
+            
+            # Manufacturing
+            'manufacturing': {
+                'keywords': ['production', 'manufacturing', 'quality', 'assembly', 'factory', 'equipment'],
+                'analysis_focus': [
+                    'Production efficiency optimization',
+                    'Quality control improvements',
+                    'Equipment maintenance strategies',
+                    'Waste reduction opportunities',
+                    'Safety protocol enhancements',
+                    'Supply chain coordination',
+                    'Cost reduction initiatives'
+                ],
+                'terminology': 'manufacturing terminology (OEE, lean, six sigma, etc.)',
+                'metrics': ['production yield', 'defect rates', 'equipment uptime', 'cost per unit'],
+                'stakeholders': ['operators', 'supervisors', 'quality team', 'maintenance', 'suppliers']
+            }
+        }
+        
+        # Content type detection patterns
+        self.content_types = {
+            'meeting_minutes': {
+                'patterns': ['meeting', 'discussed', 'agenda', 'attendees', 'action items', 'decisions'],
+                'structure': 'formal meeting minutes format'
+            },
+            'crm_notes': {
+                'patterns': ['customer', 'client call', 'follow up', 'proposal', 'quote', 'lead'],
+                'structure': 'CRM activity log format'
+            },
+            'project_update': {
+                'patterns': ['project', 'milestone', 'progress', 'timeline', 'deliverable', 'status'],
+                'structure': 'project status report format'
+            },
+            'incident_report': {
+                'patterns': ['incident', 'issue', 'problem', 'fault', 'error', 'failure'],
+                'structure': 'incident analysis format'
+            },
+            'daily_standup': {
+                'patterns': ['yesterday', 'today', 'tomorrow', 'blockers', 'completed', 'working on'],
+                'structure': 'daily standup summary format'
+            }
+        }
+    
+    def detect_profession_context(self, user_profile: Dict[str, Any]) -> str:
+        """Detect user's profession context from profile"""
+        profession = user_profile.get('profession', '').lower()
+        industry = user_profile.get('industry', '').lower()
+        interests = user_profile.get('interests', '').lower()
+        
+        combined_text = f"{profession} {industry} {interests}".lower()
+        
+        # Check for direct matches or keyword matches
+        for prof_key, prof_data in self.profession_contexts.items():
+            if prof_key in combined_text:
+                return prof_key
+            
+            # Check for keyword matches
+            keyword_matches = sum(1 for keyword in prof_data['keywords'] if keyword in combined_text)
+            if keyword_matches >= 2:  # At least 2 keyword matches
+                return prof_key
+        
+        # Default to generic business context
+        return 'business'
+    
+    def detect_content_type(self, content: str) -> str:
+        """Detect the type of content being analyzed"""
+        content_lower = content.lower()
+        
+        for content_type, type_data in self.content_types.items():
+            pattern_matches = sum(1 for pattern in type_data['patterns'] if pattern in content_lower)
+            if pattern_matches >= 2:  # At least 2 pattern matches
+                return content_type
+        
+        return 'general'
+    
+    def generate_dynamic_prompt(self, 
+                              content: str, 
+                              user_profile: Dict[str, Any], 
+                              analysis_type: str = 'general') -> str:
+        """Generate dynamic AI prompt based on user context and content"""
+        
+        profession_key = self.detect_profession_context(user_profile)
+        content_type = self.detect_content_type(content)
+        
+        # Get profession context
+        profession_context = self.profession_contexts.get(profession_key, {})
+        
+        # Build personalized prompt
+        user_name = user_profile.get('first_name', 'User')
+        profession = user_profile.get('profession', 'Professional')
+        industry = user_profile.get('industry', 'your industry')
+        
+        prompt = f"""
+        You are an AI assistant specializing in {industry} and working with {user_name}, a {profession}.
+        
+        Content to analyze:
+        {content}
+        
+        Context: This appears to be {content_type.replace('_', ' ')} content from a {profession} in {industry}.
+        """
+        
+        # Add profession-specific analysis focus
+        if profession_context:
+            prompt += f"""
+            
+            Focus your analysis on these {profession} priorities:
+            """
+            for focus_area in profession_context.get('analysis_focus', [])[:5]:  # Top 5 priorities
+                prompt += f"\n            • {focus_area}"
+            
+            # Add relevant metrics
+            if profession_context.get('metrics'):
+                prompt += f"""
+                
+                Consider these key {profession} metrics: {', '.join(profession_context['metrics'])}
+                """
+            
+            # Add stakeholder context
+            if profession_context.get('stakeholders'):
+                prompt += f"""
+                
+                Consider impacts on these stakeholders: {', '.join(profession_context['stakeholders'])}
+                """
+        
+        # Content type specific instructions
+        if analysis_type == 'meeting_minutes':
+            prompt += f"""
+            
+            Structure your response as professional meeting minutes with:
+            • ATTENDEES (infer from content)
+            • KEY DISCUSSIONS (main topics covered)
+            • DECISIONS MADE (specific to {profession} work)
+            • ACTION ITEMS (with {profession}-specific priorities)
+            • NEXT STEPS (relevant to {industry} context)
+            """
+        
+        elif analysis_type == 'insights':
+            prompt += f"""
+            
+            Provide {profession}-specific insights including:
+            • KEY INSIGHTS (relevant to {industry})
+            • OPPORTUNITIES (for {profession} improvement)
+            • RISKS & CHALLENGES (industry-specific)
+            • RECOMMENDED ACTIONS (actionable for a {profession})
+            """
+        
+        elif analysis_type == 'summary':
+            prompt += f"""
+            
+            Create a {profession}-focused summary highlighting:
+            • EXECUTIVE OVERVIEW (for {industry} leadership)
+            • CRITICAL POINTS (important for {profession} role)
+            • IMPACT ASSESSMENT (on {industry} operations)
+            • FOLLOW-UP PRIORITIES (for {profession})
+            """
+        
+        prompt += f"""
+        
+        Use professional {industry} language and terminology. Be specific and actionable.
+        Avoid generic business advice - focus on {profession}-relevant insights.
+        """
+        
+        return prompt.strip()
+    
+    def get_context_summary(self, user_profile: Dict[str, Any]) -> Dict[str, Any]:
+        """Get a summary of the user's context for debugging/display"""
+        profession_key = self.detect_profession_context(user_profile)
+        profession_context = self.profession_contexts.get(profession_key, {})
+        
+        return {
+            'profession_detected': profession_key,
+            'user_profession': user_profile.get('profession', 'Not specified'),
+            'user_industry': user_profile.get('industry', 'Not specified'),
+            'focus_areas': profession_context.get('analysis_focus', [])[:3],
+            'key_metrics': profession_context.get('metrics', []),
+            'primary_stakeholders': profession_context.get('stakeholders', [])[:3]
+        }
+
+# Global instance
+ai_context_processor = AIContextProcessor()
