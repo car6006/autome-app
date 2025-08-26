@@ -1879,10 +1879,22 @@ const NotesScreen = () => {
                   {/* Export Section - Only show if there are conversations */}
                   {aiConversations.length > 0 && (
                     <div className="mt-6 pt-4 border-t border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export AI Analysis</h4>
-                      <div className="flex space-x-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export Professional Report</h4>
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
-                          onClick={() => exportAiAnalysis('rtf')}
+                          onClick={() => exportAiAnalysis('pdf')}
+                          className={`flex-1 ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                          }`}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          PDF
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportAiAnalysis('docx')}
                           variant="outline"
                           className={`flex-1 ${
                             theme.isExpeditors 
@@ -1890,8 +1902,8 @@ const NotesScreen = () => {
                               : 'border-blue-600 text-blue-600 hover:bg-blue-50'
                           }`}
                         >
-                          <FileDown className="w-4 h-4 mr-2" />
-                          Export RTF
+                          <FileText className="w-4 h-4 mr-2" />
+                          Word
                         </Button>
                         
                         <Button
@@ -1900,11 +1912,11 @@ const NotesScreen = () => {
                           className="flex-1"
                         >
                           <FileText className="w-4 h-4 mr-2" />
-                          Export TXT
+                          TXT
                         </Button>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        Exports only AI responses (questions excluded)
+                        Clean, professional format (no questions included)
                       </p>
                     </div>
                   )}
