@@ -72,14 +72,18 @@ class SecurityHeadersTester:
             ("POST", "upload-file", "File Upload (Invalid)", None, True),  # Will be invalid without file
         ]
         
-        for method, endpoint, name, data, *extra in endpoints_to_test:
+        for test_data in endpoints_to_test:
             try:
+                method, endpoint, name = test_data[0], test_data[1], test_data[2]
+                data = test_data[3] if len(test_data) > 3 else None
+                is_file_upload = test_data[4] if len(test_data) > 4 else False
+                
                 url = f"{self.api_url}/{endpoint}" if endpoint else f"{self.api_url}/"
                 
                 if method == "GET":
                     response = requests.get(url, timeout=30)
                 elif method == "POST":
-                    if len(extra) > 0 and extra[0]:  # File upload test
+                    if is_file_upload:  # File upload test
                         response = requests.post(url, timeout=30)  # No files, should error
                     else:
                         response = requests.post(url, json=data, timeout=30)
