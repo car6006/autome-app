@@ -18,7 +18,7 @@ import tempfile
 import os
 
 class PDFProcessingTester:
-    def __init__(self, base_url="https://autome-app.preview.emergentagent.com"):
+    def __init__(self, base_url="https://transcribe-ocr.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0

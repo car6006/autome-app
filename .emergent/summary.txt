@@ -1,0 +1,90 @@
+<analysis>
+The AI engineer successfully progressed the AUTO-ME productivity PWA from MVP to a production-ready state, addressing numerous bugs and implementing significant new features. Initially, the focus was on critical bug fixes, including rectifying database cleanup accidental deletion, resolving backend processing issues (file handling, email, storage URLs, datetime serialization), and fixing frontend UI/UX problems (unauthenticated access, recording limits, scan file upload, export, editing, help guide, audio waveform, responsiveness). A major pivot involved replacing the failing Google Cloud Vision API with OpenAI Vision for OCR, leveraging existing OpenAI keys. Subsequently, the application was enhanced with key features: multi-file upload for handwritten notes, AI-powered professional report generation with rich-text formatting, and audio file upload capabilities on both Record and Network pages. Large audio file processing (exceeding 25MB) was solved via automatic chunking using FFmpeg, and transcription timeouts were resolved with dynamic adjustments. The process was iterative, involving frequent user feedback and systematic debugging. The immediate next step involves removing all Emergent branding from the application.
+</analysis>
+
+<product_requirements>
+The AUTO-ME productivity app aims to offer zero-friction content capture (voice, photo), guaranteed delivery, trustworthy outputs (diarization, OCR, in-app edits), measurable impact (analytics), and enterprise readiness (POPIA, audit logs, access controls).
+The initial PWA (React, FastAPI, MongoDB) included:
+- Core productivity: Voice transcription (OpenAI Whisper), OCR (Google Cloud Vision, later OpenAI Vision), email sharing (SendGrid), Git sync, basic analytics.
+- User management: JWT-based authentication, user profiles, data isolation.
+- Enterprise features for  users: Hidden Network Diagram mapping tool, IISB (Issues, Impact, Solutions, Benefits) analysis tool.
+
+Recent feature additions and bug fixes covered:
+- Multi-file upload for handwritten notes.
+- AI-powered professional reports with insights and action items.
+- Audio file upload to Record and Network pages.
+- Large audio file processing (chunking).
+- Rich-text output for professional reports.
+- Comprehensive Help/Guide component.
+</product_requirements>
+
+<key_technical_concepts>
+- **Frontend**: React, Shadcn/UI, Tailwind CSS, React Context,  API.
+- **Backend**: FastAPI, MongoDB (Motor), JWT, bcrypt, Pydantic, , , , , .
+- **Integrations**: OpenAI Whisper API (STT), OpenAI Vision API (OCR, Report Generation - GPT-4o-mini), SendGrid API (email).
+- **Audio/Video Processing**: FFmpeg, FFprobe (for chunking large audio files).
+- **Deployment**: Kubernetes, Supervisor, environment variables.
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a standard full-stack architecture with a React frontend, FastAPI backend, and MongoDB database.
+
+
+
+**Key Files and Summaries of Changes:**
+
+*   **/app/backend/server.py**:
+    *   **Importance**: Central FastAPI application, defining all API endpoints.
+    *   **Changes**: Significantly expanded to include user authentication (login, register, profile), note processing, email, Git sync, metrics, network, IISB. New endpoints added for , , , , and  (DELETE). Modified to serve static files (). Enhanced error handling, API key validation, and prompt adjustments for professional reports.
+*   **/app/backend/.env**:
+    *   **Importance**: Stores critical configuration and API keys.
+    *   **Changes**:  was deprecated/commented out and  became central for both STT and OCR.
+*   **/app/backend/auth.py**:
+    *   **Importance**: Handles JWT token creation, verification, password hashing.
+    *   **Changes**: No specific changes mentioned in the trajectory, assumed to be stable after initial implementation.
+*   **/app/backend/store.py**:
+    *   **Importance**: MongoDB data access layer.
+    *   **Changes**: Modified to include user collection management, profile fields, note association with users,  updates. Added  functionality.
+*   **/app/backend/providers.py**:
+    *   **Importance**: Abstracts external API calls.
+    *   **Changes**: Fixed file handle leaks in STT function. Updated OCR to properly clean up temporary files. Pivoted from Google Cloud Vision to OpenAI Vision (gpt-4o-mini) for OCR. Added PDF-to-image conversion logic (, , ). Implemented automatic audio file chunking (, ) for large audio files (over 24MB). Increased individual chunk timeout.
+*   **/app/backend/tasks.py**:
+    *   **Importance**: Background task processing.
+    *   **Changes**: Expanded with asynchronous functions for , , , , , and . Added better error handling and logging, and dynamic timeout calculation for transcription tasks (e.g., 2 minutes per MB).
+*   **/app/backend/network_processor.py**:
+    *   **Importance**: Core logic for network diagrams.
+    *   **Changes**: No specific changes mentioned in the trajectory, assumed to be stable.
+*   **/app/backend/iisb_processor.py**:
+    *   **Importance**: Core logic for IISB analysis.
+    *   **Changes**: No specific changes mentioned in the trajectory, assumed to be stable.
+*   **/app/frontend/src/App.js**:
+    *   **Importance**: Main React component, central to UI, routing, and state management.
+    *   **Changes**: Extensively modified. Includes routing for Record, Scan, Notes, Stats, Profile, Network, IISB, Help. Integrates . Conditional rendering for Notes tab and Expeditors features. Removed 60-second recording cap. Added multi-file upload for scan, separate camera input. Implemented export buttons, transcript review/edit modal. Integrated  component and Help button. Added audio wave visualization. Enhanced processing display with real-time progress indicators and timing. Added swipe (archive/delete) functions. Implemented Generate Report (single/batch) buttons and a professional report modal. Added audio upload functionality to the Record page, updating UI for both recording and upload options. Fixed  linting errors multiple times. Updated PDF preview handling. Fixed  to use note titles.
+*   **/app/frontend/src/App.css**:
+    *   **Importance**: Global styles and Tailwind CSS directives.
+    *   **Changes**: Added custom styles for mobile responsiveness and adjusted the positioning/size of the Help button.
+*   **/app/frontend/src/components/NetworkDiagramScreen.js**:
+    *   **Importance**: Component for the Expeditors network diagram feature.
+    *   **Changes**: Added audio file upload functionality and updated the UI to include a dedicated audio upload section and preview for audio files.
+*   **/app/frontend/src/components/HelpGuide.js**:
+    *   **Importance**: Provides a comprehensive user guide.
+    *   **Changes**: Newly created. Extensively updated to include conditional rendering for Expeditors-specific features. Documented new features: audio upload, multi-file scan, large file support, professional report generation, enhanced notes management, and troubleshooting. Fixed HTML entity parsing errors.
+*   **/app/frontend/public/index.html**:
+    *   **Importance**: Main HTML file.
+    *   **Changes**: Removed the Made with Emergent tag.
+
+</code_architecture>
+
+<pending_tasks>
+- Remove all references to Emergent from the application.
+</pending_tasks>
+
+<current_work>
+Immediately prior to this summary, the AI engineer successfully addressed a bug where exported files had generic UUID filenames. This was fixed by modifying the backend endpoint ( in ) to retrieve and use the note's title for the filename. Concurrently, the frontend's  function (in ) was updated to pass the note's title to the backend, ensuring proper filename generation for both individual and batch reports.
+
+The user's very last explicit request was: I want to share my preview with someone but dont want them to see any reference to Emergent, yet, how can I. This indicates that the current work involves identifying and removing all instances of Emergent branding or references from the application's frontend and potentially backend for a clean, brand-neutral preview.
+</current_work>
+
+<optional_next_step>
+Search for and remove all Emergent references from the application.
+</optional_next_step>
