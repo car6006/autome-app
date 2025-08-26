@@ -168,8 +168,10 @@ class EmailFunctionalityTester:
             # Test user registration and authentication for Expeditors user
             expeditors_user_data = {
                 "email": f"testuser{int(datetime.now().timestamp())}@expeditors.com",
+                "username": f"expeditors_user_{int(datetime.now().timestamp())}",
                 "password": "SecurePass123!",
-                "full_name": "Test Expeditors User"
+                "first_name": "Test",
+                "last_name": "Expeditors User"
             }
             
             # Register Expeditors user
