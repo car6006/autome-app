@@ -849,6 +849,12 @@ const NotesScreen = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentReport, setCurrentReport] = useState(null);
   const [selectedNotesForBatch, setSelectedNotesForBatch] = useState([]);
+  const [showAiChatModal, setShowAiChatModal] = useState(false);
+  const [aiChatNote, setAiChatNote] = useState(null);
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiChatLoading, setAiChatLoading] = useState(false);
+  const [aiConversations, setAiConversations] = useState([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
