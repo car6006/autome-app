@@ -110,9 +110,9 @@ const AuthModal = ({ isOpen, onClose }) => {
             </CardDescription>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-6">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
                 <TabsTrigger value="login" className="flex items-center space-x-2">
                   <LogIn className="w-4 h-4" />
                   <span>Sign In</span>
