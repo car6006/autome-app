@@ -417,7 +417,71 @@ async def delete_note(
     
     return {"message": "Note deleted successfully"}
 
-@api_router.post("/notes/{note_id}/ai-chat")
+from network_ai_processor import AINetworkDiagramProcessor
+
+# Initialize AI network processor
+ai_network_processor = AINetworkDiagramProcessor()
+
+@api_router.post("/network/process")
+async def process_network_input(
+    request: dict,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Process network diagram input (voice, text, or CSV)"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Check Expeditors access
+    if not current_user.get("email", "").endswith("@expeditors.com"):
+        raise HTTPException(status_code=403, detail="Expeditors access required")
+    
+    try:
+        input_type = request.get("input_type")  # voice_transcript, text_description, csv_data
+        content = request.get("content", "")
+        
+        if not input_type or not content:
+            raise HTTPException(status_code=400, detail="input_type and content are required")
+        
+        # Process the input
+        network_data = await ai_network_processor.process_input(
+            input_type=input_type,
+            content=content,
+            user_context={"user_id": current_user["id"], "email": current_user["email"]}
+        )
+        
+        # Generate Mermaid diagram
+        mermaid_syntax = ai_network_processor.generate_mermaid_diagram(network_data)
+        
+        return {
+            "network_data": network_data,
+            "mermaid_syntax": mermaid_syntax,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "input_type": input_type
+        }
+        
+    except Exception as e:
+        logger.error(f"Network processing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process network input: {str(e)}")
+
+@api_router.get("/network/csv-template")
+async def get_csv_template(
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Get CSV template for network diagram input"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Check Expeditors access
+    if not current_user.get("email", "").endswith("@expeditors.com"):
+        raise HTTPException(status_code=403, detail="Expeditors access required")
+    
+    template = ai_network_processor.generate_csv_template()
+    
+    return Response(
+        content=template,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=\"supply_chain_template.csv\""}
+    )
 async def ai_chat_with_note(
     note_id: str,
     request: dict,
