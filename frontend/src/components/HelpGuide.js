@@ -42,15 +42,15 @@ const HelpGuide = () => {
                   <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-bold">1</span>
                   </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Record or Upload</h3>
-                  <p className="text-sm text-gray-600">Record live or upload existing audio/documents</p>
+                  <h3 className="font-semibold text-gray-800 mb-2">Create Content</h3>
+                  <p className="text-sm text-gray-600">Record audio, scan documents, or type text directly</p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="w-12 h-12 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
                     <span className="text-green-600 font-bold">2</span>
                   </div>
                   <h3 className="font-semibold text-gray-800 mb-2">AI Processing</h3>
-                  <p className="text-sm text-gray-600">Automatic transcription and text extraction</p>
+                  <p className="text-sm text-gray-600">Automatic transcription, OCR, and content analysis</p>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="w-12 h-12 mx-auto mb-3 bg-purple-100 rounded-full flex items-center justify-center">
