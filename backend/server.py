@@ -592,7 +592,8 @@ async def ai_chat_with_note(
             }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process AI chat: {str(e)}")
+        logger.error(f"AI chat processing error: {str(e)}")
+        raise HTTPException(status_code=500, detail="AI chat service temporarily unavailable")
 
 @api_router.post("/notes/{note_id}/generate-meeting-minutes")
 async def generate_meeting_minutes(
