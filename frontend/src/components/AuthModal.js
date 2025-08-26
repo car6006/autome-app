@@ -19,7 +19,10 @@ const AuthModal = ({ isOpen, onClose }) => {
     password: '',
     confirmPassword: '',
     first_name: '',
-    last_name: ''
+    last_name: '',
+    profession: '',
+    industry: '',
+    interests: ''
   });
   
   const { login, register } = useAuth();
