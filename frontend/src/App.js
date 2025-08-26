@@ -470,6 +470,8 @@ const PhotoScanScreen = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
 
   const handleFileSelect = (event) => {
     const files = Array.from(event.target.files);
