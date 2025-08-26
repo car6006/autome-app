@@ -855,6 +855,9 @@ const NotesScreen = () => {
   const [aiResponse, setAiResponse] = useState("");
   const [aiChatLoading, setAiChatLoading] = useState(false);
   const [aiConversations, setAiConversations] = useState([]);
+  const [showMeetingMinutesPreview, setShowMeetingMinutesPreview] = useState(false);
+  const [meetingMinutes, setMeetingMinutes] = useState("");
+  const [generatingMinutes, setGeneratingMinutes] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
