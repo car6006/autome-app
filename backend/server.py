@@ -515,6 +515,131 @@ async def ai_chat_with_note(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process AI chat: {str(e)}")
 
+@api_router.get("/notes/{note_id}/ai-conversations/export")
+async def export_ai_conversations(
+    note_id: str,
+    format: str = Query("rtf", regex="^(rtf|txt)$"),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Export AI conversation responses to RTF format"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    conversations = artifacts.get("ai_conversations", [])
+    
+    if not conversations:
+        raise HTTPException(status_code=400, detail="No AI conversations found for this note")
+    
+    # Check if user is from Expeditors for branding
+    is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+    
+    if format == "rtf":
+        # Generate RTF content
+        rtf_content = r"{\rtf1\ansi\deff0"
+        
+        # Add fonts
+        rtf_content += r"{\fonttbl{\f0 Times New Roman;}{\f1 Arial;}}"
+        
+        # Add colors  
+        rtf_content += r"{\colortbl;\red0\green0\blue0;\red234\green10\blue42;\red35\green31\blue32;}"
+        
+        # Header with branding
+        if is_expeditors_user:
+            rtf_content += r"\pard\qc\f1\fs28\b\cf2 EXPEDITORS INTERNATIONAL\par"
+            rtf_content += r"\f1\fs20\b0\cf3 AI Content Analysis Report\par"
+            rtf_content += r"\pard\qc\f0\fs16\cf1 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
+        else:
+            rtf_content += r"\pard\qc\f1\fs24\b\cf1 AI Content Analysis\par"
+            rtf_content += r"\f0\fs16\b0 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
+        
+        rtf_content += r"\pard\qc\f0\fs16\cf1 Note: " + note["title"] + r"\par\par"
+        
+        # Add AI responses only (no questions)
+        rtf_content += r"\pard\ql\f0\fs18\b\cf1 AI Analysis Summary:\par\par"
+        
+        for i, conv in enumerate(conversations, 1):
+            # Only include the AI response, not the question
+            response = conv.get("response", "")
+            timestamp = conv.get("timestamp", "")
+            
+            # Parse timestamp if available
+            time_str = ""
+            if timestamp:
+                try:
+                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    time_str = dt.strftime("%H:%M")
+                except:
+                    time_str = timestamp[:10]  # fallback
+            
+            rtf_content += r"\f0\fs16\b\cf1 Analysis " + str(i)
+            if time_str:
+                rtf_content += r" (" + time_str + r")"
+            rtf_content += r":\par"
+            
+            # Clean and format the response text for RTF
+            clean_response = response.replace('\\', '\\\\').replace('{', r'\{').replace('}', r'\}')
+            # Replace bullet points
+            clean_response = clean_response.replace('•', r'\bullet ')
+            # Handle line breaks
+            clean_response = clean_response.replace('\n\n', r'\par\par').replace('\n', r'\par')
+            
+            rtf_content += r"\f0\fs14\b0\cf1 " + clean_response + r"\par\par"
+        
+        # Footer
+        if is_expeditors_user:
+            rtf_content += r"\pard\qc\f0\fs12\cf3 Confidential - Expeditors International\par"
+        
+        rtf_content += r"}"
+        
+        return Response(
+            content=rtf_content,
+            media_type="application/rtf",
+            headers={"Content-Disposition": f"attachment; filename=\"AI_Analysis_{note['title'][:30]}.rtf\""}
+        )
+    
+    else:  # txt format
+        content = f"AI Content Analysis - {note['title']}\n"
+        content += "=" * (len(content) - 1) + "\n\n"
+        
+        if is_expeditors_user:
+            content += "EXPEDITORS INTERNATIONAL\n"
+            content += "AI Content Analysis Report\n\n"
+        
+        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}\n\n"
+        
+        content += "AI ANALYSIS SUMMARY\n\n"
+        
+        for i, conv in enumerate(conversations, 1):
+            response = conv.get("response", "")
+            timestamp = conv.get("timestamp", "")
+            
+            time_str = ""
+            if timestamp:
+                try:
+                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    time_str = f" ({dt.strftime('%H:%M')})"
+                except:
+                    time_str = f" ({timestamp[:10]})"
+            
+            content += f"Analysis {i}{time_str}:\n"
+            content += "-" * 40 + "\n"
+            content += response + "\n\n"
+        
+        if is_expeditors_user:
+            content += "\nConfidential - Expeditors International\n"
+        
+        return Response(
+            content=content,
+            media_type="text/plain",
+            headers={"Content-Disposition": f"attachment; filename=\"AI_Analysis_{note['title'][:30]}.txt\""}
+        )
+
 @api_router.post("/notes/{note_id}/generate-report")
 async def generate_professional_report(
     note_id: str,
