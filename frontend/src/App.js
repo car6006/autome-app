@@ -1895,26 +1895,35 @@ const Navigation = () => {
 function App() {
   return (
     <AuthProvider>
-      <div className="App">
-        <BrowserRouter>
-          <div className="pb-20"> {/* Bottom padding for navigation */}
-            <Routes>
-              <Route path="/" element={<CaptureScreen />} />
-              <Route path="/capture" element={<CaptureScreen />} />
-              <Route path="/scan" element={<PhotoScanScreen />} />
-              <Route path="/notes" element={<NotesScreen />} />
-              <Route path="/metrics" element={<MetricsScreen />} />
-              <Route path="/profile" element={<ProfileScreen />} />
-              <Route path="/network" element={<NetworkDiagramScreen />} />
-              <Route path="/iisb" element={<IISBAnalysisScreen />} />
-              <Route path="/help" element={<HelpGuide />} />
-            </Routes>
-          </div>
-          <Navigation />
-          <Toaster />
-        </BrowserRouter>
-      </div>
+      <AppContent />
     </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { user } = useAuth();
+  const theme = getThemeClasses(user);
+  
+  return (
+    <div className={`App ${theme.mainTheme}`}>
+      <BrowserRouter>
+        <div className="pb-20"> {/* Bottom padding for navigation */}
+          <Routes>
+            <Route path="/" element={<CaptureScreen />} />
+            <Route path="/capture" element={<CaptureScreen />} />
+            <Route path="/scan" element={<PhotoScanScreen />} />
+            <Route path="/notes" element={<NotesScreen />} />
+            <Route path="/metrics" element={<MetricsScreen />} />
+            <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="/network" element={<NetworkDiagramScreen />} />
+            <Route path="/iisb" element={<IISBAnalysisScreen />} />
+            <Route path="/help" element={<HelpGuide />} />
+          </Routes>
+        </div>
+        <Navigation />
+        <Toaster />
+      </BrowserRouter>
+    </div>
   );
 }
 
