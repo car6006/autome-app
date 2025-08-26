@@ -35,6 +35,198 @@ const API = `${BACKEND_URL}/api`;
 let audioContext = null;
 let mediaRecorder = null;
 
+const TextNoteScreen = () => {
+  const [noteTitle, setNoteTitle] = useState("");
+  const [textContent, setTextContent] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
+
+  const createTextNote = async () => {
+    if (!noteTitle.trim()) {
+      toast({ title: "Missing title", description: "Please add a title for your note", variant: "destructive" });
+      return;
+    }
+
+    if (!textContent.trim()) {
+      toast({ title: "Missing content", description: "Please add some text content", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      toast({ title: "📝 Creating text note...", description: "Saving your content" });
+      
+      const response = await axios.post(`${API}/notes`, {
+        title: noteTitle,
+        kind: "text",
+        text_content: textContent
+      });
+
+      toast({ 
+        title: "🚀 Text Note Created!", 
+        description: `"${noteTitle}" has been saved successfully. Check the Notes tab to view it.` 
+      });
+      
+      // Reset form
+      setNoteTitle("");
+      setTextContent("");
+      
+      // Navigate to notes view
+      setTimeout(() => navigate('/notes'), 1500);
+      
+    } catch (error) {
+      console.error('Text note creation error:', error);
+      toast({ 
+        title: "Error", 
+        description: error.response?.data?.detail || "Failed to create text note. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : theme.gradientBg}`}>
+      <div className="max-w-2xl mx-auto">
+        {/* User greeting */}
+        {user && (
+          <div className="mb-4 text-center">
+            {branding.showLogo && (
+              <div className="mb-3 flex justify-center">
+                <img 
+                  src={branding.logoPath} 
+                  alt="Expeditors" 
+                  className="expeditors-logo h-8"
+                />
+              </div>
+            )}
+            <p className={`text-sm ${theme.isExpeditors ? 'text-gray-700' : 'text-gray-600'}`}>
+              Write it down, <span className={`font-semibold ${theme.isExpeditors ? 'text-red-600' : theme.accentColor}`}>
+                {user.profile?.first_name || user.username}
+              </span>! ✍️
+            </p>
+          </div>
+        )}
+        
+        <Card className={`${theme.cardClass}`}>
+          <CardHeader className={`${theme.isExpeditors ? 'text-center pb-6' : theme.headerClass}`}>
+            <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+              theme.isExpeditors 
+                ? 'bg-gradient-to-r from-red-600 to-red-700' 
+                : 'bg-gradient-to-r from-purple-500 to-pink-600'
+            }`}>
+              <FileText className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className={`text-2xl font-bold ${theme.isExpeditors ? 'text-gray-800' : 'text-gray-800'}`}>
+              Text Note
+            </CardTitle>
+            <CardDescription className={`${theme.isExpeditors ? 'text-gray-600' : 'text-gray-600'}`}>
+              Create structured notes with direct text input
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <div>
+              <Label htmlFor="title" className="text-sm font-medium text-gray-700">Note Title</Label>
+              <Input
+                id="title"
+                placeholder="Meeting notes, project plan, ideas..."
+                value={noteTitle}
+                onChange={(e) => setNoteTitle(e.target.value)}
+                className="mt-2"
+                maxLength={100}
+              />
+              <p className="text-xs text-gray-500 mt-1">{noteTitle.length}/100 characters</p>
+            </div>
+            
+            <div>
+              <Label htmlFor="content" className="text-sm font-medium text-gray-700">
+                Content 
+                <span className="text-xs text-gray-500 ml-1">(supports basic formatting)</span>
+              </Label>
+              <Textarea
+                id="content"
+                placeholder="Start typing your note content here...
+
+You can use:
+• Bullet points
+• Line breaks for structure
+• Headings and sections
+
+This is perfect for:
+- Meeting notes
+- Project plans
+- Ideas and thoughts
+- Action items
+- Quick reminders"
+                value={textContent}
+                onChange={(e) => setTextContent(e.target.value)}
+                className="mt-2 min-h-[300px] resize-y"
+                maxLength={5000}
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Use line breaks and bullet points for better structure</span>
+                <span>{textContent.length}/5000 characters</span>
+              </div>
+            </div>
+
+            {/* Preview of structured content */}
+            {textContent.trim() && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Preview:</h4>
+                <div className="text-sm text-gray-600 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                  {textContent.substring(0, 200)}{textContent.length > 200 ? '...' : ''}
+                </div>
+              </div>
+            )}
+            
+            <Button 
+              onClick={createTextNote} 
+              disabled={processing || !noteTitle.trim() || !textContent.trim()}
+              className={`w-full py-3 ${
+                theme.isExpeditors 
+                  ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white' 
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+              }`}
+              size="lg"
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Creating Note...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-5 h-5 mr-2" />
+                  Create Text Note
+                </>
+              )}
+            </Button>
+
+            {/* Formatting help */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="pt-4">
+                <h4 className="text-sm font-semibold text-blue-800 mb-2">💡 Formatting Tips:</h4>
+                <div className="text-xs text-blue-700 space-y-1">
+                  <p>• Use <strong>bullet points</strong> for lists</p>
+                  <p>• Press Enter twice for paragraph breaks</p>
+                  <p>• Use ALL CAPS for section headers</p>
+                  <p>• Keep it structured and organized</p>
+                </div>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 const CaptureScreen = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
