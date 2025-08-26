@@ -70,6 +70,100 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
+          {/* Latest Updates */}
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-50 to-pink-50 backdrop-blur-sm border-purple-200">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <span>Latest Updates & New Features</span>
+                <Badge className="bg-purple-100 text-purple-800">v1.0 Enhanced</Badge>
+              </CardTitle>
+              <CardDescription>Recently added features and improvements</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-white/70 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                    <span>Text Notes</span>
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">NEW</Badge>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Create notes directly by typing text</li>
+                    <li>• No need for audio or photo processing</li>
+                    <li>• Perfect for meeting notes and quick ideas</li>
+                    <li>• Full AI analysis and report generation</li>
+                    <li>• Character counter and formatting tips</li>
+                  </ul>
+                </div>
+                <div className="bg-white/70 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    <span>Enhanced Security</span>
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">IMPROVED</Badge>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Enterprise-grade error handling</li>
+                    <li>• No sensitive information exposure</li>
+                    <li>• Secure API responses</li>
+                    <li>• Professional security headers</li>
+                    <li>• Safe error messages for users</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-white/70 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    <span>Mobile Recording Enhanced</span>
+                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">FIXED</Badge>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Screen stays on during recording</li>
+                    <li>• Prevents phone sleep interruption</li>
+                    <li>• Uninterrupted long recordings</li>
+                    <li>• Better mobile user experience</li>
+                    <li>• Automatic wake lock management</li>
+                  </ul>
+                </div>
+                <div className="bg-white/70 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Mic className="w-4 h-4 text-green-600" />
+                    <span>Improved Transcription</span>
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">FIXED</Badge>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• English recordings stay in English</li>
+                    <li>• Fixed language translation bug</li>
+                    <li>• More accurate transcriptions</li>
+                    <li>• Consistent language detection</li>
+                    <li>• Better audio processing quality</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-purple-600" />
+                  <span>Enhanced User Experience</span>
+                </h4>
+                <div className="grid gap-2 md:grid-cols-2 text-sm text-gray-600">
+                  <div>
+                    <p>• Responsive registration and login</p>
+                    <p>• Professional user profiling for AI</p>
+                    <p>• Mobile-optimized interface</p>
+                  </div>
+                  <div>
+                    <p>• Improved navigation design</p>
+                    <p>• Better error messages</p>
+                    <p>• Faster loading and processing</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Voice Recording & Audio Upload */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
