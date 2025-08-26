@@ -16,7 +16,7 @@ import {
   Mic, Camera, Upload, Play, Square, Mail, GitBranch, Clock, FileText, 
   Zap, BarChart3, Loader2, User, Settings, UserPlus, LogIn, Sparkles,
   Crown, Heart, Network, Download, Edit, Save, HelpCircle, Trash2, Archive,
-  FileBarChart, Users, FileDown
+  FileBarChart, Users, FileDown, Bot
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
