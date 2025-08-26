@@ -65,6 +65,26 @@ class UserCreate(BaseModel):
     profession: str = ""
     industry: str = ""
     interests: str = ""
+    
+    @validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not any(char.isupper() for char in v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not any(char.islower() for char in v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not any(char.isdigit() for char in v):
+            raise ValueError('Password must contain at least one number')
+        return v
+    
+    @validator('username')
+    def validate_username(cls, v):
+        if len(v) < 3:
+            raise ValueError('Username must be at least 3 characters long')
+        if not v.isalnum():
+            raise ValueError('Username can only contain letters and numbers')
+        return v
 
 class UserLogin(BaseModel):
     email: EmailStr
