@@ -15,7 +15,7 @@ export const getThemeClasses = (user) => {
     primaryButton: isExpeditors ? 'expeditors-button-primary' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white',
     secondaryButton: isExpeditors ? 'expeditors-button-secondary' : 'border-2 border-dashed border-blue-300 hover:border-blue-500',
     accentColor: isExpeditors ? 'expeditors-accent' : 'text-violet-600',
-    navClass: isExpeditors ? 'expeditors-nav' : 'bg-white/90 backdrop-blur-md border-t border-gray-200',
+    navClass: isExpeditors ? 'expeditors-nav' : 'bg-gray-100/90 backdrop-blur-md border-t border-gray-200',
     navItemClass: isExpeditors ? 'expeditors-nav-item' : 'text-gray-600',
     inputClass: isExpeditors ? 'expeditors-input' : '',
     badgeClass: isExpeditors ? 'expeditors-badge' : '',
