@@ -1137,7 +1137,7 @@ const NotesScreen = () => {
       setProcessingTimes(updatedProcessingTimes);
       setNotes(filteredNotes);
     } catch (error) {
-      console.error('Error fetching notes:', error);
+      // Notes fetching error logged for debugging
       toast({ title: "Error", description: "Failed to load notes", variant: "destructive" });
     } finally {
       setLoading(false);
