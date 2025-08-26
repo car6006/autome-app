@@ -1701,22 +1701,34 @@ const MetricsScreen = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className={`min-h-screen flex items-center justify-center ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
+        <Loader2 className={`w-8 h-8 animate-spin ${theme.isExpeditors ? 'text-red-600' : 'text-purple-600'}`} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white p-4">
+    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
       <div className="max-w-4xl mx-auto">
+
+        {/* Expeditors Logo for metrics page */}
+        {branding.showLogo && (
+          <div className="mb-6 text-center">
+            <img 
+              src={branding.logoPath} 
+              alt="Expeditors" 
+              className="expeditors-logo h-10 mx-auto"
+            />
+          </div>
+        )}
+
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Productivity Analytics</h1>
           <p className="text-gray-600">Track your efficiency and time savings</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <Card className={`${theme.cardClass}`}>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
