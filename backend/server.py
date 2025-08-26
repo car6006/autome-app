@@ -417,6 +417,104 @@ async def delete_note(
     
     return {"message": "Note deleted successfully"}
 
+@api_router.post("/notes/{note_id}/ai-chat")
+async def ai_chat_with_note(
+    note_id: str,
+    request: dict,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """AI conversational agent for note content analysis"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    content = artifacts.get("transcript") or artifacts.get("text", "")
+    
+    if not content:
+        raise HTTPException(status_code=400, detail="No content available for analysis")
+    
+    user_question = request.get("question", "").strip()
+    if not user_question:
+        raise HTTPException(status_code=400, detail="Please provide a question")
+    
+    try:
+        # Use OpenAI to answer user's question about the content
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Check if user is from Expeditors for context
+        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+        
+        # Enhanced context for Expeditors users
+        context_prefix = ""
+        if is_expeditors_user:
+            context_prefix = "You are an AI business analyst working with Expeditors International, a global logistics and freight forwarding company. "
+        
+        prompt = f"""
+        {context_prefix}You are an intelligent assistant analyzing business content. Based on the following content, answer the user's question with detailed, actionable insights.
+
+        Content to analyze:
+        {content}
+
+        User's Question: {user_question}
+
+        Instructions:
+        - Provide a comprehensive, professional response
+        - Include specific details from the content when relevant
+        - If the user asks about market intelligence, trade barriers, risks, or business insights, provide thorough analysis
+        - Use bullet points for lists and clear structure
+        - If asking about summaries, provide executive-level summaries
+        - For trade/logistics questions, consider global business implications
+        - Be specific and actionable in your recommendations
+        - Use professional business language
+        """
+        
+        async with httpx.AsyncClient(timeout=45) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 1200,
+                    "temperature": 0.3
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            
+            ai_analysis = response.json()
+            ai_response = ai_analysis["choices"][0]["message"]["content"]
+            
+            # Store the conversation in artifacts for reference
+            conversations = artifacts.get("ai_conversations", [])
+            conversations.append({
+                "question": user_question,
+                "response": ai_response,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+            updated_artifacts = {**artifacts, "ai_conversations": conversations}
+            await NotesStore.set_artifacts(note_id, updated_artifacts)
+            
+            return {
+                "response": ai_response,
+                "question": user_question,
+                "note_title": note["title"],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "is_expeditors": is_expeditors_user
+            }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process AI chat: {str(e)}")
+
 @api_router.post("/notes/{note_id}/generate-report")
 async def generate_professional_report(
     note_id: str,
