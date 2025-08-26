@@ -256,6 +256,20 @@ const CaptureScreen = () => {
 
   const startRecording = async () => {
     try {
+      // Request wake lock to prevent screen from sleeping during recording
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('Wake lock activated - screen will stay on during recording');
+          
+          wakeLock.addEventListener('release', () => {
+            console.log('Wake lock released');
+          });
+        } catch (wakeLockError) {
+          console.warn('Wake lock request failed:', wakeLockError);
+        }
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: { 
           echoCancellation: true,
