@@ -181,7 +181,8 @@ async def enqueue_email(note_id: str, to_list: list, subject: str):
         
     except Exception as e:
         logger.error(f"Email delivery failed for note {note_id}: {str(e)}")
-        raise
+        # Don't raise - background task failures should not affect main API responses
+        return
 
 async def enqueue_network_diagram_processing(note_id: str):
     """Process network diagram from voice or sketch (Expeditors only)"""
