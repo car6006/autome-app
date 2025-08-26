@@ -62,6 +62,9 @@ class UserCreate(BaseModel):
     password: str
     first_name: str = ""
     last_name: str = ""
+    profession: str = ""
+    industry: str = ""
+    interests: str = ""
 
 class UserLogin(BaseModel):
     email: EmailStr
