@@ -88,12 +88,16 @@ async def split_audio_file(file_path: str, chunk_duration: int = CHUNK_DURATION_
         logger.error(f"Error splitting audio file: {e}")
         return [file_path]  # Return original file if splitting fails
 
-async def transcribe_audio_chunk(chunk_path: str, api_key: str) -> str:
-    """Transcribe a single audio chunk"""
+async def transcribe_audio_chunk(chunk_path: str, api_key: str, language: str = "en") -> str:
+    """Transcribe a single audio chunk with language specification"""
     try:
         with open(chunk_path, "rb") as audio_file:
             files = {"file": audio_file}
-            form = {"model": "whisper-1", "response_format": "json"}
+            form = {
+                "model": "whisper-1", 
+                "response_format": "json",
+                "language": language  # Explicitly specify language
+            }
             
             async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout per chunk
                 r = await client.post(
