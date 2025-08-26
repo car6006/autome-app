@@ -1616,7 +1616,13 @@ const NotesScreen = () => {
                   </Badge>
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  {note.kind === 'audio' ? <Mic className="w-4 h-4 shrink-0" /> : <Camera className="w-4 h-4 shrink-0" />}
+                  {note.kind === 'audio' ? (
+                    <Mic className="w-4 h-4 shrink-0" />
+                  ) : note.kind === 'text' ? (
+                    <FileText className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <Camera className="w-4 h-4 shrink-0" />
+                  )}
                   <span className="truncate">{new Date(note.created_at).toLocaleDateString()}</span>
                 </div>
               </CardHeader>
