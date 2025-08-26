@@ -42,8 +42,10 @@ class NetworkDiagramTester:
         try:
             user_data = {
                 "email": "test.network@expeditors.com",
+                "username": "networktest",
                 "password": "NetworkTest2024!",
-                "full_name": "Network Test User"
+                "first_name": "Network",
+                "last_name": "Test User"
             }
             
             # Try to register
