@@ -521,7 +521,7 @@ async def export_ai_conversations(
     format: str = Query("pdf", regex="^(pdf|docx|txt)$"),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Export AI conversation responses to RTF format"""
+    """Export AI conversation responses to PDF, Word DOC, or TXT format"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
