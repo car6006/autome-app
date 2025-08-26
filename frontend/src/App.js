@@ -1133,6 +1133,58 @@ const NotesScreen = () => {
     );
   };
 
+  const openAiChat = (note) => {
+    setAiChatNote(note);
+    setAiConversations(note.artifacts?.ai_conversations || []);
+    setShowAiChatModal(true);
+    setAiQuestion("");
+    setAiResponse("");
+  };
+
+  const submitAiQuestion = async () => {
+    if (!aiQuestion.trim() || !aiChatNote) {
+      toast({ title: "Error", description: "Please enter a question", variant: "destructive" });
+      return;
+    }
+
+    setAiChatLoading(true);
+    try {
+      const response = await axios.post(`${API}/notes/${aiChatNote.id}/ai-chat`, {
+        question: aiQuestion
+      });
+      
+      setAiResponse(response.data.response);
+      
+      // Update conversations
+      const newConversation = {
+        question: aiQuestion,
+        response: response.data.response,
+        timestamp: response.data.timestamp
+      };
+      
+      setAiConversations(prev => [...prev, newConversation]);
+      
+      toast({ 
+        title: "🤖 AI Analysis Complete", 
+        description: "Your question has been analyzed!" 
+      });
+      
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to get AI response. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setAiChatLoading(false);
+    }
+  };
+
+  const clearAiChat = () => {
+    setAiQuestion("");
+    setAiResponse("");
+  };
+
   const formatReportText = (text) => {
     // Convert the clean report text to properly formatted HTML
     let formatted = text;
