@@ -1912,7 +1912,7 @@ const NotesScreen = () => {
                       Close Preview
                     </Button>
                     <Button
-                      onClick={() => exportMeetingMinutes('pdf', meetingMinutes.note_id)}
+                      onClick={() => exportMeetingMinutes('pdf', currentNoteForMinutes?.id)}
                       className={`${
                         theme.isExpeditors 
                           ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
@@ -1923,7 +1923,7 @@ const NotesScreen = () => {
                       Export PDF
                     </Button>
                     <Button
-                      onClick={() => exportMeetingMinutes('docx', meetingMinutes.note_id)}
+                      onClick={() => exportMeetingMinutes('docx', currentNoteForMinutes?.id)}
                       variant="outline"
                       className={`${
                         theme.isExpeditors 
