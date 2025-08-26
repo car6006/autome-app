@@ -1678,6 +1678,9 @@ const NotesScreen = () => {
 const MetricsScreen = () => {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
 
   useEffect(() => {
     fetchMetrics();
