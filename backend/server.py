@@ -511,6 +511,10 @@ async def generate_professional_report(
             ai_analysis = response.json()
             report_content = ai_analysis["choices"][0]["message"]["content"]
             
+            # Add logo header for Expeditors users
+            if is_expeditors_user:
+                report_content = logo_header + report_content
+            
             # Store the report in artifacts
             updated_artifacts = {**artifacts, "professional_report": report_content}
             await NotesStore.set_artifacts(note_id, updated_artifacts)
@@ -519,7 +523,8 @@ async def generate_professional_report(
                 "report": report_content,
                 "note_title": note["title"],
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "note_id": note_id
+                "note_id": note_id,
+                "is_expeditors": is_expeditors_user
             }
     
     except Exception as e:
