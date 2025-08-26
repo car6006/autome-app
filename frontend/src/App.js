@@ -1185,6 +1185,38 @@ const NotesScreen = () => {
     setAiResponse("");
   };
 
+  const exportAiAnalysis = async (format = 'rtf') => {
+    if (!aiChatNote || aiConversations.length === 0) {
+      toast({ title: "No conversations", description: "No AI conversations to export", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/notes/${aiChatNote.id}/ai-conversations/export?format=${format}`, {
+        responseType: 'blob'
+      });
+      
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `AI_Analysis_${aiChatNote.title.substring(0, 30)}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast({ 
+        title: "📄 Export successful", 
+        description: `AI analysis exported as ${format.toUpperCase()}` 
+      });
+      
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to export AI analysis", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   const formatReportText = (text) => {
     // Convert the clean report text to properly formatted HTML
     let formatted = text;
