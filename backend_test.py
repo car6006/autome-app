@@ -977,6 +977,61 @@ class AutoMeAPITester:
         # Test error handling
         self.test_invalid_endpoints()
         
+        # === AI CONVERSATION EXPORT TESTS (PDF & DOCX) ===
+        self.log("\n📄 AI CONVERSATION EXPORT TESTS (PDF & DOCX)")
+        
+        # Create a note with AI conversations for export testing
+        export_test_note_id = self.create_note_with_ai_conversations(authenticated=True)
+        
+        if export_test_note_id:
+            # Try to add AI conversations (may fail if no content, which is expected)
+            conversations_added = self.add_mock_ai_conversations(export_test_note_id)
+            
+            if conversations_added > 0:
+                self.log(f"   Successfully added {conversations_added} AI conversations")
+                
+                # Test PDF export for regular user
+                self.test_ai_conversation_export_pdf(export_test_note_id, is_expeditors=False)
+                
+                # Test DOCX export for regular user
+                self.test_ai_conversation_export_docx(export_test_note_id, is_expeditors=False)
+                
+                # Test TXT export for comparison
+                self.test_ai_conversation_export_txt(export_test_note_id, is_expeditors=False)
+                
+                # Test Expeditors user exports if available
+                if self.expeditors_token:
+                    # Create note with Expeditors user
+                    temp_token = self.auth_token
+                    self.auth_token = self.expeditors_token
+                    
+                    expeditors_note_id = self.create_note_with_ai_conversations(authenticated=True)
+                    if expeditors_note_id:
+                        expeditors_conversations = self.add_mock_ai_conversations(expeditors_note_id)
+                        
+                        if expeditors_conversations > 0:
+                            # Test PDF export for Expeditors user
+                            self.test_ai_conversation_export_pdf(expeditors_note_id, is_expeditors=True)
+                            
+                            # Test DOCX export for Expeditors user
+                            self.test_ai_conversation_export_docx(expeditors_note_id, is_expeditors=True)
+                            
+                            # Test TXT export for Expeditors user
+                            self.test_ai_conversation_export_txt(expeditors_note_id, is_expeditors=True)
+                    
+                    # Restore original token
+                    self.auth_token = temp_token
+            else:
+                self.log("   No AI conversations added - testing error handling instead")
+                
+                # Test export endpoints with notes that have no AI conversations
+                self.test_ai_conversation_export_pdf(export_test_note_id, is_expeditors=False)
+                self.test_ai_conversation_export_docx(export_test_note_id, is_expeditors=False)
+                self.test_ai_conversation_export_txt(export_test_note_id, is_expeditors=False)
+        
+        # Test export error handling
+        self.test_export_error_handling()
+
         # === EXPEDITORS HIDDEN NETWORK DIAGRAM FEATURE TESTS ===
         self.log("\n👑 EXPEDITORS NETWORK DIAGRAM FEATURE TESTS")
         
