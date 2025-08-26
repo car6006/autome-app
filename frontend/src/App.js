@@ -1837,7 +1837,9 @@ const MetricsScreen = () => {
                   <Progress value={metrics?.success_rate || 0} className="h-3" />
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-green-600">{Math.round((metrics?.estimated_minutes_saved || 0) / 60 * 10) / 10}h</p>
+                  <p className={`text-3xl font-bold ${theme.isExpeditors ? 'text-red-600' : 'text-green-600'}`}>
+                    {Math.round((metrics?.estimated_minutes_saved || 0) / 60 * 10) / 10}h
+                  </p>
                   <p className="text-sm text-gray-600">Total Time Saved</p>
                 </div>
               </div>
