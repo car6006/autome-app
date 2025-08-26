@@ -1415,17 +1415,17 @@ const NotesScreen = () => {
 
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {notes.map((note) => (
-            <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass}`}>
+            <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass} w-full`}>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg truncate">{note.title}</CardTitle>
-                  <Badge className={getStatusColor(note.status)}>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base sm:text-lg truncate flex-1 min-w-0">{note.title}</CardTitle>
+                  <Badge className={`${getStatusColor(note.status)} text-xs shrink-0`}>
                     {note.status}
                   </Badge>
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  {note.kind === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-                  <span>{new Date(note.created_at).toLocaleDateString()}</span>
+                  {note.kind === 'audio' ? <Mic className="w-4 h-4 shrink-0" /> : <Camera className="w-4 h-4 shrink-0" />}
+                  <span className="truncate">{new Date(note.created_at).toLocaleDateString()}</span>
                 </div>
               </CardHeader>
               
