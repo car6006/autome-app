@@ -1875,6 +1875,39 @@ const NotesScreen = () => {
                       Clear
                     </Button>
                   </div>
+                  
+                  {/* Export Section - Only show if there are conversations */}
+                  {aiConversations.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export AI Analysis</h4>
+                      <div className="flex space-x-3">
+                        <Button
+                          onClick={() => exportAiAnalysis('rtf')}
+                          variant="outline"
+                          className={`flex-1 ${
+                            theme.isExpeditors 
+                              ? 'border-red-600 text-red-600 hover:bg-red-50'
+                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                          }`}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          Export RTF
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportAiAnalysis('txt')}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Export TXT
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Exports only AI responses (questions excluded)
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
