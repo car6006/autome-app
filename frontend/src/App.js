@@ -1187,13 +1187,25 @@ const NotesScreen = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-4">
+    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
       <div className="max-w-4xl mx-auto">
+        
+        {/* Expeditors Logo for notes page */}
+        {branding.showLogo && (
+          <div className="mb-6 text-center">
+            <img 
+              src={branding.logoPath} 
+              alt="Expeditors" 
+              className="expeditors-logo h-10 mx-auto"
+            />
+          </div>
+        )}
+        
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Notes</h1>
-              <p className="text-gray-600">Manage and share your captured content</p>
+              <h1 className={`text-3xl font-bold mb-2 ${theme.isExpeditors ? 'text-gray-800' : 'text-gray-800'}`}>Your Notes</h1>
+              <p className={`${theme.isExpeditors ? 'text-gray-600' : 'text-gray-600'}`}>Manage and share your captured content</p>
             </div>
             
             {/* Batch Report Controls */}
