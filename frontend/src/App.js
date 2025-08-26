@@ -251,6 +251,12 @@ const CaptureScreen = () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      
+      // Release wake lock on component unmount
+      if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+      }
     };
   }, []);
 
