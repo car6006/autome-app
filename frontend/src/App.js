@@ -1536,6 +1536,22 @@ const NotesScreen = () => {
                       </Button>
                     </div>
                     
+                    {/* AI Chat Feature */}
+                    <div className="mb-3">
+                      <Button
+                        size="sm"
+                        onClick={() => openAiChat(note)}
+                        className={`w-full ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white'
+                            : 'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white'
+                        }`}
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Ask AI about this content
+                      </Button>
+                    </div>
+                    
                     {/* Professional Report Generation */}
                     <div className="flex space-x-2">
                       <Button
