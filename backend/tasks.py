@@ -126,7 +126,7 @@ async def enqueue_transcription(note_id: str):
     except Exception as e:
         logger.error(f"Transcription failed for note {note_id}: {str(e)}")
         await NotesStore.update_status(note_id, "failed")
-        await NotesStore.set_artifacts(note_id, {"error": str(e)})
+        await NotesStore.set_artifacts(note_id, {"error": "Transcription failed"})
 
 async def enqueue_ocr(note_id: str):
     note = await NotesStore.get(note_id)
