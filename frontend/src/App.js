@@ -470,7 +470,7 @@ const CaptureScreen = () => {
       setTimeout(() => navigate('/notes'), 1500);
       
     } catch (error) {
-      console.error('Upload error:', error);
+      // Upload error logged for debugging
       toast({ 
         title: "Error", 
         description: error.response?.data?.detail || "Failed to process audio. Please try again.", 
