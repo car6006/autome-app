@@ -157,7 +157,7 @@ async def create_note(
     if note.kind == "text" and note.text_content:
         artifacts = {"text": note.text_content}
         await NotesStore.set_artifacts(note_id, artifacts)
-        await NotesStore.set_status(note_id, "ready")
+        await NotesStore.update_status(note_id, "ready")
         return {"id": note_id, "status": "ready"}
     
     return {"id": note_id, "status": "created"}
