@@ -152,7 +152,10 @@ class AuthService:
         # Create user
         profile = UserProfile(
             first_name=user_data.first_name,
-            last_name=user_data.last_name
+            last_name=user_data.last_name,
+            profession=user_data.profession,
+            industry=user_data.industry,
+            interests=user_data.interests
         )
         
         user = User(
