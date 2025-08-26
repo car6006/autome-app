@@ -655,12 +655,17 @@ async def generate_batch_report(
             ai_analysis = response.json()
             report_content = ai_analysis["choices"][0]["message"]["content"]
             
+            # Add logo header for Expeditors users
+            if is_expeditors_user:
+                report_content = logo_header + report_content
+            
             return {
                 "report": report_content,
                 "title": title,
                 "source_notes": note_titles,
                 "note_count": len(note_titles),
-                "generated_at": datetime.now(timezone.utc).isoformat()
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "is_expeditors": is_expeditors_user
             }
     
     except Exception as e:
