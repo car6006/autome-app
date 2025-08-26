@@ -279,6 +279,51 @@ const AuthModal = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                   
+                  {/* Professional Information */}
+                  <Separator className="my-4" />
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Professional Information (for AI personalization)
+                    </Label>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="profession" className="text-xs text-gray-600">
+                        Profession/Role
+                      </Label>
+                      <Input
+                        id="profession"
+                        placeholder="e.g., Logistics Manager, Painter, Panel Beater, Sales Rep..."
+                        value={registerData.profession}
+                        onChange={(e) => setRegisterData({...registerData, profession: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="industry" className="text-xs text-gray-600">
+                        Industry/Sector
+                      </Label>
+                      <Input
+                        id="industry"
+                        placeholder="e.g., Logistics & Supply Chain, Construction, Automotive..."
+                        value={registerData.industry}
+                        onChange={(e) => setRegisterData({...registerData, industry: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="interests" className="text-xs text-gray-600">
+                        Key Interests/Focus Areas (optional)
+                      </Label>
+                      <Input
+                        id="interests"
+                        placeholder="e.g., Cost optimization, Quality control, Customer service..."
+                        value={registerData.interests}
+                        onChange={(e) => setRegisterData({...registerData, interests: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  
                   <Button 
                     type="submit" 
                     disabled={loading}
