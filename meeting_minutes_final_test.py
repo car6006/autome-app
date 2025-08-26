@@ -391,7 +391,7 @@ class MeetingMinutesFinalTester:
                 self.log(f"   ❌ Note creation response missing ID")
         
         health_tests = [success1, auth_working, success3]
-        health_score = sum(health_tests)
+        health_score = sum([1 if test else 0 for test in health_tests])
         
         self.log(f"   📊 API health tests passed: {health_score}/3")
         
