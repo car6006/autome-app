@@ -180,7 +180,7 @@ async def stt_transcribe(file_url: str):
                 for i, chunk_path in enumerate(chunks):
                     try:
                         logger.info(f"Transcribing chunk {i+1}/{len(chunks)}")
-                        chunk_text = await transcribe_audio_chunk(chunk_path, key)
+                        chunk_text = await transcribe_audio_chunk(chunk_path, key, "en")
                         
                         if chunk_text.strip():
                             # Add chunk number for long transcriptions
