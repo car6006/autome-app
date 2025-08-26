@@ -1744,6 +1744,110 @@ const NotesScreen = () => {
             </div>
           </div>
         )}
+        
+        {/* AI Chat Modal */}
+        {showAiChatModal && aiChatNote && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl max-h-[90vh] overflow-hidden w-full">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <Sparkles className="w-6 h-6 mr-3 text-blue-600" />
+                    AI Content Analysis
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Ask questions about: {aiChatNote.title}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAiChatModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[60vh]">
+                {/* Previous Conversations */}
+                {aiConversations.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Previous Questions</h3>
+                    <div className="space-y-3 max-h-40 overflow-y-auto">
+                      {aiConversations.slice(-3).map((conv, index) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                          <p className="text-sm font-medium text-gray-700 mb-1">Q: {conv.question}</p>
+                          <p className="text-sm text-gray-600">A: {conv.response.substring(0, 100)}...</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Current Response */}
+                {aiResponse && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">AI Analysis</h3>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="whitespace-pre-wrap text-gray-800">{aiResponse}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Question Input */}
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Ask AI about this content</Label>
+                    <Textarea
+                      value={aiQuestion}
+                      onChange={(e) => setAiQuestion(e.target.value)}
+                      placeholder="Examples:
+• Provide me with a summary from this content
+• What are the key insights from this meeting?
+• List trade barriers we might encounter
+• What market intelligence can you extract?
+• What are the main action items?
+• Analyze risks mentioned in this content"
+                      className="mt-2 min-h-[120px]"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={submitAiQuestion}
+                      disabled={aiChatLoading || !aiQuestion.trim()}
+                      className={`flex-1 ${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                          : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
+                      }`}
+                    >
+                      {aiChatLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Ask AI
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={clearAiChat}
+                      disabled={aiChatLoading}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
