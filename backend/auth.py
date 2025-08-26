@@ -38,6 +38,9 @@ class UserProfile(BaseModel):
     phone: str = ""
     bio: str = ""
     avatar_url: str = ""
+    profession: str = ""
+    industry: str = ""
+    interests: str = ""
     preferences: Dict[str, Any] = Field(default_factory=dict)
 
 class User(BaseModel):
