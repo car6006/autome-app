@@ -1219,7 +1219,11 @@ const NotesScreen = () => {
                 <Button
                   onClick={generateBatchReport}
                   disabled={generatingReport.batch}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                  className={`${
+                    theme.isExpeditors 
+                      ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white'
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                  }`}
                 >
                   {generatingReport.batch ? (
                     <>
