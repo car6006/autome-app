@@ -571,8 +571,22 @@ async def generate_batch_report(
         
         full_content = "\n\n".join(combined_content)
         
+        # Check if user is from Expeditors
+        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+        
+        # Add logo header for Expeditors users
+        logo_header = ""
+        if is_expeditors_user:
+            logo_header = """
+==================================================
+           EXPEDITORS INTERNATIONAL
+        Comprehensive Business Analysis Report
+==================================================
+
+"""
+        
         prompt = f"""
-        You are a senior business consultant creating a comprehensive executive report. 
+        You are a senior business consultant creating a comprehensive executive report{" for Expeditors International" if is_expeditors_user else ""}. 
         Below is content from multiple sources that need to be synthesized into a professional business analysis.
 
         Combined Content:
