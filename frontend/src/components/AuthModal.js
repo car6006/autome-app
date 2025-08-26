@@ -327,7 +327,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   <Button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-700 hover:to-violet-700 text-white py-3 mt-6"
+                    className="w-full bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-700 hover:to-violet-700 text-white py-2.5 sm:py-3 mt-4 sm:mt-6 text-sm sm:text-base"
                   >
                     {loading ? (
                       <>
