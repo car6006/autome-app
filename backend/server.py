@@ -1141,7 +1141,8 @@ async def generate_professional_report(
             }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+        logger.error(f"Report generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Report generation temporarily unavailable")
 
 @api_router.post("/notes/batch-report")
 async def generate_batch_report(
