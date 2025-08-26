@@ -347,7 +347,7 @@ const CaptureScreen = () => {
                     <div className="w-full bg-red-200 rounded-full h-2">
                       <div className="bg-red-500 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
                     </div>
-                    <p className="text-xs text-red-600 mt-1 text-center">Recording... {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}</p>
+                    <p className="text-xs text-gray-400 mt-1 text-center">Recording... {Math.floor(recordingTime / 60)}:{(recordingTime %60).toString().padStart(2, '0')}</p>
                   </div>
                 </CardContent>
               </Card>
