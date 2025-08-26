@@ -540,67 +540,147 @@ async def export_ai_conversations(
     is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
     
     if format == "rtf":
-        # Generate RTF content
+        # Generate professional RTF content with proper formatting
         rtf_content = r"{\rtf1\ansi\deff0"
         
-        # Add fonts
-        rtf_content += r"{\fonttbl{\f0 Times New Roman;}{\f1 Arial;}}"
+        # Add fonts for professional appearance
+        rtf_content += r"{\fonttbl{\f0 Times New Roman;}{\f1 Arial;}{\f2 Calibri;}}"
         
-        # Add colors  
-        rtf_content += r"{\colortbl;\red0\green0\blue0;\red234\green10\blue42;\red35\green31\blue32;}"
+        # Add colors for Expeditors branding
+        rtf_content += r"{\colortbl;\red0\green0\blue0;\red234\green10\blue42;\red35\green31\blue32;\red102\green102\blue102;\red255\green255\blue255;}"
         
-        # Header with branding
+        # Header with Expeditors branding and logo placeholder
         if is_expeditors_user:
-            rtf_content += r"\pard\qc\f1\fs28\b\cf2 EXPEDITORS INTERNATIONAL\par"
-            rtf_content += r"\f1\fs20\b0\cf3 AI Content Analysis Report\par"
-            rtf_content += r"\pard\qc\f0\fs16\cf1 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
+            rtf_content += r"\pard\qc\f1\fs32\b\cf2 EXPEDITORS INTERNATIONAL\par"
+            rtf_content += r"\f2\fs18\b0\cf3 Global Logistics & Freight Forwarding\par"
+            rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 60 + r"\par\par"
+            rtf_content += r"\pard\qc\f1\fs24\b\cf1 AI CONTENT ANALYSIS REPORT\par"
+            rtf_content += r"\f0\fs12\cf4 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
+            rtf_content += r"\f0\fs12\cf4 Document: " + note["title"] + r"\par"
+            rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 60 + r"\par\par"
         else:
-            rtf_content += r"\pard\qc\f1\fs24\b\cf1 AI Content Analysis\par"
-            rtf_content += r"\f0\fs16\b0 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
+            rtf_content += r"\pard\qc\f1\fs28\b\cf1 AI CONTENT ANALYSIS REPORT\par"
+            rtf_content += r"\f0\fs12\b0\cf4 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
+            rtf_content += r"\f0\fs12\cf4 Document: " + note["title"] + r"\par"
+            rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 50 + r"\par\par"
         
-        rtf_content += r"\pard\qc\f0\fs16\cf1 Note: " + note["title"] + r"\par\par"
+        # Professional content formatting
+        rtf_content += r"\pard\ql\f0\fs22\b\cf1 EXECUTIVE SUMMARY\par"
+        rtf_content += r"\pard\ql\f0\fs14\cf4 " + "─" * 20 + r"\par"
         
-        # Add AI responses only (no questions)
-        rtf_content += r"\pard\ql\f0\fs18\b\cf1 AI Analysis Summary:\par\par"
-        
+        # Add AI responses with professional formatting
         for i, conv in enumerate(conversations, 1):
-            # Only include the AI response, not the question
             response = conv.get("response", "")
             timestamp = conv.get("timestamp", "")
             
-            # Parse timestamp if available
+            # Parse timestamp
             time_str = ""
             if timestamp:
                 try:
                     dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                     time_str = dt.strftime("%H:%M")
                 except:
-                    time_str = timestamp[:10]  # fallback
+                    time_str = timestamp[:10]
             
-            rtf_content += r"\f0\fs16\b\cf1 Analysis " + str(i)
+            # Section header
+            rtf_content += r"\par\pard\ql\f1\fs18\b\cf2 ANALYSIS SECTION " + str(i)
             if time_str:
-                rtf_content += r" (" + time_str + r")"
-            rtf_content += r":\par"
+                rtf_content += r" \f0\fs12\cf4 (Generated at " + time_str + r")"
+            rtf_content += r"\par"
+            rtf_content += r"\pard\ql\f0\fs14\cf4 " + "─" * 40 + r"\par\par"
             
-            # Clean and format the response text for RTF
+            # Clean and professionally format the response
             clean_response = response.replace('\\', '\\\\').replace('{', r'\{').replace('}', r'\}')
-            # Replace bullet points
-            clean_response = clean_response.replace('•', r'\bullet ')
-            # Handle line breaks
-            clean_response = clean_response.replace('\n\n', r'\par\par').replace('\n', r'\par')
             
-            rtf_content += r"\f0\fs14\b0\cf1 " + clean_response + r"\par\par"
+            # Process the content for better formatting
+            lines = clean_response.split('\n')
+            formatted_lines = []
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    formatted_lines.append(r'\par')
+                    continue
+                
+                # Format headers (lines starting with ###, ##, #)
+                if line.startswith('###'):
+                    header_text = line.replace('###', '').strip()
+                    formatted_lines.append(r'\par\pard\ql\f1\fs16\b\cf1 ' + header_text + r'\par')
+                elif line.startswith('##'):
+                    header_text = line.replace('##', '').strip()
+                    formatted_lines.append(r'\par\pard\ql\f1\fs18\b\cf2 ' + header_text + r'\par')
+                elif line.startswith('#'):
+                    header_text = line.replace('#', '').strip()
+                    formatted_lines.append(r'\par\pard\ql\f1\fs20\b\cf1 ' + header_text + r'\par')
+                
+                # Format numbered lists
+                elif line.startswith(('.', '1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                    # Extract number and content
+                    if line.startswith('.'):
+                        list_content = line[1:].strip().lstrip('*').strip()
+                        formatted_lines.append(r'\par\pard\li360\f2\fs12\b\cf1 \bullet\tab ' + list_content + r'\par')
+                    else:
+                        parts = line.split('.', 1)
+                        if len(parts) == 2:
+                            num = parts[0].strip()
+                            content = parts[1].strip().lstrip('*').strip()
+                            formatted_lines.append(r'\par\pard\li200\f2\fs12\b\cf2 ' + num + r'.\tab\f0\fs12\b0\cf1 ' + content + r'\par')
+                
+                # Format bullet points
+                elif line.startswith(('•', '-', '*')):
+                    bullet_content = line[1:].strip()
+                    # Check if it's a sub-bullet (starts with description)
+                    if ':' in bullet_content and bullet_content.index(':') < 50:
+                        parts = bullet_content.split(':', 1)
+                        title = parts[0].strip()
+                        desc = parts[1].strip()
+                        formatted_lines.append(r'\par\pard\li480\f2\fs11\b\cf2 \bullet\tab ' + title + r':\f0\fs11\b0\cf1 ' + desc + r'\par')
+                    else:
+                        formatted_lines.append(r'\par\pard\li360\f2\fs11\cf1 \bullet\tab ' + bullet_content + r'\par')
+                
+                # Format bold text (between **)
+                elif '**' in line:
+                    # Simple bold formatting
+                    parts = line.split('**')
+                    formatted_line = r'\pard\ql\f0\fs12\cf1 '
+                    for j, part in enumerate(parts):
+                        if j % 2 == 1:  # Odd indices are between **
+                            formatted_line += r'\b ' + part + r'\b0 '
+                        else:
+                            formatted_line += part
+                    formatted_lines.append(formatted_line + r'\par')
+                
+                # Regular paragraphs
+                else:
+                    formatted_lines.append(r'\pard\ql\f0\fs12\cf1 ' + line + r'\par')
+            
+            # Join all formatted lines
+            rtf_content += ''.join(formatted_lines)
+            
+            # Add spacing between sections
+            rtf_content += r'\par\par'
         
-        # Footer
+        # Professional footer
+        rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 60 + r"\par"
         if is_expeditors_user:
-            rtf_content += r"\pard\qc\f0\fs12\cf3 Confidential - Expeditors International\par"
+            rtf_content += r"\pard\qc\f0\fs10\cf4 This document contains confidential and proprietary information.\par"
+            rtf_content += r"\f0\fs10\cf2 EXPEDITORS INTERNATIONAL - " + datetime.now(timezone.utc).strftime("%Y") + r"\par"
+        else:
+            rtf_content += r"\pard\qc\f0\fs10\cf4 AI-Generated Content Analysis Report\par"
         
         rtf_content += r"}"
+        
+        # Create descriptive filename based on content
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        if is_expeditors_user:
+            filename = f"Expeditors_AI_Analysis_{filename_base}.rtf"
+        else:
+            filename = f"AI_Analysis_{filename_base}.rtf"
         
         return Response(
             content=rtf_content,
             media_type="application/rtf",
-            headers={"Content-Disposition": f"attachment; filename=\"AI_Analysis_{note['title'][:30]}.rtf\""}
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
     
     else:  # txt format
