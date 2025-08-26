@@ -684,16 +684,27 @@ async def export_ai_conversations(
         )
     
     else:  # txt format
-        content = f"AI Content Analysis - {note['title']}\n"
-        content += "=" * (len(content) - 1) + "\n\n"
+        content = ""
         
+        # Professional header
         if is_expeditors_user:
-            content += "EXPEDITORS INTERNATIONAL\n"
-            content += "AI Content Analysis Report\n\n"
+            content += "=" * 70 + "\n"
+            content += "                EXPEDITORS INTERNATIONAL\n"
+            content += "              Global Logistics & Freight Forwarding\n"
+            content += "=" * 70 + "\n"
+            content += "                AI CONTENT ANALYSIS REPORT\n"
+            content += "=" * 70 + "\n\n"
+        else:
+            content += "=" * 50 + "\n"
+            content += "         AI CONTENT ANALYSIS REPORT\n"
+            content += "=" * 50 + "\n\n"
         
-        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}\n\n"
+        content += f"Document: {note['title']}\n"
+        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}\n"
+        content += f"Analysis Sections: {len(conversations)}\n\n"
         
-        content += "AI ANALYSIS SUMMARY\n\n"
+        content += "EXECUTIVE SUMMARY\n"
+        content += "-" * 20 + "\n\n"
         
         for i, conv in enumerate(conversations, 1):
             response = conv.get("response", "")
@@ -703,21 +714,68 @@ async def export_ai_conversations(
             if timestamp:
                 try:
                     dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                    time_str = f" ({dt.strftime('%H:%M')})"
+                    time_str = f" (Generated at {dt.strftime('%H:%M')})"
                 except:
                     time_str = f" ({timestamp[:10]})"
             
-            content += f"Analysis {i}{time_str}:\n"
-            content += "-" * 40 + "\n"
-            content += response + "\n\n"
+            content += f"ANALYSIS SECTION {i}{time_str}\n"
+            content += "-" * 40 + "\n\n"
+            
+            # Clean up the response formatting
+            lines = response.split('\n')
+            formatted_response = ""
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    formatted_response += "\n"
+                    continue
+                
+                # Format headers
+                if line.startswith('###'):
+                    formatted_response += f"\n{line.replace('###', '').strip()}\n" + "~" * len(line.replace('###', '').strip()) + "\n"
+                elif line.startswith('##'):
+                    formatted_response += f"\n{line.replace('##', '').strip()}\n" + "=" * len(line.replace('##', '').strip()) + "\n"
+                elif line.startswith('#'):
+                    formatted_response += f"\n{line.replace('#', '').strip()}\n" + "-" * len(line.replace('#', '').strip()) + "\n"
+                
+                # Format lists
+                elif line.startswith(('.', '1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                    if line.startswith('.'):
+                        formatted_response += f"  • {line[1:].strip()}\n"
+                    else:
+                        formatted_response += f"  {line}\n"
+                
+                # Format bullet points
+                elif line.startswith(('•', '-', '*')):
+                    formatted_response += f"  • {line[1:].strip()}\n"
+                
+                # Regular text
+                else:
+                    formatted_response += f"{line}\n"
+            
+            content += formatted_response + "\n\n"
         
+        # Professional footer
+        content += "=" * 70 + "\n"
         if is_expeditors_user:
-            content += "\nConfidential - Expeditors International\n"
+            content += "This document contains confidential and proprietary information.\n"
+            content += f"EXPEDITORS INTERNATIONAL - {datetime.now(timezone.utc).strftime('%Y')}\n"
+        else:
+            content += "AI-Generated Content Analysis Report\n"
+        content += "=" * 70 + "\n"
+        
+        # Create descriptive filename
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        if is_expeditors_user:
+            filename = f"Expeditors_AI_Analysis_{filename_base}.txt"
+        else:
+            filename = f"AI_Analysis_{filename_base}.txt"
         
         return Response(
             content=content,
             media_type="text/plain",
-            headers={"Content-Disposition": f"attachment; filename=\"AI_Analysis_{note['title'][:30]}.txt\""}
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
 
 @api_router.post("/notes/{note_id}/generate-report")
