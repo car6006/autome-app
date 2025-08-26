@@ -80,7 +80,7 @@ const TextNoteScreen = () => {
       setTimeout(() => navigate('/notes'), 1500);
       
     } catch (error) {
-      console.error('Text note creation error:', error);
+      // Error logged for debugging
       toast({ 
         title: "Error", 
         description: error.response?.data?.detail || "Failed to create text note. Please try again.", 
