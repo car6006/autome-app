@@ -515,6 +515,120 @@ async def ai_chat_with_note(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process AI chat: {str(e)}")
 
+@api_router.post("/notes/{note_id}/generate-meeting-minutes")
+async def generate_meeting_minutes(
+    note_id: str,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Generate structured meeting minutes from AI conversations"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    conversations = artifacts.get("ai_conversations", [])
+    transcript = artifacts.get("transcript", "")
+    
+    if not conversations and not transcript:
+        raise HTTPException(status_code=400, detail="No content available for meeting minutes generation")
+    
+    try:
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Service not configured")
+        
+        # Check if user is from Expeditors
+        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+        
+        # Combine all available content
+        all_content = []
+        if transcript:
+            all_content.append(transcript)
+        
+        for conv in conversations:
+            response = conv.get("response", "")
+            if response:
+                all_content.append(response)
+        
+        combined_content = "\n\n".join(all_content)
+        
+        # Enhanced prompt for meeting minutes
+        company_context = "Expeditors International (a global logistics and freight forwarding company)" if is_expeditors_user else "the organization"
+        
+        prompt = f"""
+        You are an executive assistant creating formal meeting minutes for {company_context}. Based on the following content, create structured, professional meeting minutes.
+
+        Content:
+        {combined_content}
+
+        Create comprehensive meeting minutes with these exact sections:
+
+        ATTENDEES
+        List participants mentioned or inferred from the content. If not explicitly mentioned, use placeholder names like "Leadership Team Members" or department representatives.
+
+        APOLOGIES
+        Note any absences mentioned or use "None recorded" if not specified.
+
+        MEETING MINUTES
+        Summarize key discussion points in chronological or thematic order. Write in past tense as if recording what was discussed.
+
+        ACTION ITEMS
+        List specific tasks, responsibilities, and deadlines mentioned or implied. Format as:
+        • [Action] - [Responsible party] - [Timeline]
+
+        KEY INSIGHTS & ASSESSMENTS
+        Summarize strategic insights, performance metrics, and business intelligence discussed.
+
+        RISK ASSESSMENT
+        Identify and categorize risks mentioned:
+        • Operational Risks
+        • Financial Risks  
+        • Market Risks
+        • Regulatory Risks
+
+        NEXT STEPS
+        Outline follow-up actions and next meeting dates if mentioned.
+
+        Use professional business language. Write as if these are official corporate meeting minutes. Do NOT use phrases like "AI analysis" or "AI-generated". Make it sound like a human secretary recorded these minutes.
+        """
+        
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 2000,
+                    "temperature": 0.3
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            
+            ai_analysis = response.json()
+            meeting_minutes = ai_analysis["choices"][0]["message"]["content"]
+            
+            # Store the meeting minutes in artifacts
+            updated_artifacts = {**artifacts, "meeting_minutes": meeting_minutes}
+            await NotesStore.set_artifacts(note_id, updated_artifacts)
+            
+            return {
+                "meeting_minutes": meeting_minutes,
+                "note_title": note["title"],
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "note_id": note_id,
+                "is_expeditors": is_expeditors_user
+            }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate meeting minutes: {str(e)}")
+
 @api_router.get("/notes/{note_id}/ai-conversations/export")
 async def export_ai_conversations(
     note_id: str,
