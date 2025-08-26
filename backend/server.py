@@ -482,12 +482,15 @@ async def get_csv_template(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=\"supply_chain_template.csv\""}
     )
+from ai_context_processor import ai_context_processor
+
+@api_router.post("/notes/{note_id}/ai-chat")
 async def ai_chat_with_note(
     note_id: str,
     request: dict,
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """AI conversational agent for note content analysis"""
+    """AI conversational agent for note content analysis with dynamic profession-based context"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
@@ -507,36 +510,38 @@ async def ai_chat_with_note(
         raise HTTPException(status_code=400, detail="Please provide a question")
     
     try:
-        # Use OpenAI to answer user's question about the content
+        # Use OpenAI with dynamic profession-based context
         api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
         if not api_key:
             raise HTTPException(status_code=500, detail="AI service not configured")
         
-        # Check if user is from Expeditors for context
-        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+        # Get user profile for context
+        user_profile = current_user.get("profile", {}) if current_user else {}
         
-        # Enhanced context for Expeditors users
-        context_prefix = ""
-        if is_expeditors_user:
-            context_prefix = "You are an AI business analyst working with Expeditors International, a global logistics and freight forwarding company. "
+        # Generate dynamic prompt based on user's profession and question
+        if "meeting" in user_question.lower() or "minutes" in user_question.lower():
+            analysis_type = "meeting_minutes"
+        elif "insight" in user_question.lower() or "analysis" in user_question.lower():
+            analysis_type = "insights"
+        elif "summary" in user_question.lower() or "summarize" in user_question.lower():
+            analysis_type = "summary"
+        else:
+            analysis_type = "general"
         
-        prompt = f"""
-        {context_prefix}You are an intelligent assistant analyzing business content. Based on the following content, answer the user's question with detailed, actionable insights.
-
-        Content to analyze:
-        {content}
-
-        User's Question: {user_question}
-
-        Instructions:
-        - Provide a comprehensive, professional response
-        - Include specific details from the content when relevant
-        - If the user asks about market intelligence, trade barriers, risks, or business insights, provide thorough analysis
-        - Use bullet points for lists and clear structure
-        - If asking about summaries, provide executive-level summaries
-        - For trade/logistics questions, consider global business implications
-        - Be specific and actionable in your recommendations
-        - Use professional business language
+        # Create dynamic prompt with profession context
+        base_prompt = ai_context_processor.generate_dynamic_prompt(
+            content=content,
+            user_profile=user_profile,
+            analysis_type=analysis_type
+        )
+        
+        # Add the specific user question
+        full_prompt = f"""
+        {base_prompt}
+        
+        User's specific question: {user_question}
+        
+        Provide a comprehensive, profession-specific response that directly addresses their question.
         """
         
         async with httpx.AsyncClient(timeout=45) as client:
@@ -545,7 +550,7 @@ async def ai_chat_with_note(
                 json={
                     "model": "gpt-4o-mini",
                     "messages": [
-                        {"role": "user", "content": prompt}
+                        {"role": "user", "content": full_prompt}
                     ],
                     "max_tokens": 1200,
                     "temperature": 0.3
@@ -562,6 +567,7 @@ async def ai_chat_with_note(
             conversations.append({
                 "question": user_question,
                 "response": ai_response,
+                "context_used": ai_context_processor.get_context_summary(user_profile),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             
@@ -572,8 +578,8 @@ async def ai_chat_with_note(
                 "response": ai_response,
                 "question": user_question,
                 "note_title": note["title"],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "is_expeditors": is_expeditors_user
+                "context_summary": ai_context_processor.get_context_summary(user_profile),
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
     
     except Exception as e:
