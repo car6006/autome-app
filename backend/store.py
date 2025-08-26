@@ -22,7 +22,7 @@ def db():
 class Note(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
-    kind: str  # "audio" or "photo"
+    kind: str  # "audio", "photo", or "text"
     status: str = "uploading"  # uploading, processing, ready, failed
     media_key: Optional[str] = None
     artifacts: Dict[str, Any] = Field(default_factory=dict)
