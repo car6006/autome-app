@@ -1668,14 +1668,14 @@ const NotesScreen = () => {
                       <Button
                         size="sm"
                         onClick={() => generateMeetingMinutes(note)}
-                        disabled={generatingMinutes}
+                        disabled={generatingMinutes[note.id]}
                         className={`w-full ${
                           theme.isExpeditors 
                             ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                             : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
                         }`}
                       >
-                        {generatingMinutes ? (
+                        {generatingMinutes[note.id] ? (
                           <>
                             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                             Generating...
