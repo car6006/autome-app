@@ -539,147 +539,248 @@ async def export_ai_conversations(
     # Check if user is from Expeditors for branding
     is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
     
-    if format == "rtf":
-        # Generate professional RTF content with proper formatting
-        rtf_content = r"{\rtf1\ansi\deff0"
+    if format == "pdf":
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.colors import Color, black
+        from io import BytesIO
         
-        # Add fonts for professional appearance
-        rtf_content += r"{\fonttbl{\f0 Times New Roman;}{\f1 Arial;}{\f2 Calibri;}}"
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
         
-        # Add colors for Expeditors branding
-        rtf_content += r"{\colortbl;\red0\green0\blue0;\red234\green10\blue42;\red35\green31\blue32;\red102\green102\blue102;\red255\green255\blue255;}"
+        # Create custom styles
+        styles = getSampleStyleSheet()
         
-        # Header with Expeditors branding and logo placeholder
+        # Custom styles for professional look
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            alignment=1,  # Center
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceBefore=20,
+            spaceAfter=12,
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        body_style = ParagraphStyle(
+            'CustomBody',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=12,
+            leftIndent=0,
+            rightIndent=0
+        )
+        
+        bullet_style = ParagraphStyle(
+            'CustomBullet',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=8,
+            leftIndent=20,
+            bulletIndent=10
+        )
+        
+        story = []
+        
+        # Title
         if is_expeditors_user:
-            rtf_content += r"\pard\qc\f1\fs32\b\cf2 EXPEDITORS INTERNATIONAL\par"
-            rtf_content += r"\f2\fs18\b0\cf3 Global Logistics & Freight Forwarding\par"
-            rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 60 + r"\par\par"
-            rtf_content += r"\pard\qc\f1\fs24\b\cf1 AI CONTENT ANALYSIS REPORT\par"
-            rtf_content += r"\f0\fs12\cf4 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
-            rtf_content += r"\f0\fs12\cf4 Document: " + note["title"] + r"\par"
-            rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 60 + r"\par\par"
+            story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
+            story.append(Paragraph("AI Content Analysis", heading_style))
         else:
-            rtf_content += r"\pard\qc\f1\fs28\b\cf1 AI CONTENT ANALYSIS REPORT\par"
-            rtf_content += r"\f0\fs12\b0\cf4 Generated: " + datetime.now(timezone.utc).strftime("%B %d, %Y at %H:%M UTC") + r"\par"
-            rtf_content += r"\f0\fs12\cf4 Document: " + note["title"] + r"\par"
-            rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 50 + r"\par\par"
+            story.append(Paragraph("AI Content Analysis", title_style))
         
-        # Professional content formatting
-        rtf_content += r"\pard\ql\f0\fs22\b\cf1 EXECUTIVE SUMMARY\par"
-        rtf_content += r"\pard\ql\f0\fs14\cf4 " + "─" * 20 + r"\par"
+        story.append(Spacer(1, 20))
         
-        # Add AI responses with professional formatting
-        for i, conv in enumerate(conversations, 1):
+        # Document info
+        story.append(Paragraph(f"<b>Document:</b> {note['title']}", body_style))
+        story.append(Paragraph(f"<b>Generated:</b> {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}", body_style))
+        story.append(Spacer(1, 30))
+        
+        # Process and clean the AI responses
+        all_responses = []
+        for conv in conversations:
             response = conv.get("response", "")
-            timestamp = conv.get("timestamp", "")
+            all_responses.append(response)
+        
+        # Combine and clean all responses like CoPilot example
+        combined_text = " ".join(all_responses)
+        
+        # Clean up the text - remove markdown formatting
+        import re
+        
+        # Remove markdown headers
+        combined_text = re.sub(r'#{1,6}\s*', '', combined_text)
+        # Remove bold markdown
+        combined_text = re.sub(r'\*\*(.*?)\*\*', r'\1', combined_text)
+        # Remove italic markdown  
+        combined_text = re.sub(r'\*(.*?)\*', r'\1', combined_text)
+        
+        # Split into paragraphs and bullet points
+        lines = combined_text.split('\n')
+        current_paragraph = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                if current_paragraph:
+                    story.append(Paragraph(current_paragraph, body_style))
+                    current_paragraph = ""
+                continue
             
-            # Parse timestamp
-            time_str = ""
-            if timestamp:
-                try:
-                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                    time_str = dt.strftime("%H:%M")
-                except:
-                    time_str = timestamp[:10]
+            # Handle bullet points
+            if line.startswith(('•', '-', '*')):
+                if current_paragraph:
+                    story.append(Paragraph(current_paragraph, body_style))
+                    current_paragraph = ""
+                
+                bullet_text = line[1:].strip()
+                story.append(Paragraph(f"• {bullet_text}", bullet_style))
             
-            # Section header
-            rtf_content += r"\par\pard\ql\f1\fs18\b\cf2 ANALYSIS SECTION " + str(i)
-            if time_str:
-                rtf_content += r" \f0\fs12\cf4 (Generated at " + time_str + r")"
-            rtf_content += r"\par"
-            rtf_content += r"\pard\ql\f0\fs14\cf4 " + "─" * 40 + r"\par\par"
+            # Handle numbered lists
+            elif re.match(r'^\d+\.', line):
+                if current_paragraph:
+                    story.append(Paragraph(current_paragraph, body_style))
+                    current_paragraph = ""
+                
+                story.append(Paragraph(line, bullet_style))
             
-            # Clean and professionally format the response
-            clean_response = response.replace('\\', '\\\\').replace('{', r'\{').replace('}', r'\}')
-            
-            # Process the content for better formatting
-            lines = clean_response.split('\n')
-            formatted_lines = []
-            
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    formatted_lines.append(r'\par')
-                    continue
-                
-                # Format headers (lines starting with ###, ##, #)
-                if line.startswith('###'):
-                    header_text = line.replace('###', '').strip()
-                    formatted_lines.append(r'\par\pard\ql\f1\fs16\b\cf1 ' + header_text + r'\par')
-                elif line.startswith('##'):
-                    header_text = line.replace('##', '').strip()
-                    formatted_lines.append(r'\par\pard\ql\f1\fs18\b\cf2 ' + header_text + r'\par')
-                elif line.startswith('#'):
-                    header_text = line.replace('#', '').strip()
-                    formatted_lines.append(r'\par\pard\ql\f1\fs20\b\cf1 ' + header_text + r'\par')
-                
-                # Format numbered lists
-                elif line.startswith(('.', '1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
-                    # Extract number and content
-                    if line.startswith('.'):
-                        list_content = line[1:].strip().lstrip('*').strip()
-                        formatted_lines.append(r'\par\pard\li360\f2\fs12\b\cf1 \bullet\tab ' + list_content + r'\par')
-                    else:
-                        parts = line.split('.', 1)
-                        if len(parts) == 2:
-                            num = parts[0].strip()
-                            content = parts[1].strip().lstrip('*').strip()
-                            formatted_lines.append(r'\par\pard\li200\f2\fs12\b\cf2 ' + num + r'.\tab\f0\fs12\b0\cf1 ' + content + r'\par')
-                
-                # Format bullet points
-                elif line.startswith(('•', '-', '*')):
-                    bullet_content = line[1:].strip()
-                    # Check if it's a sub-bullet (starts with description)
-                    if ':' in bullet_content and bullet_content.index(':') < 50:
-                        parts = bullet_content.split(':', 1)
-                        title = parts[0].strip()
-                        desc = parts[1].strip()
-                        formatted_lines.append(r'\par\pard\li480\f2\fs11\b\cf2 \bullet\tab ' + title + r':\f0\fs11\b0\cf1 ' + desc + r'\par')
-                    else:
-                        formatted_lines.append(r'\par\pard\li360\f2\fs11\cf1 \bullet\tab ' + bullet_content + r'\par')
-                
-                # Format bold text (between **)
-                elif '**' in line:
-                    # Simple bold formatting
-                    parts = line.split('**')
-                    formatted_line = r'\pard\ql\f0\fs12\cf1 '
-                    for j, part in enumerate(parts):
-                        if j % 2 == 1:  # Odd indices are between **
-                            formatted_line += r'\b ' + part + r'\b0 '
-                        else:
-                            formatted_line += part
-                    formatted_lines.append(formatted_line + r'\par')
-                
-                # Regular paragraphs
+            # Regular text
+            else:
+                if current_paragraph:
+                    current_paragraph += " " + line
                 else:
-                    formatted_lines.append(r'\pard\ql\f0\fs12\cf1 ' + line + r'\par')
-            
-            # Join all formatted lines
-            rtf_content += ''.join(formatted_lines)
-            
-            # Add spacing between sections
-            rtf_content += r'\par\par'
+                    current_paragraph = line
         
-        # Professional footer
-        rtf_content += r"\pard\qc\f0\fs14\cf4 " + "─" * 60 + r"\par"
-        if is_expeditors_user:
-            rtf_content += r"\pard\qc\f0\fs10\cf4 This document contains confidential and proprietary information.\par"
-            rtf_content += r"\f0\fs10\cf2 EXPEDITORS INTERNATIONAL - " + datetime.now(timezone.utc).strftime("%Y") + r"\par"
-        else:
-            rtf_content += r"\pard\qc\f0\fs10\cf4 AI-Generated Content Analysis Report\par"
+        # Add remaining paragraph
+        if current_paragraph:
+            story.append(Paragraph(current_paragraph, body_style))
         
-        rtf_content += r"}"
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
         
-        # Create descriptive filename based on content
+        # Create descriptive filename
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
-        if is_expeditors_user:
-            filename = f"Expeditors_AI_Analysis_{filename_base}.rtf"
-        else:
-            filename = f"AI_Analysis_{filename_base}.rtf"
+        filename = f"Expeditors_AI_Analysis_{filename_base}.pdf" if is_expeditors_user else f"AI_Analysis_{filename_base}.pdf"
         
         return Response(
-            content=rtf_content,
-            media_type="application/rtf",
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "docx":
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.shared import OxmlElement, qn
+        from io import BytesIO
+        
+        doc = Document()
+        
+        # Set document margins
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+        
+        # Title
+        if is_expeditors_user:
+            title = doc.add_heading('EXPEDITORS INTERNATIONAL', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            subtitle = doc.add_heading('AI Content Analysis', level=1)
+            subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        else:
+            title = doc.add_heading('AI Content Analysis', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Document info
+        info_para = doc.add_paragraph()
+        info_para.add_run(f"Document: ").bold = True
+        info_para.add_run(f"{note['title']}")
+        info_para.add_run("\nGenerated: ").bold = True
+        info_para.add_run(f"{datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}")
+        
+        doc.add_paragraph()  # Spacer
+        
+        # Process AI responses like CoPilot example
+        all_responses = []
+        for conv in conversations:
+            response = conv.get("response", "")
+            all_responses.append(response)
+        
+        combined_text = " ".join(all_responses)
+        
+        # Clean up markdown formatting
+        import re
+        combined_text = re.sub(r'#{1,6}\s*', '', combined_text)
+        combined_text = re.sub(r'\*\*(.*?)\*\*', r'\1', combined_text)
+        combined_text = re.sub(r'\*(.*?)\*', r'\1', combined_text)
+        
+        # Split into paragraphs and bullet points
+        lines = combined_text.split('\n')
+        current_paragraph = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                if current_paragraph:
+                    doc.add_paragraph(current_paragraph)
+                    current_paragraph = ""
+                continue
+            
+            # Handle bullet points
+            if line.startswith(('•', '-', '*')):
+                if current_paragraph:
+                    doc.add_paragraph(current_paragraph)
+                    current_paragraph = ""
+                
+                bullet_text = line[1:].strip()
+                para = doc.add_paragraph(bullet_text, style='List Bullet')
+            
+            # Handle numbered lists
+            elif re.match(r'^\d+\.', line):
+                if current_paragraph:
+                    doc.add_paragraph(current_paragraph)
+                    current_paragraph = ""
+                
+                para = doc.add_paragraph(line, style='List Number')
+            
+            # Regular text
+            else:
+                if current_paragraph:
+                    current_paragraph += " " + line
+                else:
+                    current_paragraph = line
+        
+        # Add remaining paragraph
+        if current_paragraph:
+            doc.add_paragraph(current_paragraph)
+        
+        # Save to buffer
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        # Create descriptive filename
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"Expeditors_AI_Analysis_{filename_base}.docx" if is_expeditors_user else f"AI_Analysis_{filename_base}.docx"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
     
