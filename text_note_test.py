@@ -7,7 +7,7 @@ import asyncio
 import httpx
 import json
 
-BASE_URL = "http://localhost:8001/api"
+BASE_URL = "https://autome-pro.preview.emergentagent.com/api"
 
 async def test_text_note_creation():
     """Test creating a text note"""
