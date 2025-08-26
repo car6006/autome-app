@@ -822,7 +822,7 @@ const PhotoScanScreen = () => {
       setTimeout(() => navigate('/notes'), 2000);
       
     } catch (error) {
-      console.error('Batch upload error:', error);
+      // Batch upload error logged for debugging
       toast({ 
         title: "Error", 
         description: error.response?.data?.detail || "Failed to process files. Please try again.", 
