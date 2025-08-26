@@ -259,7 +259,7 @@ async def enqueue_iisb_processing(client_name: str, issues_text: str, user_id: s
             
     except Exception as e:
         logger.error(f"Error in IISB processing: {str(e)}")
-        return {"error": str(e), "success": False}
+        return {"error": "IISB processing failed", "success": False}
 
 async def enqueue_git_sync(note_id: str):
     note = await NotesStore.get(note_id)
