@@ -257,24 +257,43 @@ const CaptureScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+    <div className={`min-h-screen p-4 ${theme.gradientBg}`}>
       <div className="max-w-md mx-auto">
-        {/* User greeting */}
+        {/* User greeting with Expeditors branding */}
         {user && (
           <div className="mb-4 text-center">
-            <p className="text-sm text-gray-600">
-              Hey there, <span className="font-semibold text-violet-600">{user.profile?.first_name || user.username}</span>! 👋
+            {branding.showLogo && (
+              <div className="mb-3 flex justify-center">
+                <img 
+                  src={branding.logoPath} 
+                  alt="Expeditors" 
+                  className="expeditors-logo h-8"
+                />
+              </div>
+            )}
+            <p className={`text-sm ${theme.isExpeditors ? 'text-gray-300' : 'text-gray-600'}`}>
+              Hey there, <span className={`font-semibold ${theme.accentColor}`}>
+                {user.profile?.first_name || user.username}
+              </span>! 👋
             </p>
           </div>
         )}
         
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+        <Card className={`${theme.cardClass}`}>
+          <CardHeader className={`${theme.headerClass}`}>
+            <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+              theme.isExpeditors 
+                ? 'bg-gradient-to-r from-red-600 to-red-700' 
+                : 'bg-gradient-to-r from-blue-500 to-purple-600'
+            }`}>
               <Mic className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-800">Voice Capture</CardTitle>
-            <CardDescription className="text-gray-600">Record audio for instant transcription</CardDescription>
+            <CardTitle className={`text-2xl font-bold ${theme.isExpeditors ? 'text-white' : 'text-gray-800'}`}>
+              Voice Capture
+            </CardTitle>
+            <CardDescription className={`${theme.isExpeditors ? 'text-gray-200' : 'text-gray-600'}`}>
+              Record audio for instant transcription
+            </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
