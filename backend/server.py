@@ -152,6 +152,14 @@ async def create_note(
     """Create a new note (authenticated or anonymous)"""
     user_id = current_user["id"] if current_user else None
     note_id = await NotesStore.create(note.title, note.kind, user_id)
+    
+    # For text notes, immediately set the content and mark as ready
+    if note.kind == "text" and note.text_content:
+        artifacts = {"text": note.text_content}
+        await NotesStore.set_artifacts(note_id, artifacts)
+        await NotesStore.set_status(note_id, "ready")
+        return {"id": note_id, "status": "ready"}
+    
     return {"id": note_id, "status": "created"}
 
 # Hidden Expeditors Network Diagram Feature
