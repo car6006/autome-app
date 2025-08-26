@@ -1868,6 +1868,77 @@ const NotesScreen = () => {
           </div>
         )}
         
+        {/* Meeting Minutes Preview Modal */}
+        {showMeetingMinutesPreview && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden w-full">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <FileText className="w-6 h-6 mr-3 text-green-600" />
+                    Meeting Minutes Preview
+                  </h2>
+                  <p className="text-gray-600 mt-1">Review before exporting</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowMeetingMinutesPreview(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[60vh]">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                  <div className="whitespace-pre-wrap text-gray-800 font-mono text-sm leading-relaxed">
+                    {meetingMinutes}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 border-t border-gray-200 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-gray-600">
+                    Ready to export professional meeting minutes with your logo
+                  </p>
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowMeetingMinutesPreview(false)}
+                    >
+                      Close Preview
+                    </Button>
+                    <Button
+                      onClick={() => exportMeetingMinutes('pdf', meetingMinutes.note_id)}
+                      className={`${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                          : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                      }`}
+                    >
+                      <FileDown className="w-4 h-4 mr-2" />
+                      Export PDF
+                    </Button>
+                    <Button
+                      onClick={() => exportMeetingMinutes('docx', meetingMinutes.note_id)}
+                      variant="outline"
+                      className={`${
+                        theme.isExpeditors 
+                          ? 'border-red-600 text-red-600 hover:bg-red-50'
+                          : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Export Word
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* AI Chat Modal */}
         {showAiChatModal && aiChatNote && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
