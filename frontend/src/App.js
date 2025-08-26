@@ -388,7 +388,7 @@ const CaptureScreen = () => {
                 {!isRecording ? (
                   <Button 
                     onClick={startRecording} 
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3"
+                    className={`py-3 ${theme.primaryButton}`}
                     size="lg"
                     disabled={uploadedFile}
                   >
@@ -410,7 +410,7 @@ const CaptureScreen = () => {
                 <Button 
                   onClick={() => audioUploadRef.current?.click()} 
                   variant="outline"
-                  className="border-2 border-dashed border-blue-300 hover:border-blue-500 py-3"
+                  className={`py-3 ${theme.secondaryButton}`}
                   size="lg"
                   disabled={isRecording || audioBlob}
                 >
