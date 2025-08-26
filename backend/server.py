@@ -443,8 +443,22 @@ async def generate_professional_report(
         if not api_key:
             raise HTTPException(status_code=500, detail="AI service not configured")
         
+        # Check if user is from Expeditors
+        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+        
+        # Add logo header for Expeditors users
+        logo_header = ""
+        if is_expeditors_user:
+            logo_header = """
+==================================================
+           EXPEDITORS INTERNATIONAL
+           Professional Business Report
+==================================================
+
+"""
+        
         prompt = f"""
-        You are a senior executive assistant creating a professional business report. Based on the following content, create a clean, well-formatted business analysis.
+        You are a senior executive assistant creating a professional business report{" for Expeditors International" if is_expeditors_user else ""}. Based on the following content, create a clean, well-formatted business analysis.
 
         Content to analyze:
         {content}
