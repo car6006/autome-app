@@ -1194,6 +1194,7 @@ const NotesScreen = () => {
       const response = await axios.post(`${API}/notes/${note.id}/generate-meeting-minutes`);
       
       setMeetingMinutes(response.data.meeting_minutes);
+      setCurrentNoteForMinutes(note); // Store the note for export
       setShowMeetingMinutesPreview(true);
       
       toast({ 
