@@ -64,7 +64,8 @@ api_router = APIRouter(prefix="/api")
 # Models
 class NoteCreate(BaseModel):
     title: str
-    kind: str  # "audio" or "photo"
+    kind: str  # "audio", "photo", or "text"
+    text_content: Optional[str] = None
 
 class EmailRequest(BaseModel):
     to: List[str]
