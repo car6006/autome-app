@@ -1633,6 +1633,32 @@ const NotesScreen = () => {
                       </Button>
                     </div>
                     
+                    {/* Generate Meeting Minutes Button */}
+                    <div className="mb-3">
+                      <Button
+                        size="sm"
+                        onClick={() => generateMeetingMinutes(note)}
+                        disabled={generatingMinutes}
+                        className={`w-full ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                            : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
+                        }`}
+                      >
+                        {generatingMinutes ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="w-3 h-3 mr-1" />
+                            Generate Meeting Minutes
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
                     {/* AI Chat Feature */}
                     <div className="mb-3">
                       <Button
