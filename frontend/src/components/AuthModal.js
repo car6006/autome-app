@@ -259,6 +259,9 @@ const AuthModal = ({ isOpen, onClose }) => {
                         required
                       />
                     </div>
+                    <p className="text-xs text-gray-500">
+                      Must be 8+ characters with uppercase, lowercase, and number
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
