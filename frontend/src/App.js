@@ -1350,7 +1350,7 @@ const NotesScreen = () => {
 
   return (
     <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-full mx-auto px-2 sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
         
         {/* Expeditors Logo for notes page */}
         {branding.showLogo && (
@@ -1364,18 +1364,18 @@ const NotesScreen = () => {
         )}
         
         <div className="mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className={`text-3xl font-bold mb-2 ${theme.isExpeditors ? 'text-gray-800' : 'text-gray-800'}`}>Your Notes</h1>
-              <p className={`${theme.isExpeditors ? 'text-gray-600' : 'text-gray-600'}`}>Manage and share your captured content</p>
+              <h1 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.isExpeditors ? 'text-gray-800' : 'text-gray-800'}`}>Your Notes</h1>
+              <p className={`text-sm sm:text-base ${theme.isExpeditors ? 'text-gray-600' : 'text-gray-600'}`}>Manage and share your captured content</p>
             </div>
             
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
               {/* Archive Toggle */}
               <Button
                 variant={showArchived ? "default" : "outline"}
                 onClick={() => setShowArchived(!showArchived)}
-                className={`${
+                className={`w-full sm:w-auto ${
                   theme.isExpeditors && showArchived
                     ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                     : ''
@@ -1390,7 +1390,7 @@ const NotesScreen = () => {
                 <Button
                   onClick={generateBatchReport}
                   disabled={generatingReport.batch}
-                  className={`${
+                  className={`w-full sm:w-auto ${
                     theme.isExpeditors 
                       ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white'
                       : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
@@ -1413,7 +1413,7 @@ const NotesScreen = () => {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {notes.map((note) => (
             <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass}`}>
               <CardHeader className="pb-3">
