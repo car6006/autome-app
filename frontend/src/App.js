@@ -313,7 +313,7 @@ const CaptureScreen = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-center space-x-3 mb-4">
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-red-700 font-mono text-lg">{formatTime(recordingTime)}</span>
+                    <span className="text-gray-400 font-mono text-lg">{formatTime(recordingTime)}</span>
                   </div>
                   
                   {/* Audio Waveform Visualization */}
