@@ -54,7 +54,21 @@ class EmailFunctionalityTester:
         """Test 1: Verify SendGrid API key is properly configured"""
         try:
             # Check if SendGrid API key is configured in environment
+            # First check current environment, then check backend .env file
             sendgrid_key = os.getenv("SENDGRID_API_KEY")
+            
+            if not sendgrid_key:
+                # Try to read from backend .env file
+                try:
+                    with open('/app/backend/.env', 'r') as f:
+                        env_content = f.read()
+                        for line in env_content.split('\n'):
+                            if line.startswith('SENDGRID_API_KEY='):
+                                sendgrid_key = line.split('=', 1)[1]
+                                break
+                except Exception as e:
+                    pass
+            
             if not sendgrid_key:
                 self.log_result("SendGrid API Key Configuration", False, "SENDGRID_API_KEY environment variable not found")
                 return
