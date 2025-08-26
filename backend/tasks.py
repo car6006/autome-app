@@ -38,10 +38,12 @@ async def send_email(to_list, subject, html):
             logger.info(f"Email sent successfully to {len(to_list)} recipients")
     except httpx.HTTPStatusError as e:
         logger.error(f"SendGrid API error: {e.response.status_code} - {e.response.text}")
-        raise
+        # Don't raise - background task failures should not affect main API responses
+        return
     except Exception as e:
         logger.error(f"Email sending failed: {str(e)}")
-        raise
+        # Don't raise - background task failures should not affect main API responses
+        return
 
 def _repo_url_with_pat(repo_url: str, pat: str) -> str:
     if not pat or not repo_url.startswith("https://"):
