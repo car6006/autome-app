@@ -58,6 +58,25 @@ db = client[os.environ['DB_NAME']]
 # Create the main app without a prefix
 app = FastAPI(title="AUTO-ME Productivity API", version="2.0.0")
 
+# Global exception handler for enhanced security
+@app.exception_handler(500)
+async def internal_server_error_handler(request, exc):
+    """Generic handler for internal server errors to prevent stack trace exposure"""
+    logger.error(f"Internal server error: {str(exc)}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error occurred"}
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request, exc):
+    """Catch-all exception handler for enhanced security"""
+    logger.error(f"Unhandled exception: {str(exc)}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Service temporarily unavailable"}
+    )
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
