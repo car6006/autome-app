@@ -1778,10 +1778,14 @@ const MetricsScreen = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <Card className={`${theme.cardClass}`}>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700' 
+                    : 'bg-gradient-to-r from-orange-500 to-red-600'
+                }`}>
                   <BarChart3 className="w-6 h-6 text-white" />
                 </div>
                 <div>
