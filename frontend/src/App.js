@@ -345,8 +345,18 @@ const CaptureScreen = () => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
       
-      toast({ title: "🎙️ Recording started", description: "Speak clearly for best results" });
+      const wakeLockStatus = wakeLock ? " Screen will stay on." : "";
+      toast({ 
+        title: "🎙️ Recording started", 
+        description: `Speak clearly for best results.${wakeLockStatus}` 
+      });
     } catch (error) {
+      // Release wake lock if there was an error
+      if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+      }
+      
       toast({ title: "Error", description: "Could not access microphone", variant: "destructive" });
     }
   };
