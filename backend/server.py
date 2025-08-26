@@ -635,7 +635,7 @@ async def export_ai_conversations(
     format: str = Query("pdf", regex="^(pdf|docx|txt)$"),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Export AI conversation responses to PDF, Word DOC, or TXT format"""
+    """Export meeting minutes to PDF, Word DOC, or TXT format"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
@@ -645,10 +645,10 @@ async def export_ai_conversations(
         raise HTTPException(status_code=403, detail="Not authorized to access this note")
     
     artifacts = note.get("artifacts", {})
-    conversations = artifacts.get("ai_conversations", [])
+    meeting_minutes = artifacts.get("meeting_minutes", "")
     
-    if not conversations:
-        raise HTTPException(status_code=400, detail="No AI conversations found for this note")
+    if not meeting_minutes:
+        raise HTTPException(status_code=400, detail="No meeting minutes found. Please generate meeting minutes first.")
     
     # Check if user is from Expeditors for branding
     is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
@@ -660,88 +660,83 @@ async def export_ai_conversations(
         from reportlab.lib.units import inch
         from reportlab.lib.colors import Color, black
         from io import BytesIO
+        import os
         
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
         
         # Create custom styles
         styles = getSampleStyleSheet()
         
-        # Custom styles for professional look
+        # Custom styles for professional meeting minutes
         title_style = ParagraphStyle(
-            'CustomTitle',
+            'MeetingTitle',
             parent=styles['Heading1'],
-            fontSize=24,
-            spaceAfter=30,
+            fontSize=20,
+            spaceAfter=20,
             alignment=1,  # Center
             textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
         )
         
         heading_style = ParagraphStyle(
-            'CustomHeading',
+            'SectionHeading',
             parent=styles['Heading2'],
-            fontSize=16,
-            spaceBefore=20,
-            spaceAfter=12,
+            fontSize=14,
+            spaceBefore=16,
+            spaceAfter=8,
             textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
         )
         
         body_style = ParagraphStyle(
-            'CustomBody',
+            'BodyText',
             parent=styles['Normal'],
-            fontSize=11,
-            spaceAfter=12,
+            fontSize=10,
+            spaceAfter=6,
             leftIndent=0,
             rightIndent=0
         )
         
         bullet_style = ParagraphStyle(
-            'CustomBullet',
+            'BulletPoint',
             parent=styles['Normal'],
-            fontSize=11,
-            spaceAfter=8,
+            fontSize=10,
+            spaceAfter=4,
             leftIndent=20,
             bulletIndent=10
         )
         
         story = []
         
+        # Add logo if Expeditors user
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo = Image(logo_path, width=2*inch, height=0.8*inch)
+                    logo.hAlign = 'CENTER'
+                    story.append(logo)
+                    story.append(Spacer(1, 20))
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
         # Title
         if is_expeditors_user:
             story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
-            story.append(Paragraph("AI Content Analysis", heading_style))
+            story.append(Paragraph("Meeting Minutes", heading_style))
         else:
-            story.append(Paragraph("AI Content Analysis", title_style))
+            story.append(Paragraph("Meeting Minutes", title_style))
         
         story.append(Spacer(1, 20))
         
         # Document info
-        story.append(Paragraph(f"<b>Document:</b> {note['title']}", body_style))
-        story.append(Paragraph(f"<b>Generated:</b> {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}", body_style))
-        story.append(Spacer(1, 30))
+        story.append(Paragraph(f"<b>Meeting:</b> {note['title']}", body_style))
+        story.append(Paragraph(f"<b>Date:</b> {datetime.now(timezone.utc).strftime('%B %d, %Y')}", body_style))
+        story.append(Spacer(1, 20))
         
-        # Process and clean the AI responses
-        all_responses = []
-        for conv in conversations:
-            response = conv.get("response", "")
-            all_responses.append(response)
-        
-        # Combine and clean all responses like CoPilot example
-        combined_text = " ".join(all_responses)
-        
-        # Clean up the text - remove markdown formatting
-        import re
-        
-        # Remove markdown headers
-        combined_text = re.sub(r'#{1,6}\s*', '', combined_text)
-        # Remove bold markdown
-        combined_text = re.sub(r'\*\*(.*?)\*\*', r'\1', combined_text)
-        # Remove italic markdown  
-        combined_text = re.sub(r'\*(.*?)\*', r'\1', combined_text)
-        
-        # Split into paragraphs and bullet points
-        lines = combined_text.split('\n')
+        # Process meeting minutes content
+        lines = meeting_minutes.split('\n')
         current_paragraph = ""
+        current_section = ""
         
         for line in lines:
             line = line.strip()
@@ -751,22 +746,26 @@ async def export_ai_conversations(
                     current_paragraph = ""
                 continue
             
+            # Check if line is a section header
+            section_headers = ['ATTENDEES', 'APOLOGIES', 'MEETING MINUTES', 'ACTION ITEMS', 
+                             'KEY INSIGHTS', 'ASSESSMENTS', 'RISK ASSESSMENT', 'NEXT STEPS']
+            
+            if any(header in line.upper() for header in section_headers):
+                if current_paragraph:
+                    story.append(Paragraph(current_paragraph, body_style))
+                    current_paragraph = ""
+                
+                story.append(Paragraph(line, heading_style))
+                current_section = line.upper()
+            
             # Handle bullet points
-            if line.startswith(('•', '-', '*')):
+            elif line.startswith(('•', '-', '*')):
                 if current_paragraph:
                     story.append(Paragraph(current_paragraph, body_style))
                     current_paragraph = ""
                 
                 bullet_text = line[1:].strip()
                 story.append(Paragraph(f"• {bullet_text}", bullet_style))
-            
-            # Handle numbered lists
-            elif re.match(r'^\d+\.', line):
-                if current_paragraph:
-                    story.append(Paragraph(current_paragraph, body_style))
-                    current_paragraph = ""
-                
-                story.append(Paragraph(line, bullet_style))
             
             # Regular text
             else:
@@ -779,13 +778,20 @@ async def export_ai_conversations(
         if current_paragraph:
             story.append(Paragraph(current_paragraph, body_style))
         
+        # Footer
+        if is_expeditors_user:
+            story.append(Spacer(1, 30))
+            story.append(Paragraph("Confidential - Expeditors International", 
+                                 ParagraphStyle('Footer', parent=styles['Normal'], 
+                                               fontSize=8, alignment=1, textColor=Color(0.5, 0.5, 0.5))))
+        
         # Build PDF
         doc.build(story)
         buffer.seek(0)
         
-        # Create descriptive filename
+        # Create filename
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
-        filename = f"Expeditors_AI_Analysis_{filename_base}.pdf" if is_expeditors_user else f"AI_Analysis_{filename_base}.pdf"
+        filename = f"Meeting_Minutes_{filename_base}.pdf"
         
         return Response(
             content=buffer.getvalue(),
@@ -799,6 +805,7 @@ async def export_ai_conversations(
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.shared import OxmlElement, qn
         from io import BytesIO
+        import os
         
         doc = Document()
         
@@ -810,41 +817,40 @@ async def export_ai_conversations(
             section.left_margin = Inches(1)
             section.right_margin = Inches(1)
         
+        # Add logo if Expeditors user
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo_para = doc.add_paragraph()
+                    logo_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = logo_para.runs[0] if logo_para.runs else logo_para.add_run()
+                    run.add_picture(logo_path, width=Inches(3))
+                    doc.add_paragraph()  # Spacer
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
         # Title
         if is_expeditors_user:
             title = doc.add_heading('EXPEDITORS INTERNATIONAL', 0)
             title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            subtitle = doc.add_heading('AI Content Analysis', level=1)
+            subtitle = doc.add_heading('Meeting Minutes', level=1)
             subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
         else:
-            title = doc.add_heading('AI Content Analysis', 0)
+            title = doc.add_heading('Meeting Minutes', 0)
             title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # Document info
         info_para = doc.add_paragraph()
-        info_para.add_run(f"Document: ").bold = True
+        info_para.add_run("Meeting: ").bold = True
         info_para.add_run(f"{note['title']}")
-        info_para.add_run("\nGenerated: ").bold = True
-        info_para.add_run(f"{datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}")
+        info_para.add_run("\nDate: ").bold = True
+        info_para.add_run(f"{datetime.now(timezone.utc).strftime('%B %d, %Y')}")
         
         doc.add_paragraph()  # Spacer
         
-        # Process AI responses like CoPilot example
-        all_responses = []
-        for conv in conversations:
-            response = conv.get("response", "")
-            all_responses.append(response)
-        
-        combined_text = " ".join(all_responses)
-        
-        # Clean up markdown formatting
-        import re
-        combined_text = re.sub(r'#{1,6}\s*', '', combined_text)
-        combined_text = re.sub(r'\*\*(.*?)\*\*', r'\1', combined_text)
-        combined_text = re.sub(r'\*(.*?)\*', r'\1', combined_text)
-        
-        # Split into paragraphs and bullet points
-        lines = combined_text.split('\n')
+        # Process meeting minutes content
+        lines = meeting_minutes.split('\n')
         current_paragraph = ""
         
         for line in lines:
@@ -855,22 +861,25 @@ async def export_ai_conversations(
                     current_paragraph = ""
                 continue
             
+            # Check if line is a section header
+            section_headers = ['ATTENDEES', 'APOLOGIES', 'MEETING MINUTES', 'ACTION ITEMS', 
+                             'KEY INSIGHTS', 'ASSESSMENTS', 'RISK ASSESSMENT', 'NEXT STEPS']
+            
+            if any(header in line.upper() for header in section_headers):
+                if current_paragraph:
+                    doc.add_paragraph(current_paragraph)
+                    current_paragraph = ""
+                
+                doc.add_heading(line, level=2)
+            
             # Handle bullet points
-            if line.startswith(('•', '-', '*')):
+            elif line.startswith(('•', '-', '*')):
                 if current_paragraph:
                     doc.add_paragraph(current_paragraph)
                     current_paragraph = ""
                 
                 bullet_text = line[1:].strip()
-                para = doc.add_paragraph(bullet_text, style='List Bullet')
-            
-            # Handle numbered lists
-            elif re.match(r'^\d+\.', line):
-                if current_paragraph:
-                    doc.add_paragraph(current_paragraph)
-                    current_paragraph = ""
-                
-                para = doc.add_paragraph(line, style='List Number')
+                doc.add_paragraph(bullet_text, style='List Bullet')
             
             # Regular text
             else:
@@ -883,14 +892,22 @@ async def export_ai_conversations(
         if current_paragraph:
             doc.add_paragraph(current_paragraph)
         
+        # Footer
+        if is_expeditors_user:
+            doc.add_paragraph()
+            footer_para = doc.add_paragraph("Confidential - Expeditors International")
+            footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            footer_run = footer_para.runs[0]
+            footer_run.font.size = Pt(8)
+        
         # Save to buffer
         buffer = BytesIO()
         doc.save(buffer)
         buffer.seek(0)
         
-        # Create descriptive filename
+        # Create filename
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
-        filename = f"Expeditors_AI_Analysis_{filename_base}.docx" if is_expeditors_user else f"AI_Analysis_{filename_base}.docx"
+        filename = f"Meeting_Minutes_{filename_base}.docx"
         
         return Response(
             content=buffer.getvalue(),
@@ -898,48 +915,32 @@ async def export_ai_conversations(
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
     
-    else:  # txt format - clean version
+    else:  # txt format
         content = ""
         
-        # Simple, clean header
+        # Header
         if is_expeditors_user:
             content += "EXPEDITORS INTERNATIONAL\n"
-            content += "AI Content Analysis\n\n"
+            content += "MEETING MINUTES\n"
+            content += "=" * 50 + "\n\n"
         else:
-            content += "AI Content Analysis\n\n"
+            content += "MEETING MINUTES\n"
+            content += "=" * 30 + "\n\n"
         
-        content += f"Document: {note['title']}\n"
-        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}\n\n"
+        content += f"Meeting: {note['title']}\n"
+        content += f"Date: {datetime.now(timezone.utc).strftime('%B %d, %Y')}\n\n"
         
-        # Process AI responses cleanly like CoPilot
-        all_responses = []
-        for conv in conversations:
-            response = conv.get("response", "")
-            all_responses.append(response)
+        # Add meeting minutes content
+        content += meeting_minutes
         
-        combined_text = " ".join(all_responses)
+        # Footer
+        if is_expeditors_user:
+            content += "\n\n" + "=" * 50 + "\n"
+            content += "Confidential - Expeditors International\n"
         
-        # Clean up markdown
-        import re
-        combined_text = re.sub(r'#{1,6}\s*', '', combined_text)
-        combined_text = re.sub(r'\*\*(.*?)\*\*', r'\1', combined_text)
-        combined_text = re.sub(r'\*(.*?)\*', r'\1', combined_text)
-        
-        # Process into clean format
-        lines = combined_text.split('\n')
-        for line in lines:
-            line = line.strip()
-            if line:
-                if line.startswith(('•', '-', '*')):
-                    content += f"• {line[1:].strip()}\n"
-                elif re.match(r'^\d+\.', line):
-                    content += f"{line}\n"
-                else:
-                    content += f"{line}\n"
-        
-        # Create descriptive filename
+        # Create filename
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
-        filename = f"Expeditors_AI_Analysis_{filename_base}.txt" if is_expeditors_user else f"AI_Analysis_{filename_base}.txt"
+        filename = f"Meeting_Minutes_{filename_base}.txt"
         
         return Response(
             content=content,
