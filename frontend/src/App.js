@@ -50,6 +50,8 @@ const CaptureScreen = () => {
   const analyzerRef = useRef(null);
   const audioUploadRef = useRef(null);
   const navigate = useNavigate();
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
 
   useEffect(() => {
     return () => {
