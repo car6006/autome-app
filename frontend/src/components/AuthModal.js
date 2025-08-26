@@ -96,8 +96,8 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] p-0 border-0 bg-transparent shadow-none">
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] p-0 border-0 bg-transparent shadow-none overflow-y-auto">
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl mx-auto">
           <CardHeader className="text-center pb-6">
             <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-white" />
