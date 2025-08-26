@@ -432,7 +432,11 @@ const CaptureScreen = () => {
               <Button 
                 onClick={uploadAndProcess} 
                 disabled={processing || !noteTitle.trim()}
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-3"
+                className={`w-full py-3 ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white' 
+                    : 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white'
+                }`}
                 size="lg"
               >
                 {processing ? (
