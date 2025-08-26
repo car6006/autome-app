@@ -708,7 +708,8 @@ async def generate_meeting_minutes(
             }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate meeting minutes: {str(e)}")
+        logger.error(f"Meeting minutes generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Meeting minutes generation temporarily unavailable")
 
 @api_router.get("/notes/{note_id}/ai-conversations/export")
 async def export_ai_conversations(
