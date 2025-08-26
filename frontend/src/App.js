@@ -857,7 +857,7 @@ const NotesScreen = () => {
   const [aiConversations, setAiConversations] = useState([]);
   const [showMeetingMinutesPreview, setShowMeetingMinutesPreview] = useState(false);
   const [meetingMinutes, setMeetingMinutes] = useState("");
-  const [generatingMinutes, setGeneratingMinutes] = useState(false);
+  const [generatingMinutes, setGeneratingMinutes] = useState({});
   const [currentNoteForMinutes, setCurrentNoteForMinutes] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { toast } = useToast();
