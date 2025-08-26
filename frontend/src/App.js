@@ -1251,7 +1251,7 @@ const NotesScreen = () => {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {notes.map((note) => (
-            <Card key={note.id} className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
+            <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg truncate">{note.title}</CardTitle>
