@@ -98,14 +98,14 @@ const AuthModal = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] p-0 border-0 bg-transparent shadow-none overflow-y-auto">
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl mx-auto">
-          <CardHeader className="text-center pb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-white" />
+          <CardHeader className="text-center pb-4 px-4 sm:px-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
               Join AUTO-ME
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-gray-600 text-sm sm:text-base">
               Your AI-powered productivity companion
             </CardDescription>
           </CardHeader>
