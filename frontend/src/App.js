@@ -1752,6 +1752,8 @@ const MetricsScreen = () => {
 const Navigation = () => {
   const { user, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
 
   const getInitials = () => {
     if (!user) return 'U';
@@ -1765,72 +1767,110 @@ const Navigation = () => {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 px-4 py-3">
+      <div className={`fixed bottom-0 left-0 right-0 ${theme.navClass} px-4 py-3`}>
         <div className={`flex justify-around items-center max-w-md mx-auto ${hasExpeditorsAccess ? 'max-w-lg' : ''}`}>
+          
+          {/* Show Expeditors Logo for Expeditors users */}
+          {branding.showLogo && (
+            <div className="absolute left-4 top-2">
+              <img 
+                src={branding.logoPath} 
+                alt="Expeditors" 
+                className="expeditors-logo"
+              />
+            </div>
+          )}
+          
           <Link to="/capture" className="flex flex-col items-center space-y-1 p-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              theme.isExpeditors 
+                ? 'bg-gradient-to-r from-red-600 to-red-700' 
+                : 'bg-gradient-to-r from-blue-500 to-purple-600'
+            }`}>
               <Mic className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-gray-600">Record</span>
+            <span className={`text-xs ${theme.navItemClass}`}>Record</span>
           </Link>
           
           <Link to="/scan" className="flex flex-col items-center space-y-1 p-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              theme.isExpeditors 
+                ? 'bg-gradient-to-r from-gray-800 to-gray-900' 
+                : 'bg-gradient-to-r from-green-500 to-blue-600'
+            }`}>
               <Camera className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-gray-600">Scan</span>
+            <span className={`text-xs ${theme.navItemClass}`}>Scan</span>
           </Link>
           
           {/* Hidden Expeditors Network Feature */}
           {hasExpeditorsAccess && (
             <Link to="/network" className="flex flex-col items-center space-y-1 p-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center relative">
+              <div className="w-10 h-10 bg-gradient-to-r from-red-600 to-red-700 rounded-full flex items-center justify-center relative">
                 <Network className="w-5 h-5 text-white" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gold-400 rounded-full flex items-center justify-center">
-                  <Crown className="w-2 h-2 text-white" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                  <Crown className="w-2 h-2 text-red-600" />
                 </div>
               </div>
-              <span className="text-xs text-gray-600">Network</span>
+              <span className="text-xs text-white">Network</span>
             </Link>
           )}
           
           {/* Notes tab - only show to authenticated users */}
           {isAuthenticated && (
             <Link to="/notes" className="flex flex-col items-center space-y-1 p-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                theme.isExpeditors 
+                  ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                  : 'bg-gradient-to-r from-purple-500 to-pink-600'
+              }`}>
                 <FileText className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xs text-gray-600">Notes</span>
+              <span className={`text-xs ${theme.navItemClass}`}>Notes</span>
             </Link>
           )}
           
           <Link to="/metrics" className="flex flex-col items-center space-y-1 p-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              theme.isExpeditors 
+                ? 'bg-gradient-to-r from-gray-700 to-gray-800' 
+                : 'bg-gradient-to-r from-orange-500 to-red-600'
+            }`}>
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-gray-600">Stats</span>
+            <span className={`text-xs ${theme.navItemClass}`}>Stats</span>
           </Link>
           
           {/* Profile/Auth Button */}
           {isAuthenticated ? (
             <Link to="/profile" className="flex flex-col items-center space-y-1 p-2">
-              <Avatar className="w-10 h-10 border-2 border-violet-200">
+              <Avatar className={`w-10 h-10 border-2 ${
+                theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
+              }`}>
                 <AvatarImage src={user?.profile?.avatar_url} />
-                <AvatarFallback className="bg-gradient-to-r from-violet-500 to-pink-500 text-white text-xs font-bold">
+                <AvatarFallback className={`text-white text-xs font-bold ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                    : 'bg-gradient-to-r from-violet-500 to-pink-500'
+                }`}>
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs text-gray-600">Profile</span>
+              <span className={`text-xs ${theme.navItemClass}`}>Profile</span>
             </Link>
           ) : (
             <button 
               onClick={() => setShowAuthModal(true)}
               className="flex flex-col items-center space-y-1 p-2"
             >
-              <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-600 rounded-full flex items-center justify-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                theme.isExpeditors 
+                  ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                  : 'bg-gradient-to-r from-violet-500 to-pink-600'
+              }`}>
                 <UserPlus className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xs text-gray-600">Join</span>
+              <span className={`text-xs ${theme.navItemClass}`}>Join</span>
             </button>
           )}
         </div>
@@ -1838,7 +1878,11 @@ const Navigation = () => {
       
       {/* Floating Help Button - Smaller and better positioned */}
       <Link to="/help" className="fixed bottom-24 right-4 z-50 md:top-6 md:right-6 md:bottom-auto">
-        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
+        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${
+          theme.isExpeditors 
+            ? 'bg-gradient-to-r from-red-500 to-red-600' 
+            : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+        }`}>
           <HelpCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
       </Link>
