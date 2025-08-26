@@ -1679,7 +1679,9 @@ const NotesScreen = () => {
                     {note.artifacts.text && !note.artifacts.transcript && (
                       <div>
                         <div className="flex items-center justify-between">
-                          <Label className="text-xs font-semibold text-gray-700">EXTRACTED TEXT</Label>
+                          <Label className="text-xs font-semibold text-gray-700">
+                            {note.kind === 'text' ? 'TEXT CONTENT' : 'EXTRACTED TEXT'}
+                          </Label>
                           <Button
                             size="sm"
                             variant="ghost"
