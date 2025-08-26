@@ -151,7 +151,7 @@ async def stt_transcribe(file_url: str):
                 
                 with open(local, "rb") as audio_file:
                     files = {"file": audio_file}
-                    form = {"model": "whisper-1", "response_format": "json"}
+                    form = {"model": "whisper-1", "response_format": "json", "language": "en"}
                     
                     async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout per chunk
                         r = await client.post(
