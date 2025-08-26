@@ -1813,7 +1813,7 @@ const MetricsScreen = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Camera className="w-5 h-5 text-green-600" />
+                    <Camera className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-green-600'}`} />
                     <span>Photo Scans</span>
                   </div>
                   <Badge variant="secondary">{metrics?.notes_photo || 0}</Badge>
