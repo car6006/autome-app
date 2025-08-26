@@ -19,8 +19,11 @@ const HelpGuide = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">AUTO-ME Help Guide</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">OPEN AUTO-ME v1 Help Guide</h1>
           <p className="text-gray-600">Master your productivity with AI-powered features</p>
+          <Badge className="mt-2 bg-green-100 text-green-800 border-green-300">
+            Latest Update: Enhanced Security & Text Notes
+          </Badge>
         </div>
 
         <div className="space-y-6">
