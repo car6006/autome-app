@@ -470,7 +470,7 @@ async def process_network_input(
         
     except Exception as e:
         logger.error(f"Network processing error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to process network input: {str(e)}")
+        raise HTTPException(status_code=500, detail="Network processing temporarily unavailable")
 
 @api_router.get("/network/csv-template")
 async def get_csv_template(
