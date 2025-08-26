@@ -2625,6 +2625,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<CaptureScreen />} />
             <Route path="/capture" element={<CaptureScreen />} />
+            <Route path="/text" element={<TextNoteScreen />} />
             <Route path="/scan" element={<PhotoScanScreen />} />
             <Route path="/notes" element={<NotesScreen />} />
             <Route path="/metrics" element={<MetricsScreen />} />
