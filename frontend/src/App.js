@@ -1604,36 +1604,38 @@ const NotesScreen = () => {
                       </Button>
                     </div>
                     
-                    {/* Export buttons */}
-                    <div className="flex space-x-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => exportNote(note.id, 'txt')}
-                        className="flex-1"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        TXT
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => exportNote(note.id, 'md')}
-                        className="flex-1"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        MD
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => exportNote(note.id, 'json')}
-                        className="flex-1"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        JSON
-                      </Button>
-                    </div>
+                    {/* Admin-only export buttons */}
+                    {user?.email?.includes('@admin') && (
+                      <div className="flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => exportNote(note.id, 'txt')}
+                          className="flex-1"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          TXT
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => exportNote(note.id, 'md')}
+                          className="flex-1"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          MD
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => exportNote(note.id, 'json')}
+                          className="flex-1"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          JSON
+                        </Button>
+                      </div>
+                    )}
                     
                     {/* AI Chat Feature - Moved to Top */}
                     <div className="mb-3">
