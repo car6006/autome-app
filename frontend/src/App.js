@@ -1370,14 +1370,23 @@ const NotesScreen = () => {
               <p className={`${theme.isExpeditors ? 'text-gray-600' : 'text-gray-600'}`}>Manage and share your captured content</p>
             </div>
             
-            {/* Batch Report Controls */}
-            {selectedNotesForBatch.length > 0 && (
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-100 px-3 py-1 rounded-full">
-                  <span className="text-sm font-medium text-blue-800">
-                    {selectedNotesForBatch.length} selected
-                  </span>
-                </div>
+            <div className="flex items-center space-x-3">
+              {/* Archive Toggle */}
+              <Button
+                variant={showArchived ? "default" : "outline"}
+                onClick={() => setShowArchived(!showArchived)}
+                className={`${
+                  theme.isExpeditors && showArchived
+                    ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                    : ''
+                }`}
+              >
+                <Archive className="w-4 h-4 mr-2" />
+                {showArchived ? 'Hide Archived' : 'Show Archived'}
+              </Button>
+              
+              {/* Batch Report Button */}
+              {selectedNotesForBatch.length > 0 && (
                 <Button
                   onClick={generateBatchReport}
                   disabled={generatingReport.batch}
@@ -1399,15 +1408,8 @@ const NotesScreen = () => {
                     </>
                   )}
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedNotesForBatch([])}
-                  size="sm"
-                >
-                  Clear
-                </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
