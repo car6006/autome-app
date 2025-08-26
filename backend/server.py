@@ -518,7 +518,7 @@ async def ai_chat_with_note(
 @api_router.get("/notes/{note_id}/ai-conversations/export")
 async def export_ai_conversations(
     note_id: str,
-    format: str = Query("rtf", regex="^(rtf|txt)$"),
+    format: str = Query("pdf", regex="^(pdf|docx|txt)$"),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Export AI conversation responses to RTF format"""
