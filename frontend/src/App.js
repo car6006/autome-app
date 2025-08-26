@@ -1822,7 +1822,7 @@ const MetricsScreen = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <Card className={`${theme.cardClass}`}>
             <CardHeader>
               <CardTitle className="text-xl">Time Impact</CardTitle>
             </CardHeader>
