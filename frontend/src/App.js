@@ -1188,33 +1188,63 @@ const NotesScreen = () => {
     setAiResponse("");
   };
 
-  const exportAiAnalysis = async (format = 'rtf') => {
-    if (!aiChatNote || aiConversations.length === 0) {
-      toast({ title: "No conversations", description: "No AI conversations to export", variant: "destructive" });
-      return;
-    }
-
+  const generateMeetingMinutes = async (note) => {
+    setGeneratingMinutes(true);
     try {
-      const response = await axios.get(`${API}/notes/${aiChatNote.id}/ai-conversations/export?format=${format}`, {
+      const response = await axios.post(`${API}/notes/${note.id}/generate-meeting-minutes`);
+      
+      setMeetingMinutes(response.data.meeting_minutes);
+      setShowMeetingMinutesPreview(true);
+      
+      toast({ 
+        title: "📋 Meeting Minutes Generated", 
+        description: "Professional meeting minutes are ready for preview!" 
+      });
+      
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate meeting minutes. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingMinutes(false);
+    }
+  };
+
+  const exportMeetingMinutes = async (format = 'pdf', noteId) => {
+    try {
+      const response = await axios.get(`${API}/notes/${noteId}/ai-conversations/export?format=${format}`, {
         responseType: 'blob'
       });
       
       const url = URL.createObjectURL(response.data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `AI_Analysis_${aiChatNote.title.substring(0, 30)}.${format}`;
+      
+      // Extract filename from content-disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `Meeting_Minutes.${format}`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
       
       toast({ 
-        title: "📄 Export successful", 
-        description: `AI analysis exported as ${format.toUpperCase()}` 
+        title: "📄 Meeting Minutes Exported", 
+        description: `Professional meeting minutes exported as ${format.toUpperCase()}` 
       });
       
     } catch (error) {
       toast({ 
         title: "Error", 
-        description: "Failed to export AI analysis", 
+        description: "Failed to export meeting minutes", 
         variant: "destructive" 
       });
     }
