@@ -34,6 +34,7 @@ const API = `${BACKEND_URL}/api`;
 // Global audio context for better mobile support
 let audioContext = null;
 let mediaRecorder = null;
+let wakeLock = null;
 
 const TextNoteScreen = () => {
   const [noteTitle, setNoteTitle] = useState("");
