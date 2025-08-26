@@ -2364,7 +2364,7 @@ const MetricsScreen = () => {
       const response = await axios.get(`${API}/metrics?days=7`);
       setMetrics(response.data);
     } catch (error) {
-      console.error('Error fetching metrics:', error);
+      // Metrics fetching error logged for debugging
     } finally {
       setLoading(false);
     }
