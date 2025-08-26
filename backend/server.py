@@ -683,94 +683,48 @@ async def export_ai_conversations(
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
     
-    else:  # txt format
+    else:  # txt format - clean version
         content = ""
         
-        # Professional header
+        # Simple, clean header
         if is_expeditors_user:
-            content += "=" * 70 + "\n"
-            content += "                EXPEDITORS INTERNATIONAL\n"
-            content += "              Global Logistics & Freight Forwarding\n"
-            content += "=" * 70 + "\n"
-            content += "                AI CONTENT ANALYSIS REPORT\n"
-            content += "=" * 70 + "\n\n"
+            content += "EXPEDITORS INTERNATIONAL\n"
+            content += "AI Content Analysis\n\n"
         else:
-            content += "=" * 50 + "\n"
-            content += "         AI CONTENT ANALYSIS REPORT\n"
-            content += "=" * 50 + "\n\n"
+            content += "AI Content Analysis\n\n"
         
         content += f"Document: {note['title']}\n"
-        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}\n"
-        content += f"Analysis Sections: {len(conversations)}\n\n"
+        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %H:%M UTC')}\n\n"
         
-        content += "EXECUTIVE SUMMARY\n"
-        content += "-" * 20 + "\n\n"
-        
-        for i, conv in enumerate(conversations, 1):
+        # Process AI responses cleanly like CoPilot
+        all_responses = []
+        for conv in conversations:
             response = conv.get("response", "")
-            timestamp = conv.get("timestamp", "")
-            
-            time_str = ""
-            if timestamp:
-                try:
-                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                    time_str = f" (Generated at {dt.strftime('%H:%M')})"
-                except:
-                    time_str = f" ({timestamp[:10]})"
-            
-            content += f"ANALYSIS SECTION {i}{time_str}\n"
-            content += "-" * 40 + "\n\n"
-            
-            # Clean up the response formatting
-            lines = response.split('\n')
-            formatted_response = ""
-            
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    formatted_response += "\n"
-                    continue
-                
-                # Format headers
-                if line.startswith('###'):
-                    formatted_response += f"\n{line.replace('###', '').strip()}\n" + "~" * len(line.replace('###', '').strip()) + "\n"
-                elif line.startswith('##'):
-                    formatted_response += f"\n{line.replace('##', '').strip()}\n" + "=" * len(line.replace('##', '').strip()) + "\n"
-                elif line.startswith('#'):
-                    formatted_response += f"\n{line.replace('#', '').strip()}\n" + "-" * len(line.replace('#', '').strip()) + "\n"
-                
-                # Format lists
-                elif line.startswith(('.', '1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
-                    if line.startswith('.'):
-                        formatted_response += f"  • {line[1:].strip()}\n"
-                    else:
-                        formatted_response += f"  {line}\n"
-                
-                # Format bullet points
-                elif line.startswith(('•', '-', '*')):
-                    formatted_response += f"  • {line[1:].strip()}\n"
-                
-                # Regular text
-                else:
-                    formatted_response += f"{line}\n"
-            
-            content += formatted_response + "\n\n"
+            all_responses.append(response)
         
-        # Professional footer
-        content += "=" * 70 + "\n"
-        if is_expeditors_user:
-            content += "This document contains confidential and proprietary information.\n"
-            content += f"EXPEDITORS INTERNATIONAL - {datetime.now(timezone.utc).strftime('%Y')}\n"
-        else:
-            content += "AI-Generated Content Analysis Report\n"
-        content += "=" * 70 + "\n"
+        combined_text = " ".join(all_responses)
+        
+        # Clean up markdown
+        import re
+        combined_text = re.sub(r'#{1,6}\s*', '', combined_text)
+        combined_text = re.sub(r'\*\*(.*?)\*\*', r'\1', combined_text)
+        combined_text = re.sub(r'\*(.*?)\*', r'\1', combined_text)
+        
+        # Process into clean format
+        lines = combined_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line:
+                if line.startswith(('•', '-', '*')):
+                    content += f"• {line[1:].strip()}\n"
+                elif re.match(r'^\d+\.', line):
+                    content += f"{line}\n"
+                else:
+                    content += f"{line}\n"
         
         # Create descriptive filename
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
-        if is_expeditors_user:
-            filename = f"Expeditors_AI_Analysis_{filename_base}.txt"
-        else:
-            filename = f"AI_Analysis_{filename_base}.txt"
+        filename = f"Expeditors_AI_Analysis_{filename_base}.txt" if is_expeditors_user else f"AI_Analysis_{filename_base}.txt"
         
         return Response(
             content=content,
