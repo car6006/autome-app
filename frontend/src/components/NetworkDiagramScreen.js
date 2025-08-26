@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
-import FlowingNetworkVisualization from './FlowingNetworkVisualization';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { 
-  Network, Camera, Mic, Upload, Loader2, MapPin, Truck, 
-  Plane, Building, Users, Zap, AlertTriangle, CheckCircle,
-  TrendingUp, Clock, Globe, Sparkles, Star
+  Network, Mic, Upload, Loader2, FileText, Download,
+  Zap, Bot, Play, Square, AlertCircle, CheckCircle,
+  FileDown, Code, Eye, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
@@ -19,241 +19,105 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const NetworkDiagramScreen = () => {
-  const [noteTitle, setNoteTitle] = useState("");
-  const [processing, setProcessing] = useState(false);
-  const [recordingAudio, setRecordingAudio] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
+  // Input states
+  const [voiceInput, setVoiceInput] = useState("");
+  const [textInput, setTextInput] = useState("");
+  const [csvInput, setCsvInput] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadedAudio, setUploadedAudio] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [networkData, setNetworkData] = useState(null);
+  
+  // Recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioBlob, setAudioBlob] = useState(null);
+  
+  // Processing states
+  const [processing, setProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState('input'); // input, processing, results
-  const [inputMethod, setInputMethod] = useState('voice'); // voice, sketch, audio_upload
+  
+  // Results states
+  const [networkData, setNetworkData] = useState(null);
+  const [mermaidSyntax, setMermaidSyntax] = useState("");
+  const [showMermaidCode, setShowMermaidCode] = useState(false);
   
   const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef(null);
-  const audioUploadRef = useRef(null);
   const intervalRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
   // Check if user has Expeditors access
   if (!user || !user.email.endsWith('@expeditors.com')) {
-    return null; // Hidden feature - don't render anything
+    return (
+      <div className="min-h-screen bg-white p-4 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Network className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+              <p className="text-gray-600">
+                Network Diagram feature is available for Expeditors team members only.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
+  // Voice recording functions
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: { 
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 44100
+          sampleRate: 44100,
         } 
       });
-      
-      mediaRecorderRef.current = new MediaRecorder(stream, {
+
+      const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
       });
       
+      mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       
-      mediaRecorderRef.current.ondataavailable = (event) => {
+      mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
       
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
       
-      mediaRecorderRef.current.start();
-      setRecordingAudio(true);
+      mediaRecorder.start();
+      setIsRecording(true);
       setRecordingTime(0);
       
       intervalRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
       
-      toast({ 
-        title: "🎙️ Recording network description", 
-        description: "Describe your supply chain network clearly" 
-      });
     } catch (error) {
       toast({ 
-        title: "Error", 
-        description: "Could not access microphone", 
+        title: "Recording Error", 
+        description: "Could not access microphone. Please check permissions.", 
         variant: "destructive" 
       });
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+    if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      setRecordingAudio(false);
+      setIsRecording(false);
       clearInterval(intervalRef.current);
-      
-      setTimeout(() => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setSelectedFile(blob);
-        setPreview({ type: 'audio', duration: recordingTime });
-      }, 100);
-      
-      toast({ 
-        title: "✅ Recording completed", 
-        description: "Ready to process your network description" 
-      });
     }
-  };
-
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setInputMethod('sketch');
-      
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => setPreview({ type: 'image', url: e.target.result });
-        reader.readAsDataURL(file);
-      } else if (file.type.startsWith('audio/')) {
-        setPreview({ type: 'audio', name: file.name });
-      }
-    }
-  };
-
-  const handleAudioUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Validate audio file type
-      const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/webm', 'audio/ogg'];
-      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|webm|ogg|mpeg)$/i)) {
-        toast({ 
-          title: "Invalid file type", 
-          description: "Please select an audio file (MP3, WAV, M4A, WebM, OGG)", 
-          variant: "destructive" 
-        });
-        return;
-      }
-
-      setUploadedAudio(file);
-      setSelectedFile(file);
-      setInputMethod('audio_upload');
-      setPreview({ type: 'audio', name: file.name, uploaded: true });
-      
-      toast({ 
-        title: "🎵 Audio file selected", 
-        description: `${file.name} ready for network analysis` 
-      });
-    }
-  };
-
-  const clearInput = () => {
-    setSelectedFile(null);
-    setUploadedAudio(null);
-    setPreview(null);
-    setRecordingTime(0);
-    setInputMethod('voice');
-  };
-
-  const processNetworkDiagram = async () => {
-    if (!selectedFile || !noteTitle.trim()) {
-      toast({ 
-        title: "Missing information", 
-        description: "Please add a title and capture/select a file", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    setProcessing(true);
-    setCurrentStep('processing');
-    
-    try {
-      // Step 1: Create network diagram note
-      const noteResponse = await axios.post(`${API}/notes/network-diagram`, {
-        title: noteTitle,
-        kind: "network_diagram"
-      });
-      
-      const noteId = noteResponse.data.id;
-      
-      // Step 2: Upload and process the file
-      const formData = new FormData();
-      formData.append('file', selectedFile, selectedFile.name || 'network_input.webm');
-      
-      const processResponse = await axios.post(
-        `${API}/notes/${noteId}/process-network`, 
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
-      
-      toast({ 
-        title: "🚀 Network processing started!", 
-        description: "Analyzing your supply chain network..." 
-      });
-      
-      // Step 3: Poll for results
-      let attempts = 0;
-      const maxAttempts = 30; // 5 minutes max
-      
-      const pollResults = async () => {
-        try {
-          const noteResponse = await axios.get(`${API}/notes/${noteId}`);
-          const note = noteResponse.data;
-          
-          if (note.status === 'ready' && note.artifacts) {
-            setNetworkData({
-              ...note.artifacts,
-              noteId: noteId,
-              title: note.title,
-              createdAt: note.created_at
-            });
-            setCurrentStep('results');
-            toast({ 
-              title: "✨ Network diagram ready!", 
-              description: "Your supply chain network has been analyzed" 
-            });
-            return;
-          } else if (note.status === 'failed') {
-            throw new Error('Processing failed');
-          }
-          
-          attempts++;
-          if (attempts < maxAttempts) {
-            setTimeout(pollResults, 10000); // Poll every 10 seconds
-          } else {
-            throw new Error('Processing timeout');
-          }
-        } catch (error) {
-          throw error;
-        }
-      };
-      
-      setTimeout(pollResults, 5000); // Start polling after 5 seconds
-      
-    } catch (error) {
-      toast({ 
-        title: "Processing failed", 
-        description: error.response?.data?.detail || "Failed to process network diagram", 
-        variant: "destructive" 
-      });
-      setCurrentStep('input');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const resetForm = () => {
-    setNoteTitle("");
-    setSelectedFile(null);
-    setPreview(null);
-    setNetworkData(null);
-    setCurrentStep('input');
-    setRecordingTime(0);
   };
 
   const formatTime = (seconds) => {
@@ -262,451 +126,485 @@ const NetworkDiagramScreen = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const renderNetworkResults = () => {
-    if (!networkData) return null;
-
-    const { network_topology, insights, diagram_data } = networkData;
-
-    return (
-      <div className="space-y-6">
-        {/* Beautiful Flowing Network Visualization */}
-        <FlowingNetworkVisualization 
-          networkData={networkData} 
-          title="Expeditors Supply Chain Network"
-        />
-
-        {/* Network Overview */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-xl">
-              <Sparkles className="w-6 h-6 text-purple-600" />
-              <span>Network Intelligence Analysis</span>
-            </CardTitle>
-            <CardDescription>AI-powered supply chain insights and recommendations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
-                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {network_topology?.nodes?.length || 0}
-                </div>
-                <div className="text-sm text-gray-600">Network Nodes</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
-                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-green-600">
-                  {network_topology?.edges?.length || 0}
-                </div>
-                <div className="text-sm text-gray-600">Active Flows</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
-                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <Plane className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-purple-600">
-                  {insights?.network_summary?.node_types?.airport || 0}
-                </div>
-                <div className="text-sm text-gray-600">Airports</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
-                <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                  <Building className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-orange-600">
-                  {insights?.network_summary?.node_types?.warehouse || 0}
-                </div>
-                <div className="text-sm text-gray-600">Facilities</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Network Nodes */}
-        {network_topology?.nodes && network_topology.nodes.length > 0 && (
-          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-green-600" />
-                <span>Network Locations</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {network_topology.nodes.map((node, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{node.icon}</span>
-                      <div>
-                        <div className="font-medium">{node.label}</div>
-                        <div className="text-sm text-gray-500 capitalize">{node.type}</div>
-                      </div>
-                    </div>
-                    {node.region && (
-                      <Badge variant="outline" className="text-xs">
-                        {node.region}
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Insights & Recommendations */}
-        {insights && (
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-gray-50 to-white backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Star className="w-5 h-5 text-yellow-500" />
-                <span>AI-Powered Network Insights</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {insights.optimization_opportunities && insights.optimization_opportunities.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-green-700 mb-3 flex items-center">
-                    <Zap className="w-5 h-5 mr-2" />
-                    Optimization Opportunities
-                  </h4>
-                  <div className="space-y-2">
-                    {insights.optimization_opportunities.map((opportunity, index) => (
-                      <div key={index} className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 text-sm">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-green-800">{opportunity}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {insights.risk_assessment && insights.risk_assessment.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-red-700 mb-3 flex items-center">
-                    <AlertTriangle className="w-5 h-5 mr-2" />
-                    Risk Assessment
-                  </h4>
-                  <div className="space-y-2">
-                    {insights.risk_assessment.map((risk, index) => (
-                      <div key={index} className="p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border border-red-200 text-sm">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-red-800">{risk}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {insights.recommendations && insights.recommendations.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-blue-700 mb-3 flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Strategic Recommendations
-                  </h4>
-                  <div className="space-y-2">
-                    {insights.recommendations.map((rec, index) => (
-                      <div key={index} className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200 text-sm">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
-                          </div>
-                          <span className="text-blue-800">{rec}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex space-x-3">
-          <Button onClick={resetForm} variant="outline" className="flex-1">
-            <Network className="w-4 h-4 mr-2" />
-            Create New Network
-          </Button>
-          <Button 
-            onClick={() => window.print()} 
-            className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white px-6"
-          >
-            <Star className="w-4 h-4 mr-2" />
-            Export Professional Report
-          </Button>
-        </div>
-      </div>
-    );
+  // File processing functions
+  const processVoiceRecording = async () => {
+    if (!audioBlob) return;
+    
+    setProcessing(true);
+    setCurrentStep('processing');
+    
+    try {
+      // First transcribe the audio
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('title', 'Network Voice Input');
+      
+      const transcribeResponse = await axios.post(`${API}/transcribe`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      const transcript = transcribeResponse.data.transcript;
+      setVoiceInput(transcript);
+      
+      // Process the transcript for network diagram
+      await processNetworkInput('voice_transcript', transcript);
+      
+    } catch (error) {
+      toast({ 
+        title: "Processing Error", 
+        description: "Failed to process voice recording", 
+        variant: "destructive" 
+      });
+      setCurrentStep('input');
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  if (currentStep === 'processing') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-        <div className="max-w-md mx-auto">
-          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardContent className="pt-12 pb-12 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
-                <Network className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Processing Network Diagram</h3>
-              <p className="text-gray-600 mb-6">Analyzing your supply chain network...</p>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                  <span className="text-sm text-gray-600">Extracting network entities</span>
+  const processTextInput = async () => {
+    if (!textInput.trim()) return;
+    
+    setProcessing(true);
+    setCurrentStep('processing');
+    
+    try {
+      await processNetworkInput('text_description', textInput);
+    } catch (error) {
+      toast({ 
+        title: "Processing Error", 
+        description: "Failed to process text input", 
+        variant: "destructive" 
+      });
+      setCurrentStep('input');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const processCsvInput = async () => {
+    if (!csvInput.trim()) return;
+    
+    setProcessing(true);
+    setCurrentStep('processing');
+    
+    try {
+      await processNetworkInput('csv_data', csvInput);
+    } catch (error) {
+      toast({ 
+        title: "Processing Error", 
+        description: "Failed to process CSV input", 
+        variant: "destructive" 
+      });
+      setCurrentStep('input');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const processNetworkInput = async (inputType, content) => {
+    try {
+      const response = await axios.post(`${API}/network/process`, {
+        input_type: inputType,
+        content: content
+      });
+      
+      setNetworkData(response.data.network_data);
+      setMermaidSyntax(response.data.mermaid_syntax);
+      setCurrentStep('results');
+      
+      toast({ 
+        title: "✅ Network Generated", 
+        description: "Supply chain network diagram created successfully!" 
+      });
+      
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Failed to generate network diagram");
+    }
+  };
+
+  // CSV template download
+  const downloadCsvTemplate = async () => {
+    try {
+      const response = await axios.get(`${API}/network/csv-template`, {
+        responseType: 'blob'
+      });
+      
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'supply_chain_template.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast({ 
+        title: "📄 Template Downloaded", 
+        description: "CSV template downloaded successfully" 
+      });
+      
+    } catch (error) {
+      toast({ 
+        title: "Download Error", 
+        description: "Failed to download CSV template", 
+        variant: "destructive" 
+      });
+    }
+  };
+
+  // Reset to input state
+  const resetToInput = () => {
+    setCurrentStep('input');
+    setNetworkData(null);
+    setMermaidSyntax("");
+    setVoiceInput("");
+    setTextInput("");
+    setCsvInput("");
+    setAudioBlob(null);
+    setRecordingTime(0);
+  };
+
+  // Render input step
+  const renderInputStep = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-red-600 to-red-700 rounded-full flex items-center justify-center">
+          <Network className="w-10 h-10 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">AI Network Diagrams</h1>
+        <p className="text-gray-600">
+          Generate supply chain network diagrams from voice, text, or CSV data
+        </p>
+      </div>
+
+      <Tabs defaultValue="voice" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="voice">🎤 Voice Input</TabsTrigger>
+          <TabsTrigger value="text">📝 Text Input</TabsTrigger>
+          <TabsTrigger value="csv">📊 CSV Data</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="voice" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Mic className="w-5 h-5 mr-2" />
+                Voice Recording
+              </CardTitle>
+              <CardDescription>
+                Describe your supply chain network verbally
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!isRecording && !audioBlob && (
+                <Button 
+                  onClick={startRecording}
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                >
+                  <Mic className="w-4 h-4 mr-2" />
+                  Start Recording
+                </Button>
+              )}
+              
+              {isRecording && (
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-gray-400 font-mono text-lg">{formatTime(recordingTime)}</span>
+                  </div>
+                  <Button 
+                    onClick={stopRecording}
+                    variant="destructive"
+                    className="w-full"
+                  >
+                    <Square className="w-4 h-4 mr-2" />
+                    Stop Recording
+                  </Button>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-                  <span className="text-sm text-gray-600">Generating topology</span>
+              )}
+              
+              {audioBlob && !isRecording && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <p className="text-sm text-gray-600">Recording completed ({formatTime(recordingTime)})</p>
+                  </div>
+                  {voiceInput && (
+                    <div className="bg-gray-50 p-3 rounded-lg border">
+                      <Label className="text-sm font-medium">Transcribed Text:</Label>
+                      <p className="text-sm mt-1">{voiceInput}</p>
+                    </div>
+                  )}
+                  <Button 
+                    onClick={processVoiceRecording}
+                    disabled={processing}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing Recording...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2" />
+                        Generate Network Diagram
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-green-600" />
-                  <span className="text-sm text-gray-600">Creating insights</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
-        </div>
-      </div>
-    );
-  }
+        </TabsContent>
 
-  if (currentStep === 'results') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Network Analysis Complete ✨
-            </h1>
-            <p className="text-gray-600">
-              Professional supply chain network diagram for {user.profile?.first_name || user.username}
-            </p>
-          </div>
-          {renderNetworkResults()}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-      <div className="max-w-md mx-auto">
-        {/* Expeditors Header */}
-        <div className="mb-4 text-center">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-white text-sm font-medium">
-            <Network className="w-4 h-4" />
-            <span>Expeditors Network Designer</span>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Advanced supply chain network mapping tool
-          </p>
-        </div>
-
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <Network className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-800">Network Diagram Creator</CardTitle>
-            <CardDescription className="text-gray-600">
-              Describe your supply chain network via voice or sketch
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="title" className="text-sm font-medium text-gray-700">
-                Network Description
-              </Label>
-              <Input
-                id="title"
-                placeholder="Client supply chain network - Airfreight SHA to JNB..."
-                value={noteTitle}
-                onChange={(e) => setNoteTitle(e.target.value)}
-                className="mt-2"
-              />
-            </div>
-            
-            <Separator />
-            
-            {/* Voice Recording */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">Voice Description</Label>
-              {recordingAudio ? (
-                <Card className="bg-red-50 border-red-200">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-center space-x-3">
-                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-red-700 font-mono text-lg">{formatTime(recordingTime)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Button 
-                  onClick={startRecording} 
-                  variant="outline"
-                  className="w-full py-3"
-                  disabled={uploadedAudio || selectedFile}
-                >
-                  <Mic className="w-5 h-5 mr-2" />
-                  Record Network Description
-                </Button>
-              )}
-              
-              {recordingAudio && (
-                <Button 
-                  onClick={stopRecording} 
-                  variant="destructive" 
-                  className="w-full"
-                >
-                  <Clock className="w-4 h-4 mr-2" />
-                  Stop Recording
-                </Button>
-              )}
-            </div>
-            
-            <div className="text-center">
-              <span className="text-sm text-gray-500">or</span>
-            </div>
-
-            {/* Audio File Upload */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">Upload Audio File</Label>
-              
-              <input
-                ref={audioUploadRef}
-                type="file"
-                accept="audio/*"
-                onChange={handleAudioUpload}
-                className="hidden"
-              />
-              
+        <TabsContent value="text" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                Text Description
+              </CardTitle>
+              <CardDescription>
+                Describe your supply chain network in text
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="textInput">Supply Chain Description</Label>
+                <Textarea
+                  id="textInput"
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  placeholder="Example: Suppliers in Shanghai and Hong Kong send airfreight to Johannesburg. From JNB, cargo goes to transit shed, then to distribution center. DC distributes via road to Durban, Cape Town, and cross-border to Botswana, Namibia..."
+                  className="min-h-[150px] mt-2"
+                />
+              </div>
               <Button 
-                onClick={() => audioUploadRef.current?.click()} 
-                variant="outline"
-                className="w-full py-3"
-                disabled={recordingAudio || (selectedFile && inputMethod !== 'audio_upload')}
-              >
-                <Upload className="w-5 h-5 mr-2" />
-                Upload Audio Recording
-              </Button>
-            </div>
-            
-            <div className="text-center">
-              <span className="text-sm text-gray-500">or</span>
-            </div>
-            
-            {/* Photo Upload */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">Hand-drawn Sketch</Label>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              
-              <Button 
-                onClick={() => fileInputRef.current?.click()} 
-                variant="outline"
-                className="w-full py-3"
-                disabled={recordingAudio || uploadedAudio}
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                Upload Network Sketch
-              </Button>
-            </div>
-            
-            {/* Preview */}
-            {preview && (
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="pt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {preview.type === 'image' ? (
-                        <>
-                          <Camera className="w-5 h-5 text-blue-600" />
-                          <div>
-                            <span className="text-blue-700 font-medium">Network sketch uploaded</span>
-                            <div className="mt-2">
-                              <img src={preview.url} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {preview.uploaded ? <Upload className="w-5 h-5 text-blue-600" /> : <Mic className="w-5 h-5 text-blue-600" />}
-                          <div>
-                            <span className="text-blue-700 font-medium">
-                              {preview.uploaded ? "Audio file uploaded" : `Audio recorded (${formatTime(preview.duration || 0)})`}
-                            </span>
-                            {preview.name && (
-                              <p className="text-xs text-blue-600 mt-1">{preview.name}</p>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearInput}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      ✕
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Process Button */}
-            {selectedFile && (
-              <Button 
-                onClick={processNetworkDiagram} 
-                disabled={processing || !noteTitle.trim()}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3"
-                size="lg"
+                onClick={processTextInput}
+                disabled={processing || !textInput.trim()}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
               >
                 {processing ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Creating Network...
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing Text...
                   </>
                 ) : (
                   <>
-                    <Network className="w-5 h-5 mr-2" />
+                    <Bot className="w-4 h-4 mr-2" />
                     Generate Network Diagram
                   </>
                 )}
               </Button>
-            )}
-            
-            {/* Feature Info */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-              <div className="text-sm text-gray-700">
-                <strong>✨ Advanced Features:</strong>
-                <ul className="mt-2 space-y-1 text-xs">
-                  <li>• Automatic airport code recognition (SHA, JNB, HKG, FRA)</li>
-                  <li>• Supply chain flow mapping (airfreight → warehouse → delivery)</li>
-                  <li>• Cross-border routing optimization</li>
-                  <li>• EI Transit WH integration</li>
-                </ul>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="csv" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Upload className="w-5 h-5 mr-2" />
+                CSV Data Input
+              </CardTitle>
+              <CardDescription>
+                Upload structured supply chain data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={downloadCsvTemplate}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Template
+                </Button>
               </div>
-            </div>
+              
+              <div>
+                <Label htmlFor="csvInput">CSV Data (From,To,Transport,Notes)</Label>
+                <Textarea
+                  id="csvInput"
+                  value={csvInput}
+                  onChange={(e) => setCsvInput(e.target.value)}
+                  placeholder="From,To,Transport,Notes
+SHA,JNB,airfreight,Supplier to airport
+HKG,JNB,airfreight,Supplier to airport
+JNB,RTS,draw,To transit shed
+RTS,DC,collect,To distribution center
+DC,DUR,road,To regional DC"
+                  className="min-h-[150px] mt-2 font-mono text-sm"
+                />
+              </div>
+              
+              <Button 
+                onClick={processCsvInput}
+                disabled={processing || !csvInput.trim()}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+              >
+                {processing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing CSV...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Generate Network Diagram
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+
+  // Render processing step
+  const renderProcessingStep = () => (
+    <div className="text-center space-y-6 py-12">
+      <Loader2 className="w-16 h-16 mx-auto animate-spin text-red-600" />
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Generating Network Diagram</h2>
+        <p className="text-gray-600">AI is analyzing your input and creating the supply chain visualization...</p>
+      </div>
+    </div>
+  );
+
+  // Render results step
+  const renderResultsStep = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">
+            {networkData?.title || "Supply Chain Network"}
+          </h2>
+          <p className="text-gray-600">
+            {networkData?.description || "Generated network diagram"}
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          <Button onClick={() => setShowMermaidCode(!showMermaidCode)} variant="outline">
+            <Code className="w-4 h-4 mr-2" />
+            {showMermaidCode ? 'Hide Code' : 'Show Code'}
+          </Button>
+          <Button onClick={resetToInput} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            New Diagram
+          </Button>
+        </div>
+      </div>
+
+      {showMermaidCode && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Mermaid Diagram Code</CardTitle>
+            <CardDescription>Copy this code to use in other Mermaid-compatible tools</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border">
+              {mermaidSyntax}
+            </pre>
           </CardContent>
         </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Network Visualization</CardTitle>
+          <CardDescription>Interactive supply chain network diagram</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-50 border rounded-lg p-4 min-h-[400px] flex items-center justify-center">
+            <div className="text-center">
+              <Network className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold mb-2">Mermaid Diagram Preview</h3>
+              <p className="text-gray-600 mb-4">
+                Copy the Mermaid code above and paste it into{' '}
+                <a 
+                  href="https://mermaid.live" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-red-600 hover:underline"
+                >
+                  mermaid.live
+                </a>
+                {' '}for interactive visualization
+              </p>
+              <Button 
+                onClick={() => window.open('https://mermaid.live', '_blank')}
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Open Mermaid Live
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {networkData && (
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Network Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Total Nodes:</span>
+                  <Badge>{networkData.nodes?.length || 0}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total Connections:</span>
+                  <Badge>{networkData.edges?.length || 0}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Regions:</span>
+                  <Badge>{networkData.regions?.length || 0}</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Export Options</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => navigator.clipboard.writeText(mermaidSyntax)}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Copy Mermaid Code
+                </Button>
+                <Button 
+                  onClick={() => navigator.clipboard.writeText(JSON.stringify(networkData, null, 2))}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Copy JSON Data
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-white p-4">
+      <div className="max-w-4xl mx-auto">
+        {currentStep === 'input' && renderInputStep()}
+        {currentStep === 'processing' && renderProcessingStep()}
+        {currentStep === 'results' && renderResultsStep()}
       </div>
     </div>
   );
