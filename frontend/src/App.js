@@ -1484,7 +1484,11 @@ const NotesScreen = () => {
                         size="sm"
                         onClick={() => generateProfessionalReport(note.id)}
                         disabled={generatingReport[note.id]}
-                        className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white"
+                        className={`flex-1 ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
+                            : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white'
+                        }`}
                       >
                         {generatingReport[note.id] ? (
                           <>
