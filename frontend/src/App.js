@@ -1731,7 +1731,11 @@ const MetricsScreen = () => {
           <Card className={`${theme.cardClass}`}>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-red-600 to-red-700' 
+                    : 'bg-gradient-to-r from-green-500 to-blue-600'
+                }`}>
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
