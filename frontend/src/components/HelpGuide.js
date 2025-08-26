@@ -235,6 +235,77 @@ const HelpGuide = () => {
             </CardContent>
           </Card>
 
+          {/* Text Notes */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-purple-600" />
+                <span>Direct Text Input</span>
+                <Badge className="bg-purple-100 text-purple-800">NEW</Badge>
+              </CardTitle>
+              <CardDescription>Create structured notes with direct text input - no AI processing needed</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Edit className="w-4 h-4 text-purple-600" />
+                    <span>Quick Text Creation</span>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Type notes directly into the app</li>
+                    <li>• Perfect for meeting notes and ideas</li>
+                    <li>• No transcription wait time</li>
+                    <li>• Instant availability after creation</li>
+                    <li>• Character counter and formatting tips</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    <span>Structured Content</span>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Support for bullet points and lists</li>
+                    <li>• Section headers and organization</li>
+                    <li>• Preview as you type</li>
+                    <li>• Up to 5,000 characters per note</li>
+                    <li>• Professional formatting support</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2">💡 Best Practices for Text Notes</h4>
+                <div className="grid gap-2 md:grid-cols-2 text-sm text-gray-600">
+                  <div>
+                    <p>• Use ALL CAPS for main sections</p>
+                    <p>• Start lists with bullet points (•)</p>
+                    <p>• Press Enter twice for paragraph breaks</p>
+                  </div>
+                  <div>
+                    <p>• Keep content structured and organized</p>
+                    <p>• Include action items and next steps</p>
+                    <p>• Add attendees and dates for meetings</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2">🚀 Full Feature Integration</h4>
+                <p className="text-sm text-gray-600 mb-2">Text notes work with all existing features:</p>
+                <div className="grid gap-1 md:grid-cols-3 text-xs text-gray-600">
+                  <p>• AI Chat & Analysis</p>
+                  <p>• Professional Reports</p>
+                  <p>• Meeting Minutes</p>
+                  <p>• Export (PDF, Word, TXT)</p>
+                  <p>• Email Sharing</p>
+                  <p>• Archive & Organization</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Photo Scanning & Multi-File Upload */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
