@@ -201,3 +201,88 @@ body {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
+
+/* Expeditors Theme - Professional Black & Red */
+.expeditors-theme {
+  --expeditors-red: #ea0a2a;
+  --expeditors-black: #231f20;
+  --expeditors-white: #ffffff;
+  --expeditors-gray-light: #f5f5f5;
+  --expeditors-gray-dark: #4a4a4a;
+}
+
+.expeditors-theme .expeditors-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #ea0a2a;
+  box-shadow: 0 8px 32px rgba(35, 31, 32, 0.1);
+}
+
+.expeditors-theme .expeditors-header {
+  background: linear-gradient(135deg, #231f20 0%, #4a4a4a 100%);
+  color: #ffffff;
+}
+
+.expeditors-theme .expeditors-accent {
+  color: #ea0a2a;
+}
+
+.expeditors-theme .expeditors-button-primary {
+  background: linear-gradient(135deg, #ea0a2a 0%, #d4091e 100%);
+  border: none;
+  color: #ffffff;
+}
+
+.expeditors-theme .expeditors-button-primary:hover {
+  background: linear-gradient(135deg, #d4091e 0%, #b8081a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 10, 42, 0.3);
+}
+
+.expeditors-theme .expeditors-button-secondary {
+  background: transparent;
+  border: 2px solid #ea0a2a;
+  color: #ea0a2a;
+}
+
+.expeditors-theme .expeditors-button-secondary:hover {
+  background: #ea0a2a;
+  color: #ffffff;
+}
+
+.expeditors-theme .expeditors-nav {
+  background: #231f20;
+  border-top: 3px solid #ea0a2a;
+}
+
+.expeditors-theme .expeditors-nav-item {
+  color: #ffffff;
+}
+
+.expeditors-theme .expeditors-nav-item.active {
+  color: #ea0a2a;
+  background: rgba(234, 10, 42, 0.1);
+}
+
+.expeditors-theme .expeditors-gradient-bg {
+  background: linear-gradient(135deg, #231f20 0%, #4a4a4a 50%, #ea0a2a 100%);
+}
+
+.expeditors-theme .expeditors-badge {
+  background: #ea0a2a;
+  color: #ffffff;
+}
+
+.expeditors-theme .expeditors-input {
+  border: 2px solid #231f20;
+  border-radius: 8px;
+}
+
+.expeditors-theme .expeditors-input:focus {
+  border-color: #ea0a2a;
+  box-shadow: 0 0 0 3px rgba(234, 10, 42, 0.1);
+}
+
+.expeditors-logo {
+  max-height: 40px;
+  width: auto;
+}
