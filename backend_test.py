@@ -1419,6 +1419,47 @@ Next Steps:
         # Test export error handling
         self.test_export_error_handling()
 
+        # === PROFESSIONAL CONTEXT MANAGEMENT TESTS ===
+        self.log("\n🎯 PROFESSIONAL CONTEXT MANAGEMENT TESTS")
+        
+        # Test professional context CRUD operations
+        if not self.test_professional_context_save():
+            self.log("❌ Professional context save failed")
+        
+        context_success, context_data = self.test_professional_context_retrieve()
+        if not context_success:
+            self.log("❌ Professional context retrieval failed")
+        
+        # Test context validation
+        self.test_professional_context_validation()
+        
+        # Test unauthorized access
+        self.test_professional_context_unauthorized()
+        
+        # === ENHANCED AI CHAT WITH PROFESSIONAL CONTEXT TESTS ===
+        self.log("\n🤖 ENHANCED AI CHAT WITH PROFESSIONAL CONTEXT TESTS")
+        
+        # Create a text note with supply chain content for AI chat testing
+        supply_chain_note_id = self.test_create_text_note_with_content()
+        
+        if supply_chain_note_id:
+            # Test AI chat with professional context
+            successful_chats = self.test_ai_chat_with_professional_context(supply_chain_note_id)
+            self.log(f"   AI Chat Tests: {successful_chats}/4 successful")
+            
+            # Test content type detection
+            successful_detections = self.test_ai_chat_content_type_detection(supply_chain_note_id)
+            self.log(f"   Content Type Detection: {successful_detections}/3 successful")
+        else:
+            self.log("❌ Could not create text note for AI chat testing")
+        
+        # === INDUSTRY-SPECIFIC RESPONSE TESTING ===
+        self.log("\n🏭 INDUSTRY-SPECIFIC RESPONSE TESTING")
+        
+        # Test different industry scenarios
+        successful_scenarios = self.test_industry_specific_scenarios()
+        self.log(f"   Industry Scenarios: {successful_scenarios}/3 successful")
+
         # === EXPEDITORS HIDDEN NETWORK DIAGRAM FEATURE TESTS ===
         self.log("\n👑 EXPEDITORS NETWORK DIAGRAM FEATURE TESTS")
         
