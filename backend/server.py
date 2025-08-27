@@ -1091,6 +1091,9 @@ async def generate_professional_report(
             updated_artifacts = {**artifacts, "professional_report": report_content}
             await NotesStore.set_artifacts(note_id, updated_artifacts)
             
+            # Mark note as completed since report was generated
+            await NotesStore.update_status(note_id, "completed")
+            
             return {
                 "report": report_content,
                 "note_title": note["title"],
