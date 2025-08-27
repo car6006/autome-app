@@ -9,7 +9,7 @@ import logging
 import re
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
-from .providers import stt_transcribe
+from providers import stt_transcribe
 
 logger = logging.getLogger(__name__)
 
