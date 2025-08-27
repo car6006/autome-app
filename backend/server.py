@@ -597,45 +597,37 @@ async def generate_meeting_minutes(
             analysis_type="meeting_minutes"
         )
         
-        # Enhanced prompt for meeting minutes with professional context
+        # Enhanced meeting minutes prompt with professional context
         company_context = "Expeditors International (a global logistics and freight forwarding company)" if is_expeditors_user else "the organization"
         
         prompt = f"""
-        You are an executive assistant creating formal meeting minutes for {company_context}. Based on the following content, create structured, professional meeting minutes.
+        {meeting_minutes_prompt}
 
-        Content:
-        {combined_content}
+        ADDITIONAL CONTEXT: You are creating formal meeting minutes for {company_context}.
 
+        FORMATTING INSTRUCTIONS:
         Create comprehensive meeting minutes with these exact sections. Use CLEAN formatting with NO bold, NO markdown symbols:
 
         ATTENDEES
-        List participants mentioned or inferred from the content. If not explicitly mentioned, use "Leadership Team Members" or relevant department representatives.
-
-        APOLOGIES
-        Note any absences mentioned or use "None recorded" if not specified.
+        List participants mentioned or inferred from the content.
 
         MEETING MINUTES
-        Summarize key discussion points in chronological order. Write in past tense as if recording what was discussed. Use simple, clean sentences.
+        Summarize key discussion points in chronological order using industry-appropriate terminology.
 
         ACTION ITEMS
-        List specific tasks and deadlines mentioned. Since this is from voice transcription, format as:
+        List specific tasks with timelines:
         • [Action description] - [Timeline if mentioned]
-        Note: Specific responsibility assignments to be clarified post-meeting.
 
         KEY INSIGHTS
-        Summarize strategic insights, performance metrics, and business intelligence discussed. Use simple bullet points.
+        Summarize insights relevant to the industry and role.
 
         RISK ASSESSMENT
-        Identify risks mentioned:
-        • Operational risks identified
-        • Financial concerns noted  
-        • Market challenges discussed
-        • Regulatory considerations mentioned
+        Identify industry-specific risks mentioned.
 
         NEXT STEPS
-        Outline follow-up actions and next meeting dates if mentioned.
+        Outline follow-up actions relevant to the professional context.
 
-        IMPORTANT: Use NO markdown formatting. NO ** for bold. NO ## for headers. NO excessive formatting. Write in clean, simple business language as if a human secretary recorded these minutes. Keep it professional but not over-formatted.
+        IMPORTANT: Use NO markdown formatting. Write in clean, professional business language appropriate for the user's industry and role.
         """
         
         async with httpx.AsyncClient(timeout=60) as client:
