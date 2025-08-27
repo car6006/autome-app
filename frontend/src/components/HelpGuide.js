@@ -548,20 +548,16 @@ const HelpGuide = () => {
                 <CardDescription>Exclusive features for Expeditors team members</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
-                      <BarChart3 className="w-4 h-4 text-green-600" />
-                      <span>IISB Analysis</span>
-                    </h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Issues, Impact, Solutions, Benefits framework</li>
-                      <li>• Client supply chain issue documentation</li>
-                      <li>• Structured analysis for sales teams</li>
-
-                    </ul>
-                  </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+                    <BarChart3 className="w-4 h-4 text-green-600" />
+                    <span>IISB Analysis</span>
+                  </h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Issues, Impact, Solutions, Benefits framework</li>
+                    <li>• Client supply chain issue documentation</li>
+                    <li>• Structured analysis for sales teams</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>
