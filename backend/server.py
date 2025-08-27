@@ -1129,7 +1129,7 @@ async def generate_batch_report(
                 combined_content.append(f"## {note['title']}\n{content}")
         
         if not combined_content:
-            raise HTTPException(status_code=400, detail="No accessible content found in provided notes")
+            raise HTTPException(status_code=400, detail="You can only create batch reports with your own notes. Please select notes you created.")
         
         # Generate comprehensive report
         api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
