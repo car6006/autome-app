@@ -360,34 +360,6 @@ RESPONSE GUIDELINES:
 """
         
         return prompt.strip()
-        
-        elif analysis_type == 'insights':
-            prompt += f"""
-            
-            Provide {profession}-specific insights including:
-            • KEY INSIGHTS (relevant to {industry})
-            • OPPORTUNITIES (for {profession} improvement)
-            • RISKS & CHALLENGES (industry-specific)
-            • RECOMMENDED ACTIONS (actionable for a {profession})
-            """
-        
-        elif analysis_type == 'summary':
-            prompt += f"""
-            
-            Create a {profession}-focused summary highlighting:
-            • EXECUTIVE OVERVIEW (for {industry} leadership)
-            • CRITICAL POINTS (important for {profession} role)
-            • IMPACT ASSESSMENT (on {industry} operations)
-            • FOLLOW-UP PRIORITIES (for {profession})
-            """
-        
-        prompt += f"""
-        
-        Use professional {industry} language and terminology. Be specific and actionable.
-        Avoid generic business advice - focus on {profession}-relevant insights.
-        """
-        
-        return prompt.strip()
     
     def get_context_summary(self, user_profile: Dict[str, Any]) -> Dict[str, Any]:
         """Get a summary of the user's context for debugging/display"""
