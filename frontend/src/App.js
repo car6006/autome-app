@@ -2036,13 +2036,13 @@ const NotesScreen = () => {
         {showReportModal && currentReport && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
             <div className="bg-white rounded-lg w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FileBarChart className="w-6 h-6 mr-3 text-indigo-600" />
-                    Professional Business Report
+              <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
+                    <FileBarChart className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-indigo-600" />
+                    <span className="truncate">Professional Business Report</span>
                   </h2>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
                     {currentReport.type === 'batch' 
                       ? `Combined analysis from ${currentReport.data.note_count} notes`
                       : `Analysis for: ${currentReport.data.note_title}`
