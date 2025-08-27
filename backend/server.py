@@ -1138,6 +1138,9 @@ async def generate_batch_report(
         
         full_content = "\n\n".join(combined_content)
         
+        # Get user profile for professional context
+        user_profile = current_user.get("profile", {}) if current_user else {}
+        
         # Check if user is from Expeditors
         is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
         
