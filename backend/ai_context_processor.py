@@ -286,37 +286,80 @@ ANALYSIS TYPE: {detected_content_type.replace('_', ' ').title()}
         # Add profession-specific analysis focus
         if profession_context:
             prompt += f"""
-            
-            Focus your analysis on these {profession} priorities:
-            """
+
+INDUSTRY-SPECIFIC ANALYSIS FOCUS:
+{primary_industry} priorities to consider:"""
             for focus_area in profession_context.get('analysis_focus', [])[:5]:  # Top 5 priorities
-                prompt += f"\n            • {focus_area}"
+                prompt += f"\n• {focus_area}"
             
             # Add relevant metrics
             if profession_context.get('metrics'):
                 prompt += f"""
-                
-                Consider these key {profession} metrics: {', '.join(profession_context['metrics'])}
-                """
+
+KEY METRICS to reference: {', '.join(profession_context['metrics'])}"""
             
             # Add stakeholder context
             if profession_context.get('stakeholders'):
                 prompt += f"""
-                
-                Consider impacts on these stakeholders: {', '.join(profession_context['stakeholders'])}
-                """
+
+STAKEHOLDER IMPACT to consider: {', '.join(profession_context['stakeholders'])}"""
         
         # Content type specific instructions
-        if analysis_type == 'meeting_minutes':
+        if analysis_type == 'meeting_minutes' or 'meeting' in detected_content_type:
             prompt += f"""
-            
-            Structure your response as professional meeting minutes with:
-            • ATTENDEES (infer from content)
-            • KEY DISCUSSIONS (main topics covered)
-            • DECISIONS MADE (specific to {profession} work)
-            • ACTION ITEMS (with {profession}-specific priorities)
-            • NEXT STEPS (relevant to {industry} context)
-            """
+
+MEETING MINUTES FORMAT:
+Structure your response as professional meeting minutes with:
+• ATTENDEES (infer from content)
+• KEY DISCUSSIONS (main topics covered with {primary_industry} context)
+• DECISIONS MADE (specific to {job_role} responsibilities)
+• ACTION ITEMS (with {primary_industry}-specific priorities and owners)
+• NEXT STEPS (relevant to {primary_industry} workflows)
+"""
+        elif detected_content_type == 'crm_notes':
+            prompt += f"""
+
+CRM ANALYSIS FORMAT:
+Provide a comprehensive client interaction summary with:
+• CLIENT PROFILE (key details and context)
+• DISCUSSION SUMMARY ({primary_industry}-specific insights)
+• OPPORTUNITIES IDENTIFIED (relevant to {job_role} goals)
+• FOLLOW-UP ACTIONS (specific and time-bound)
+• RELATIONSHIP STATUS (progression and next steps)
+"""
+        elif detected_content_type == 'project_update':
+            prompt += f"""
+
+PROJECT STATUS FORMAT:
+Analyze as a {primary_industry} project with:
+• PROJECT OVERVIEW (current status and {primary_industry} context)
+• PROGRESS ANALYSIS (against {job_role} objectives)
+• RISK ASSESSMENT ({primary_industry}-specific risks and mitigation)
+• RESOURCE REQUIREMENTS (team, budget, timeline)
+• RECOMMENDATIONS (actionable next steps for {job_role})
+"""
+        else:
+            prompt += f"""
+
+PROFESSIONAL ANALYSIS:
+Provide {primary_industry}-focused insights that are:
+• Actionable for a {job_role}
+• Relevant to {primary_industry} operations
+• Aligned with the specified analysis preferences: {', '.join(analysis_preferences) if analysis_preferences else 'comprehensive business analysis'}
+• Focused on these key areas: {', '.join(key_focus_areas) if key_focus_areas else 'general business improvement'}
+"""
+
+        prompt += f"""
+
+RESPONSE GUIDELINES:
+- Use {primary_industry} terminology and best practices
+- Be specific and actionable for a {job_role}
+- Provide insights that drive real business value
+- Format professionally for {work_environment or 'professional'} environment
+- Keep response comprehensive but focused (aim for 300-500 words)
+"""
+        
+        return prompt.strip()
         
         elif analysis_type == 'insights':
             prompt += f"""
