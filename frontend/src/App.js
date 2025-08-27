@@ -1889,6 +1889,15 @@ const NotesScreen = () => {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => exportNote(note.id, 'rtf')}
+                          className="w-full text-xs"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          RTF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => exportNote(note.id, 'md')}
                           className="w-full text-xs"
                         >
