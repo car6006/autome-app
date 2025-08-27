@@ -1087,6 +1087,9 @@ const NotesScreen = () => {
   const [aiResponse, setAiResponse] = useState("");
   const [aiChatLoading, setAiChatLoading] = useState(false);
   const [aiConversations, setAiConversations] = useState([]);
+  
+  // Professional Context Setup state
+  const [showProfessionalContextModal, setShowProfessionalContextModal] = useState(false);
   const [showMeetingMinutesPreview, setShowMeetingMinutesPreview] = useState(false);
   const [meetingMinutes, setMeetingMinutes] = useState("");
   const [generatingMinutes, setGeneratingMinutes] = useState({});
