@@ -274,7 +274,7 @@ const HelpGuide = () => {
                   <div>
                     <h5 className="font-semibold text-orange-700 mb-2">⏱️ Processing Times:</h5>
                     <ul className="text-sm text-orange-600 space-y-1">
-                      <li>• Small files (<5MB): 1-2 minutes</li>
+                      <li>• Small files (&lt;5MB): 1-2 minutes</li>
                       <li>• Medium files (5-24MB): 2-5 minutes</li>
                       <li>• Large files (24MB+): 5-15 minutes</li>
                       <li>• 62MB (3-hour file): ~15 minutes</li>
