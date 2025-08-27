@@ -26,6 +26,7 @@ import ProfileScreen from "./components/ProfileScreen";
 
 import IISBAnalysisScreen from "./components/IISBAnalysisScreen";
 import HelpGuide from "./components/HelpGuide";
+import ProfessionalContextSetup from "./components/ProfessionalContextSetup";
 import { getThemeClasses, getBrandingElements, isExpeditorsUser } from "./utils/themeUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
