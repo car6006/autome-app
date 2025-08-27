@@ -74,6 +74,13 @@ class ServiceHealthMonitor:
                 'critical': True,
                 'max_restarts': 2,
                 'restart_cooldown': 600  # 10 minutes
+            },
+            'ffmpeg': {
+                'supervisor_name': None,  # Not a supervisor service
+                'health_url': None,  # Will check binary availability
+                'critical': True,
+                'max_restarts': 0,  # No restarts, just installation
+                'restart_cooldown': 0
             }
         }
         
