@@ -1269,7 +1269,7 @@ async def generate_batch_report(
 @api_router.get("/notes/{note_id}/export")
 async def export_note(
     note_id: str,
-    format: str = Query("txt", regex="^(txt|md|json)$"),
+    format: str = Query("txt", regex="^(txt|md|json|rtf)$"),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Export note in various formats (txt, md, json)"""
