@@ -1235,6 +1235,242 @@ Next Steps:
         
         return success and success2
 
+    def test_large_audio_file_chunking_stress_test(self):
+        """ULTIMATE STRESS TEST: 62MB Regional Meeting Audio File"""
+        self.log("\n🎯 ULTIMATE STRESS TEST: 62MB Regional Meeting Audio File")
+        
+        # Check if the test file exists
+        test_file_path = "/tmp/regional_meeting_test.mp3"
+        if not os.path.exists(test_file_path):
+            self.log("❌ Test file not found at /tmp/regional_meeting_test.mp3")
+            return False
+        
+        # Get file size
+        file_size = os.path.getsize(test_file_path)
+        file_size_mb = file_size / (1024 * 1024)
+        self.log(f"📁 Test file size: {file_size_mb:.1f} MB ({file_size:,} bytes)")
+        
+        if file_size_mb < 60:
+            self.log(f"⚠️  File size ({file_size_mb:.1f} MB) is smaller than expected 62MB")
+        
+        # Test 1: Health Check before stress test
+        self.log("🔍 Pre-test health check...")
+        health_success, health_response = self.run_test(
+            "Health Check Before Stress Test",
+            "GET",
+            "health",
+            200
+        )
+        
+        if not health_success:
+            self.log("❌ System unhealthy before stress test")
+            return False
+        
+        self.log(f"✅ System healthy: {health_response.get('status', 'unknown')}")
+        
+        # Test 2: Upload the large file via /api/upload-file endpoint
+        self.log("📤 Testing large file upload via /api/upload-file...")
+        
+        start_time = time.time()
+        
+        try:
+            with open(test_file_path, 'rb') as f:
+                files = {'file': ('regional_meeting_test.mp3', f, 'audio/mpeg')}
+                data = {'title': 'STRESS TEST: 62MB Regional Meeting Audio'}
+                
+                # Use longer timeout for large file upload
+                success, response = self.run_test(
+                    "Upload 62MB Audio File",
+                    "POST",
+                    "upload-file",
+                    200,
+                    data=data,
+                    files=files,
+                    timeout=300,  # 5 minute timeout for upload
+                    auth_required=True
+                )
+        except Exception as e:
+            self.log(f"❌ Upload failed with exception: {str(e)}")
+            return False
+        
+        upload_time = time.time() - start_time
+        self.log(f"⏱️  Upload completed in {upload_time:.1f} seconds")
+        
+        if not success:
+            self.log("❌ Large file upload failed")
+            return False
+        
+        note_id = response.get('id')
+        if not note_id:
+            self.log("❌ No note ID returned from upload")
+            return False
+        
+        self.created_notes.append(note_id)
+        self.log(f"✅ Large file uploaded successfully, note ID: {note_id}")
+        self.log(f"   Status: {response.get('status', 'unknown')}")
+        self.log(f"   Kind: {response.get('kind', 'unknown')}")
+        
+        # Test 3: Monitor processing status and chunking system activation
+        self.log("🔄 Monitoring chunking system activation and processing...")
+        
+        processing_start = time.time()
+        max_processing_time = 1800  # 30 minutes maximum
+        check_interval = 10  # Check every 10 seconds
+        
+        chunking_detected = False
+        status_history = []
+        
+        while time.time() - processing_start < max_processing_time:
+            success, note_data = self.test_get_note(note_id)
+            if not success:
+                self.log("❌ Failed to retrieve note during processing")
+                break
+            
+            current_status = note_data.get('status', 'unknown')
+            status_history.append({
+                'status': current_status,
+                'time': time.time() - processing_start,
+                'artifacts': note_data.get('artifacts', {})
+            })
+            
+            self.log(f"   Status: {current_status} (after {time.time() - processing_start:.1f}s)")
+            
+            # Check for chunking indicators in artifacts
+            artifacts = note_data.get('artifacts', {})
+            if artifacts.get('transcript') and '[Part ' in str(artifacts.get('transcript', '')):
+                if not chunking_detected:
+                    chunking_detected = True
+                    self.log("✅ CHUNKING SYSTEM ACTIVATED: Multiple parts detected in transcript")
+            
+            if current_status == 'ready':
+                processing_time = time.time() - processing_start
+                self.log(f"✅ Processing completed in {processing_time:.1f} seconds ({processing_time/60:.1f} minutes)")
+                break
+            elif current_status == 'failed':
+                self.log("❌ Processing failed")
+                error_msg = artifacts.get('error', 'Unknown error')
+                self.log(f"   Error: {error_msg}")
+                return False
+            
+            time.sleep(check_interval)
+        else:
+            self.log(f"⏰ Processing timeout after {max_processing_time/60:.1f} minutes")
+            return False
+        
+        # Test 4: Verify chunking system worked correctly
+        self.log("🔍 Verifying chunking system results...")
+        
+        success, final_note = self.test_get_note(note_id)
+        if not success:
+            self.log("❌ Failed to retrieve final note data")
+            return False
+        
+        artifacts = final_note.get('artifacts', {})
+        transcript = artifacts.get('transcript', '')
+        
+        if not transcript:
+            self.log("❌ No transcript generated")
+            return False
+        
+        # Check for chunking indicators
+        part_count = transcript.count('[Part ')
+        if part_count > 0:
+            self.log(f"✅ Chunking system worked: {part_count} parts detected")
+            
+            # Estimate expected chunks (62MB file, ~24MB threshold, ~4min chunks)
+            expected_chunks = max(1, int(file_size_mb / 24) * 6)  # Rough estimate
+            if part_count >= 2:  # At least 2 chunks for a 62MB file
+                self.log(f"✅ Chunk count reasonable: {part_count} parts (expected ~{expected_chunks})")
+            else:
+                self.log(f"⚠️  Fewer chunks than expected: {part_count} parts")
+        else:
+            self.log("⚠️  No chunking indicators found - file may have been processed as single unit")
+        
+        # Test 5: Verify transcript quality and completeness
+        transcript_length = len(transcript)
+        word_count = len(transcript.split()) if transcript else 0
+        
+        self.log(f"📝 Transcript analysis:")
+        self.log(f"   Length: {transcript_length:,} characters")
+        self.log(f"   Word count: {word_count:,} words")
+        
+        if transcript_length > 1000:  # Expect substantial content from 3-hour meeting
+            self.log("✅ Substantial transcript content generated")
+        else:
+            self.log("⚠️  Transcript seems short for a 3-hour meeting")
+        
+        # Test 6: System stability check after processing
+        self.log("🔍 Post-processing system stability check...")
+        
+        health_success, health_response = self.run_test(
+            "Health Check After Stress Test",
+            "GET",
+            "health",
+            200
+        )
+        
+        if health_success:
+            self.log("✅ System remains healthy after stress test")
+        else:
+            self.log("❌ System health degraded after stress test")
+            return False
+        
+        # Test 7: Performance metrics verification
+        total_test_time = time.time() - start_time
+        self.log(f"📊 Performance Summary:")
+        self.log(f"   Total test time: {total_test_time:.1f} seconds ({total_test_time/60:.1f} minutes)")
+        self.log(f"   Upload time: {upload_time:.1f} seconds")
+        self.log(f"   Processing time: {processing_time:.1f} seconds")
+        self.log(f"   File size: {file_size_mb:.1f} MB")
+        self.log(f"   Processing rate: {file_size_mb/processing_time*60:.1f} MB/minute")
+        
+        # Test 8: Memory and resource usage (basic check)
+        try:
+            # Check if we can still create new notes (system responsive)
+            test_note_success, test_note_response = self.run_test(
+                "System Responsiveness Test",
+                "POST",
+                "notes",
+                200,
+                data={"title": "Post-stress test note", "kind": "text", "text_content": "System still responsive"},
+                auth_required=True
+            )
+            
+            if test_note_success:
+                self.log("✅ System remains responsive after stress test")
+                if test_note_response.get('id'):
+                    self.created_notes.append(test_note_response['id'])
+            else:
+                self.log("⚠️  System responsiveness degraded")
+        except Exception as e:
+            self.log(f"⚠️  System responsiveness test failed: {str(e)}")
+        
+        # Success criteria evaluation
+        success_criteria = {
+            "File uploaded successfully": success,
+            "Processing completed": final_note.get('status') == 'ready',
+            "Chunking system activated": chunking_detected or file_size_mb < 25,  # May not chunk if under threshold
+            "Transcript generated": len(transcript) > 0,
+            "System remains stable": health_success,
+            "Processing time reasonable": processing_time < 1800  # Under 30 minutes
+        }
+        
+        self.log("\n📋 SUCCESS CRITERIA EVALUATION:")
+        all_passed = True
+        for criteria, passed in success_criteria.items():
+            status = "✅" if passed else "❌"
+            self.log(f"   {status} {criteria}")
+            if not passed:
+                all_passed = False
+        
+        if all_passed:
+            self.log("\n🎉 ULTIMATE STRESS TEST PASSED! 62MB file processing successful!")
+            self.log("   The bulletproof system has proven its reliability!")
+        else:
+            self.log("\n⚠️  Some success criteria not met - see details above")
+        
+        return all_passed
+
     def wait_for_processing(self, note_id, max_wait=30):
         """Wait for note processing to complete"""
         self.log(f"⏳ Waiting for note {note_id[:8]}... to process (max {max_wait}s)")
