@@ -450,13 +450,18 @@ class ServiceHealthMonitor:
                     all_healthy = False
                     
                     if config['critical']:
-                        logger.warning(f"Critical service {service_name} is failed, attempting restart")
-                        
-                        success = self.restart_service(service_name, config)
-                        
-                        if not success:
-                            self.send_alert(service_name, 'restart_failed', 
-                                          f"Failed to restart critical service after failure")
+                        if service_name == 'ffmpeg':
+                            logger.warning(f"FFmpeg is not available, attempting installation")
+                            success = self.ensure_ffmpeg_installed()
+                            if not success:
+                                self.send_alert(service_name, 'installation_failed', 
+                                              f"Failed to install FFmpeg")
+                        else:
+                            logger.warning(f"Critical service {service_name} is failed, attempting restart")
+                            success = self.restart_service(service_name, config)
+                            if not success:
+                                self.send_alert(service_name, 'restart_failed', 
+                                              f"Failed to restart critical service after failure")
                 
                 # Handle degraded services
                 elif status.status == 'degraded':
