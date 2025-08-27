@@ -9,7 +9,7 @@ import {
   MapPin, Focus, FileText, BarChart3, Save, Loader2 
 } from 'lucide-react';
 import axios from 'axios';
-import { useToast } from './ui/use-toast';
+import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProfessionalContextSetup = ({ isOpen, onClose }) => {
