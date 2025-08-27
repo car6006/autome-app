@@ -4,7 +4,7 @@ import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { 
   Mic, Camera, Upload, FileText, Mail, Download, Edit, 
-  Crown, Network, BarChart3, User, Zap, FileBarChart, Users, 
+  BarChart3, User, Zap, FileBarChart, Users, 
   Clock, Layers, Scissors, Sparkles
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
