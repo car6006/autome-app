@@ -112,6 +112,57 @@ class AIContextProcessor:
                 'terminology': 'manufacturing terminology (OEE, lean, six sigma, etc.)',
                 'metrics': ['production yield', 'defect rates', 'equipment uptime', 'cost per unit'],
                 'stakeholders': ['operators', 'supervisors', 'quality team', 'maintenance', 'suppliers']
+            },
+            
+            # Finance & Banking
+            'finance': {
+                'keywords': ['finance', 'banking', 'investment', 'accounting', 'budget', 'revenue', 'profit'],
+                'analysis_focus': [
+                    'Financial performance analysis',
+                    'Risk assessment and mitigation',
+                    'Budget optimization opportunities',
+                    'Cash flow management insights',
+                    'Compliance and regulatory requirements',
+                    'Investment return analysis',
+                    'Cost-benefit evaluations'
+                ],
+                'terminology': 'financial terminology (ROI, EBITDA, P&L, etc.)',
+                'metrics': ['ROI', 'profit margins', 'cash flow', 'budget variance', 'risk ratios'],
+                'stakeholders': ['investors', 'auditors', 'regulators', 'management', 'clients']
+            },
+            
+            # Sales & Marketing
+            'sales': {
+                'keywords': ['sales', 'marketing', 'customer', 'lead', 'pipeline', 'conversion', 'campaign'],
+                'analysis_focus': [
+                    'Sales pipeline optimization',
+                    'Customer acquisition strategies',
+                    'Conversion rate improvements',
+                    'Lead qualification insights',
+                    'Market opportunity analysis',
+                    'Customer retention strategies',
+                    'Revenue growth initiatives'
+                ],
+                'terminology': 'sales terminology (CRM, CAC, LTV, etc.)',
+                'metrics': ['conversion rates', 'sales velocity', 'pipeline value', 'customer lifetime value'],
+                'stakeholders': ['prospects', 'customers', 'marketing team', 'management', 'partners']
+            },
+            
+            # Technology & Software
+            'technology': {
+                'keywords': ['software', 'development', 'system', 'application', 'database', 'security', 'IT'],
+                'analysis_focus': [
+                    'System performance optimization',
+                    'Security vulnerability assessment',
+                    'Technical debt reduction',
+                    'Scalability improvements',
+                    'User experience enhancements',
+                    'Integration opportunities',
+                    'Development process optimization'
+                ],
+                'terminology': 'technical terminology (API, DevOps, CI/CD, etc.)',
+                'metrics': ['system uptime', 'response times', 'error rates', 'user adoption'],
+                'stakeholders': ['developers', 'users', 'IT teams', 'security teams', 'management']
             }
         }
         
