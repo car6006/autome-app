@@ -1326,6 +1326,61 @@ async def export_note(
         
         return Response(content=content, media_type="text/markdown")
     
+    elif format == "rtf":
+        # Clean RTF format without markdown symbols
+        # Use the note title for filename
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"{clean_title}.rtf"
+        
+        # RTF Header
+        content = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
+        
+        # Title
+        content += f"\\b\\fs28 {note['title']}\\b0\\fs24\\par\\par "
+        
+        # Metadata  
+        content += f"Created: {note['created_at']}\\par "
+        content += f"Type: {note['kind']}\\par\\par "
+        
+        # Content sections
+        if artifacts.get("transcript"):
+            content += "\\b TRANSCRIPT\\b0\\par "
+            # Clean transcript - remove markdown formatting
+            clean_transcript = artifacts["transcript"].replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+            content += clean_transcript.replace("\n", "\\par ") + "\\par\\par "
+        
+        if artifacts.get("text"): 
+            content += "\\b EXTRACTED TEXT\\b0\\par "
+            # Clean text - remove markdown formatting  
+            clean_text = artifacts["text"].replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+            content += clean_text.replace("\n", "\\par ") + "\\par\\par "
+        
+        if artifacts.get("summary"):
+            content += "\\b SUMMARY\\b0\\par "
+            # Clean summary - remove markdown formatting
+            clean_summary = artifacts["summary"].replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+            content += clean_summary.replace("\n", "\\par ") + "\\par\\par "
+        
+        if artifacts.get("actions"):
+            content += "\\b ACTION ITEMS\\b0\\par "
+            for action in artifacts["actions"]:
+                # Clean action items
+                clean_action = action.replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+                content += f"\\bullet {clean_action}\\par "
+        
+        # RTF Footer
+        content += "}"
+        
+        # Mark note as completed since file was exported
+        if current_user:
+            await NotesStore.update_status(note_id, "completed")
+        
+        return Response(
+            content=content, 
+            media_type="application/rtf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
     else:  # txt format
         content = f"{note['title']}\n"
         content += "=" * len(note['title']) + "\n\n"
