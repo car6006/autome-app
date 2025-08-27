@@ -1275,8 +1275,11 @@ async def generate_batch_report(
                 report_content = logo_header + report_content
             
             # Mark all notes as completed since batch report was generated
-            for note_id in accessible_notes:
-                await NotesStore.update_status(note_id, "completed")
+            for note_id in note_ids:
+                # Only update notes that the user has access to
+                note = await NotesStore.get(note_id)
+                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                    await NotesStore.update_status(note_id, "completed")
             
             return {
                 "report": report_content,
