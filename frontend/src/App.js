@@ -2152,9 +2152,9 @@ const NotesScreen = () => {
                 </Button>
               </div>
               
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                  <div className="whitespace-pre-wrap text-gray-800 font-mono text-sm leading-relaxed">
+              <div className="p-3 sm:p-6 overflow-y-auto max-h-[60vh]">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-6">
+                  <div className="whitespace-pre-wrap text-gray-800 font-mono text-xs sm:text-sm leading-relaxed break-words">
                     {meetingMinutes}
                   </div>
                 </div>
