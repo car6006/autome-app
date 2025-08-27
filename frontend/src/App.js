@@ -1848,7 +1848,7 @@ const NotesScreen = () => {
                   </div>
                 )}
                 
-                {note.status === 'ready' && (
+                {(note.status === 'ready' || note.status === 'completed') && (
                   <div className="space-y-2 sm:space-y-3">
                     {/* Mobile-first action buttons layout */}
                     <div className="grid grid-cols-2 gap-2">
