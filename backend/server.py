@@ -587,7 +587,17 @@ async def generate_meeting_minutes(
         
         combined_content = "\n\n".join(all_content)
         
-        # Enhanced prompt for meeting minutes
+        # Get user profile for professional context
+        user_profile = current_user.get("profile", {}) if current_user else {}
+        
+        # Generate professional context-aware meeting minutes prompt
+        meeting_minutes_prompt = ai_context_processor.generate_dynamic_prompt(
+            content=combined_content,
+            user_profile=user_profile,
+            analysis_type="meeting_minutes"
+        )
+        
+        # Enhanced prompt for meeting minutes with professional context
         company_context = "Expeditors International (a global logistics and freight forwarding company)" if is_expeditors_user else "the organization"
         
         prompt = f"""
