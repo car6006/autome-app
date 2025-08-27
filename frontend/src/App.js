@@ -1907,12 +1907,12 @@ const NotesScreen = () => {
                     </div>
                     
                     {/* Generate Meeting Minutes Button */}
-                    <div className="mb-3">
+                    <div className="mb-2 sm:mb-3">
                       <Button
                         size="sm"
                         onClick={() => generateMeetingMinutes(note)}
                         disabled={generatingMinutes[note.id]}
-                        className={`w-full ${
+                        className={`w-full text-xs sm:text-sm ${
                           theme.isExpeditors 
                             ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                             : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
@@ -1921,12 +1921,14 @@ const NotesScreen = () => {
                         {generatingMinutes[note.id] ? (
                           <>
                             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                            Generating...
+                            <span className="hidden sm:inline">Generating...</span>
+                            <span className="sm:hidden">Gen...</span>
                           </>
                         ) : (
                           <>
                             <FileText className="w-3 h-3 mr-1" />
-                            Generate Meeting Minutes
+                            <span className="hidden sm:inline">Generate Meeting Minutes</span>
+                            <span className="sm:hidden">Minutes</span>
                           </>
                         )}
                       </Button>
