@@ -147,6 +147,52 @@ class ServiceHealthMonitor:
             logger.error(f"Error checking supervisor service {service_name}: {e}")
             return False
     
+    def check_ffmpeg(self) -> tuple[bool, str]:
+        """Check FFmpeg installation and functionality"""
+        try:
+            # Check if FFmpeg and FFprobe are available
+            result = subprocess.run(['ffmpeg', '-version'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                return False, "FFmpeg not responding"
+            
+            probe_result = subprocess.run(['ffprobe', '-version'], 
+                                        capture_output=True, text=True, timeout=10)
+            if probe_result.returncode != 0:
+                return False, "FFprobe not available"
+            
+            # Extract version info
+            version_line = result.stdout.split('\n')[0]
+            return True, f"FFmpeg operational - {version_line}"
+            
+        except subprocess.TimeoutExpired:
+            return False, "FFmpeg check timed out"
+        except FileNotFoundError:
+            return False, "FFmpeg not installed"
+        except Exception as e:
+            return False, f"FFmpeg check failed: {str(e)}"
+    
+    def ensure_ffmpeg_installed(self) -> bool:
+        """Ensure FFmpeg is installed using our bulletproof script"""
+        try:
+            logger.info("🔧 Running FFmpeg installation check...")
+            result = subprocess.run(['/app/scripts/ensure_ffmpeg.sh'], 
+                                  capture_output=True, text=True, timeout=300)
+            
+            if result.returncode == 0:
+                logger.info("✅ FFmpeg installation verification complete")
+                return True
+            else:
+                logger.error(f"❌ FFmpeg installation failed: {result.stderr}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            logger.error("❌ FFmpeg installation script timed out")
+            return False
+        except Exception as e:
+            logger.error(f"❌ FFmpeg installation error: {str(e)}")
+            return False
+    
     def check_service_health(self, service_name: str, config: dict) -> ServiceStatus:
         """Comprehensive health check for a service"""
         
