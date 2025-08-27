@@ -1296,7 +1296,14 @@ async def export_note(
         if current_user:  # Only update status for authenticated users
             await NotesStore.update_status(note_id, "completed")
         
-        return JSONResponse(content=export_data)
+        # Use note title for filename
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"{clean_title}.json"
+        
+        return JSONResponse(
+            content=export_data,
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
     
     elif format == "md":
         content = f"# {note['title']}\n\n"
