@@ -9,7 +9,7 @@ import time
 
 def test_rtf_export_endpoint():
     """Test RTF export endpoint functionality and error handling"""
-    api_url = 'https://autome-pro.preview.emergentagent.com/api'
+    api_url = 'https://voice2text-2.preview.emergentagent.com/api'
     
     print("🚀 RTF Export Endpoint Test")
     print("   Testing RTF export endpoint functionality and error handling")

@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Test configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://autome-pro.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://voice2text-2.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class NetworkDiagramTester:

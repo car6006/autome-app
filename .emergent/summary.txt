@@ -1,90 +1,69 @@
 <analysis>
-The AI engineer successfully progressed the AUTO-ME productivity PWA from MVP to a production-ready state, addressing numerous bugs and implementing significant new features. Initially, the focus was on critical bug fixes, including rectifying database cleanup accidental deletion, resolving backend processing issues (file handling, email, storage URLs, datetime serialization), and fixing frontend UI/UX problems (unauthenticated access, recording limits, scan file upload, export, editing, help guide, audio waveform, responsiveness). A major pivot involved replacing the failing Google Cloud Vision API with OpenAI Vision for OCR, leveraging existing OpenAI keys. Subsequently, the application was enhanced with key features: multi-file upload for handwritten notes, AI-powered professional report generation with rich-text formatting, and audio file upload capabilities on both Record and Network pages. Large audio file processing (exceeding 25MB) was solved via automatic chunking using FFmpeg, and transcription timeouts were resolved with dynamic adjustments. The process was iterative, involving frequent user feedback and systematic debugging. The immediate next step involves removing all Emergent branding from the application.
+The AI engineer successfully transformed the AUTO-ME PWA from MVP to a feature-rich, robust application. Initial phases focused on implementing fundamental user requests such as plain text note creation and critical bug fixes like preventing phone sleep during recording and resolving a language translation bug in the transcription service. A significant effort was dedicated to enhancing security by removing backtraces and adding robust error handling. The engineer also addressed mobile responsiveness across the application and updated documentation.
+
+Subsequent major feature development involved creating a personalized AI assistant system, encompassing dynamic user profiling and industry-specific AI responses. The engineer meticulously fixed several runtime errors, API integration issues, and UI rendering problems related to this new feature, ensuring data persistence and authentication. UI/UX was further refined with improved status color coding and accessible completed notes. Finally, the AI engineer addressed critical reliability concerns by installing FFmpeg for large audio file processing and implementing a bulletproof service health monitoring and auto-recovery system, making the application highly stable and production-ready for handling very large files.
 </analysis>
 
 <product_requirements>
-The AUTO-ME productivity app aims to offer zero-friction content capture (voice, photo), guaranteed delivery, trustworthy outputs (diarization, OCR, in-app edits), measurable impact (analytics), and enterprise readiness (POPIA, audit logs, access controls).
-The initial PWA (React, FastAPI, MongoDB) included:
-- Core productivity: Voice transcription (OpenAI Whisper), OCR (Google Cloud Vision, later OpenAI Vision), email sharing (SendGrid), Git sync, basic analytics.
-- User management: JWT-based authentication, user profiles, data isolation.
-- Enterprise features for  users: Hidden Network Diagram mapping tool, IISB (Issues, Impact, Solutions, Benefits) analysis tool.
-
-Recent feature additions and bug fixes covered:
-- Multi-file upload for handwritten notes.
-- AI-powered professional reports with insights and action items.
-- Audio file upload to Record and Network pages.
-- Large audio file processing (chunking).
-- Rich-text output for professional reports.
-- Comprehensive Help/Guide component.
+The AUTO-ME productivity app is designed for zero-friction content capture (voice, photo, text) with guaranteed delivery and trustworthy, editable AI outputs. Core features include voice transcription (OpenAI Whisper), OCR (OpenAI Vision), direct text notes, email sharing, Git sync, JWT-based authentication, and data isolation. Enterprise features for  users include IISB analysis. Recent development focused on rebranding to OPEN AUTO-ME v1, implementing dynamic Expeditors theming, and enhancing core functionality with multi-file upload, AI-powered professional reports (PDF/Word, no AI references, logo integration), and audio chunking. A key addition is an Ask AI conversational agent for context-rich analysis and structured meeting minutes. User personalization via profession/industry profiling for tailored AI responses and an export system overhaul were also critical. Bug fixes included large audio processing, background task error isolation, batch report validation, archive visibility, mobile responsiveness, language translation, registration failures, UI layout issues, and persistent runtime errors. A bulletproof service monitoring system and robust large file handling were mandated for reliability.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend**: React, Shadcn/UI, Tailwind CSS, React Context,  API.
-- **Backend**: FastAPI, MongoDB (Motor), JWT, bcrypt, Pydantic, , , , , .
-- **Integrations**: OpenAI Whisper API (STT), OpenAI Vision API (OCR, Report Generation - GPT-4o-mini), SendGrid API (email).
-- **Audio/Video Processing**: FFmpeg, FFprobe (for chunking large audio files).
-- **Deployment**: Kubernetes, Supervisor, environment variables.
+- **Frontend**: React, Tailwind CSS, React Context,  API, Shadcn/UI.
+- **Backend**: FastAPI, MongoDB (Motor), JWT, Pydantic, , , , FFmpeg.
+- **Integrations**: OpenAI Whisper API, OpenAI Vision API.
+- **Deployment**: Kubernetes, Supervisor (with custom monitoring script), environment variables.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture with a React frontend, FastAPI backend, and MongoDB database.
+The application uses a React frontend, FastAPI backend, and MongoDB database.
 
 
 
-**Key Files and Summaries of Changes:**
-
-*   **/app/backend/server.py**:
-    *   **Importance**: Central FastAPI application, defining all API endpoints.
-    *   **Changes**: Significantly expanded to include user authentication (login, register, profile), note processing, email, Git sync, metrics, network, IISB. New endpoints added for , , , , and  (DELETE). Modified to serve static files (). Enhanced error handling, API key validation, and prompt adjustments for professional reports.
-*   **/app/backend/.env**:
-    *   **Importance**: Stores critical configuration and API keys.
-    *   **Changes**:  was deprecated/commented out and  became central for both STT and OCR.
-*   **/app/backend/auth.py**:
-    *   **Importance**: Handles JWT token creation, verification, password hashing.
-    *   **Changes**: No specific changes mentioned in the trajectory, assumed to be stable after initial implementation.
-*   **/app/backend/store.py**:
-    *   **Importance**: MongoDB data access layer.
-    *   **Changes**: Modified to include user collection management, profile fields, note association with users,  updates. Added  functionality.
-*   **/app/backend/providers.py**:
-    *   **Importance**: Abstracts external API calls.
-    *   **Changes**: Fixed file handle leaks in STT function. Updated OCR to properly clean up temporary files. Pivoted from Google Cloud Vision to OpenAI Vision (gpt-4o-mini) for OCR. Added PDF-to-image conversion logic (, , ). Implemented automatic audio file chunking (, ) for large audio files (over 24MB). Increased individual chunk timeout.
-*   **/app/backend/tasks.py**:
-    *   **Importance**: Background task processing.
-    *   **Changes**: Expanded with asynchronous functions for , , , , , and . Added better error handling and logging, and dynamic timeout calculation for transcription tasks (e.g., 2 minutes per MB).
-*   **/app/backend/network_processor.py**:
-    *   **Importance**: Core logic for network diagrams.
-    *   **Changes**: No specific changes mentioned in the trajectory, assumed to be stable.
-*   **/app/backend/iisb_processor.py**:
-    *   **Importance**: Core logic for IISB analysis.
-    *   **Changes**: No specific changes mentioned in the trajectory, assumed to be stable.
-*   **/app/frontend/src/App.js**:
-    *   **Importance**: Main React component, central to UI, routing, and state management.
-    *   **Changes**: Extensively modified. Includes routing for Record, Scan, Notes, Stats, Profile, Network, IISB, Help. Integrates . Conditional rendering for Notes tab and Expeditors features. Removed 60-second recording cap. Added multi-file upload for scan, separate camera input. Implemented export buttons, transcript review/edit modal. Integrated  component and Help button. Added audio wave visualization. Enhanced processing display with real-time progress indicators and timing. Added swipe (archive/delete) functions. Implemented Generate Report (single/batch) buttons and a professional report modal. Added audio upload functionality to the Record page, updating UI for both recording and upload options. Fixed  linting errors multiple times. Updated PDF preview handling. Fixed  to use note titles.
-*   **/app/frontend/src/App.css**:
-    *   **Importance**: Global styles and Tailwind CSS directives.
-    *   **Changes**: Added custom styles for mobile responsiveness and adjusted the positioning/size of the Help button.
-*   **/app/frontend/src/components/NetworkDiagramScreen.js**:
-    *   **Importance**: Component for the Expeditors network diagram feature.
-    *   **Changes**: Added audio file upload functionality and updated the UI to include a dedicated audio upload section and preview for audio files.
-*   **/app/frontend/src/components/HelpGuide.js**:
-    *   **Importance**: Provides a comprehensive user guide.
-    *   **Changes**: Newly created. Extensively updated to include conditional rendering for Expeditors-specific features. Documented new features: audio upload, multi-file scan, large file support, professional report generation, enhanced notes management, and troubleshooting. Fixed HTML entity parsing errors.
-*   **/app/frontend/public/index.html**:
-    *   **Importance**: Main HTML file.
-    *   **Changes**: Removed the Made with Emergent tag.
-
+- **/app/backend/requirements.txt**: ,  added for service monitoring.
+- **/app/backend/server.py**:
+    - **Importance**: FastAPI application for API endpoints.
+    - **Changes**: Added  for text note creation. Added global exception handler. Enhanced security by replacing detailed error messages with generic ones. Removed all network diagram endpoints. Added  for updating user profile context. Meeting minutes, professional reports, batch reports, and export functions (TXT, MD, JSON, new RTF) now use professional context and update note status to completed upon generation. Added  endpoint.
+- **/app/backend/auth.py**:
+    - **Importance**: User authentication and JWT.
+    - **Changes**:  and  models enhanced with new fields (, , ) for professional context. Added robust password and username validation.
+- **/app/backend/providers.py**:
+    - **Importance**: External API integrations (OpenAI Whisper/Vision).
+    - **Changes**: Fixed language parameter not being passed to  functions for accurate English transcription.
+- **/app/backend/tasks.py**:
+    - **Importance**: Background task processing.
+    - **Changes**: Replaced detailed error messages with generic ones when updating note artifacts. Removed network diagram processing tasks.
+- **/app/backend/ai_context_processor.py**:
+    - **Importance**: Manages dynamic AI prompt generation.
+    - **Changes**: Enhanced to use new professional context fields (industry, role, key focus areas, content types, analysis preferences) for personalized responses. Added extensive industry-specific templates and content types.
+- **/app/backend/network_ai_processor.py**: **DELETED**. Implemented and then removed.
+- **/app/backend/network_processor.py**: **DELETED**. Implemented and then removed.
+- **/app/frontend/src/App.js**:
+    - **Importance**: Main React component, UI, routing, state.
+    - **Changes**: Added routing and navigation for Text Note creation. Implemented Screen Wake Lock API to prevent phone sleep during recording. Cleaned up  statements for security. Fixed mobile responsiveness for Notes screen (container, buttons, text wrapping, modal scaling). Removed all  imports, routes, and navigation links. Integrated Personalize AI button and modal (). UI color enhancement for status badges (ready amber, completed green, white hover text). Ensured all actions are visible for completed notes. Added RTF export button.
+- **/app/frontend/src/components/AuthModal.js**:
+    - **Importance**: User registration and login modal.
+    - **Changes**: Improved mobile responsiveness. Updated to provide feedback for new password and username validation rules.
+- **/app/frontend/src/components/HelpGuide.js**:
+    - **Importance**: User documentation.
+    - **Changes**: Updated with new features (Text Notes, Security, Mobile Recording, Transcription, Responsive Design). Removed all network diagram references. Fixed Crown is not defined error by replacing the icon with .
+- **/app/frontend/src/components/ProfessionalContextSetup.js**: **NEW** file.
+    - **Importance**: Frontend component for users to configure their professional context for AI personalization.
+    - **Changes**: Implemented UI for industry, role, focus areas, content types. Fixed React runtime errors by ensuring arrays are properly initialized. Fixed modal responsiveness (scrolling, height, padding). Corrected API URL to include  prefix. Removed manual authentication header, relying on . Added validation and persistence for user selections.
+- **/app/scripts/service_health_monitor.py**: **NEW** file. Python script for monitoring backend, frontend, and MongoDB services, with auto-recovery and resource tracking.
+- **/app/scripts/setup_monitoring.sh**: **NEW** file. Shell script to set up Supervisor configuration for the .
 </code_architecture>
 
 <pending_tasks>
-- Remove all references to Emergent from the application.
+- There are no explicitly pending tasks from the user's side. All direct requests have been addressed or fixed.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer successfully addressed a bug where exported files had generic UUID filenames. This was fixed by modifying the backend endpoint ( in ) to retrieve and use the note's title for the filename. Concurrently, the frontend's  function (in ) was updated to pass the note's title to the backend, ensuring proper filename generation for both individual and batch reports.
+Immediately prior to this summary, the AI engineer had successfully implemented a bulletproof system reliability solution. This involved installing FFmpeg to correctly handle large audio file chunking and processing, and building a comprehensive service health monitoring system () with automatic recovery via Supervisor. The monitoring system checks backend, frontend, and MongoDB services every 30 seconds, tracks resource usage, and ensures automatic restarts for any failed service. Health endpoints were also added and verified.
 
-The user's very last explicit request was: I want to share my preview with someone but dont want them to see any reference to Emergent, yet, how can I. This indicates that the current work involves identifying and removing all instances of Emergent branding or references from the application's frontend and potentially backend for a clean, brand-neutral preview.
+The user's last action was to upload an extremely large audio file (, 62MB and 3 hours long) as a stress test. The AI engineer has just finished downloading and analyzing this file, confirming its large size and duration, and is now poised to begin the actual processing to verify the robustness of the large audio file handling and the newly implemented monitoring system.
 </current_work>
 
 <optional_next_step>
-Search for and remove all Emergent references from the application.
+Process the uploaded 62MB audio file to verify the large audio file chunking and processing functionality.
 </optional_next_step>

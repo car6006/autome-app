@@ -12,7 +12,7 @@ import tempfile
 import os
 
 class ComprehensiveBackendTester:
-    def __init__(self, base_url="https://autome-pro.preview.emergentagent.com"):
+    def __init__(self, base_url="https://voice2text-2.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.expeditors_token = None

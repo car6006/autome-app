@@ -5,7 +5,7 @@ import os
 import time
 
 # Test the file upload endpoint
-base_url = 'https://autome-pro.preview.emergentagent.com'
+base_url = 'https://voice2text-2.preview.emergentagent.com'
 api_url = f'{base_url}/api'
 
 print("Testing file upload endpoint...")
