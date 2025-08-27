@@ -1134,10 +1134,11 @@ async def generate_professional_report(
 @api_router.post("/notes/batch-report")
 async def generate_batch_report(
     note_ids: List[str],
-    title: str = "Combined Analysis Report",
+    title: str = "Combined Analysis Report", 
+    format: str = "professional",  # Options: "professional", "txt", "rtf"
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Generate a combined professional report from multiple notes"""
+    """Generate a combined report from multiple notes in multiple formats"""
     if not note_ids:
         raise HTTPException(status_code=400, detail="No notes provided")
     
@@ -1160,136 +1161,165 @@ async def generate_batch_report(
             
             if content:
                 note_titles.append(note["title"])
-                combined_content.append(f"## {note['title']}\n{content}")
+                if format in ["txt", "rtf"]:
+                    # Clean content for raw formats
+                    clean_content = content.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
+                    lines = clean_content.split('\n')
+                    clean_lines = []
+                    for line in lines:
+                        line = line.strip()
+                        if line:
+                            line = line.lstrip('•-*1234567890. ')
+                            if not any(header in line.upper() for header in ['ATTENDEES:', 'APOLOGIES:', 'MEETING MINUTES:', 'ACTION ITEMS:', 'KEY INSIGHTS:', 'ASSESSMENTS:', 'RISK ASSESSMENT:', 'NEXT STEPS:']):
+                                if line:
+                                    clean_lines.append(line)
+                    combined_content.append(f"{note['title']}\n{chr(61)*len(note['title'])}\n\n{chr(10).join(clean_lines)}")
+                else:
+                    combined_content.append(f"## {note['title']}\n{content}")
         
         if not combined_content:
             raise HTTPException(status_code=400, detail="You can only create batch reports with your own notes. Please select notes you created.")
         
-        # Generate comprehensive report
-        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
-        if not api_key:
-            raise HTTPException(status_code=500, detail="AI service not configured")
+        # Handle different export formats
+        if format == "txt":
+            # Plain text format - completely clean
+            content_text = f"{title}\n{'='*len(title)}\n\n"
+            content_text += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            content_text += f"Notes included: {len(note_titles)}\n\n"
+            content_text += "\n\n".join(combined_content)
+            
+            # Mark all accessible notes as completed
+            for note_id in note_ids:
+                note = await NotesStore.get(note_id)
+                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                    await NotesStore.update_status(note_id, "completed")
+            
+            return {
+                "format": "txt",
+                "content": content_text,
+                "filename": f"{title.replace(' ', '_')}.txt",
+                "note_count": len(note_titles),
+                "source_notes": note_titles
+            }
         
-        full_content = "\n\n".join(combined_content)
+        elif format == "rtf":
+            # RTF format - clean and professional
+            content_text = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
+            content_text += f"\\b\\fs32 {title}\\b0\\fs24\\par\\par "
+            content_text += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\\par "
+            content_text += f"Notes included: {len(note_titles)}\\par\\par "
+            
+            for section in combined_content:
+                # Convert to RTF format
+                rtf_section = section.replace("\\", "\\\\").replace("\n", "\\par ")
+                content_text += rtf_section + "\\par\\par "
+            
+            content_text += "}"
+            
+            # Mark all accessible notes as completed
+            for note_id in note_ids:
+                note = await NotesStore.get(note_id)
+                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                    await NotesStore.update_status(note_id, "completed")
+            
+            return {
+                "format": "rtf", 
+                "content": content_text,
+                "filename": f"{title.replace(' ', '_')}.rtf",
+                "note_count": len(note_titles),
+                "source_notes": note_titles
+            }
         
-        # Get user profile for professional context
-        user_profile = current_user.get("profile", {}) if current_user else {}
-        
-        # Check if user is from Expeditors
-        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
-        
-        # Add logo header for Expeditors users
-        logo_header = ""
-        if is_expeditors_user:
-            logo_header = """
+        else:  # Professional AI report format (default)
+            # Generate comprehensive AI report
+            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+            if not api_key:
+                raise HTTPException(status_code=500, detail="AI service not configured")
+            
+            full_content = "\n\n".join(combined_content)
+            
+            # Get user profile for professional context
+            user_profile = current_user.get("profile", {}) if current_user else {}
+            
+            # Check if user is from Expeditors
+            is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+            
+            # Add logo header for Expeditors users
+            logo_header = ""
+            if is_expeditors_user:
+                logo_header = """
 ==================================================
            EXPEDITORS INTERNATIONAL
         Comprehensive Business Analysis Report
 ==================================================
 
 """
-        
-        # Generate professional context-aware prompt for batch report
-        batch_prompt = ai_context_processor.generate_dynamic_prompt(
-            content=full_content,
-            user_profile=user_profile,
-            analysis_type="strategic_planning"
-        )
-        
-        prompt = f"""
-        {logo_header}
-        
-        {batch_prompt}
-        
-        BATCH REPORT INSTRUCTIONS:
-        You are creating a comprehensive executive report combining insights from {len(note_titles)} business documents. Generate a professional strategic analysis.
-
-        Combined Content:
-        {full_content}
-
-        Create a comprehensive professional report with these sections. Use clean formatting with clear headings and bullet points - NO MARKDOWN SYMBOLS like ### or **:
-
-        EXECUTIVE SUMMARY
-        - Overall situation assessment across all content
-        - Key themes and critical findings (3-4 sentences)
-
-        COMPREHENSIVE ANALYSIS
-        - Major insights from combined content as bullet points starting with •
-        - Patterns and connections between different sources
-        - Important details that impact decision-making
-
-        STRATEGIC RECOMMENDATIONS
-        HIGH-IMPACT ACTIONS (Immediate - next 2 weeks):
-        • [list specific actions]
-
-        MEDIUM-TERM INITIATIVES (next 1-3 months):
-        • [list strategic initiatives]
-
-        LONG-TERM CONSIDERATIONS (3+ months):
-        • [list long-term items]
-
-        IMPLEMENTATION ROADMAP
-        WEEK 1-2:
-        • [immediate next steps]
-
-        MONTH 1-3:
-        • [short-term goals]
-
-        SUCCESS METRICS:
-        • [key metrics to track]
-
-        RISK ASSESSMENT
-        POTENTIAL CHALLENGES:
-        • [list potential obstacles]
-
-        MITIGATION STRATEGIES:
-        • [list mitigation approaches]
-
-        STAKEHOLDER INVOLVEMENT
-        • [key stakeholders to involve]
-        • [communication plan recommendations]
-
-        Use professional business language with clear structure. Format as clean text with proper headings in CAPS and bullet points with •. Do NOT use markdown formatting symbols like ### or **.
-        """
-        
-        async with httpx.AsyncClient(timeout=90) as client:
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 2000,
-                    "temperature": 0.2
-                },
-                headers={"Authorization": f"Bearer {api_key}"}
+            
+            # Generate professional context-aware prompt for batch report
+            batch_prompt = ai_context_processor.generate_dynamic_prompt(
+                content=full_content,
+                user_profile=user_profile,
+                analysis_type="strategic_planning"
             )
-            response.raise_for_status()
             
-            ai_analysis = response.json()
-            report_content = ai_analysis["choices"][0]["message"]["content"]
+            prompt = f"""
+            {logo_header}
+            You are a senior business analyst creating a comprehensive strategic report from multiple business documents.
             
-            # Add logo header for Expeditors users
-            if is_expeditors_user:
-                report_content = logo_header + report_content
+            ANALYSIS REQUIREMENTS:
+            - Synthesize information across ALL provided documents
+            - Identify cross-cutting themes, patterns, and strategic insights
+            - Provide executive-level recommendations with clear rationale
+            - Structure the analysis professionally for C-level stakeholders
+            - Focus on actionable insights that drive business value
             
-            # Mark all notes as completed since batch report was generated
-            for note_id in note_ids:
-                # Only update notes that the user has access to
-                note = await NotesStore.get(note_id)
-                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
-                    await NotesStore.update_status(note_id, "completed")
+            DOCUMENTS TO ANALYZE:
+            {full_content}
             
-            return {
-                "report": report_content,
-                "title": title,
-                "source_notes": note_titles,
-                "note_count": len(note_titles),
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "is_expeditors": is_expeditors_user
-            }
-    
+            {batch_prompt}
+            
+            Provide a comprehensive business analysis that executives can immediately act upon. Structure with clear sections and actionable recommendations.
+            """
+            
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "You are a senior business analyst and strategic advisor."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "max_tokens": 4000,
+                        "temperature": 0.3
+                    },
+                    headers={"Authorization": f"Bearer {api_key}"}
+                )
+                response.raise_for_status()
+                
+                ai_response = response.json()
+                report_content = ai_response["choices"][0]["message"]["content"]
+                
+                # Add Expeditors branding if applicable
+                if is_expeditors_user:
+                    report_content = logo_header + report_content
+                
+                # Mark all accessible notes as completed
+                for note_id in note_ids:
+                    note = await NotesStore.get(note_id)
+                    if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                        await NotesStore.update_status(note_id, "completed")
+                
+                return {
+                    "format": "professional",
+                    "report": report_content,
+                    "title": title,
+                    "generated_at": datetime.now().isoformat(),
+                    "note_count": len(note_titles),
+                    "source_notes": note_titles,
+                    "user_profile": user_profile
+                }
+        
     except Exception as e:
         logger.error(f"Batch report generation error: {str(e)}")
         raise HTTPException(status_code=500, detail="Batch report generation temporarily unavailable")
