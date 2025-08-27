@@ -87,7 +87,16 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
           'Authorization': `Bearer ${localStorage.getItem('auto_me_token')}`
         }
       });
-      setProfessionalContext(response.data);
+      // Ensure arrays are properly initialized
+      const contextData = response.data;
+      setProfessionalContext({
+        primary_industry: contextData.primary_industry || '',
+        job_role: contextData.job_role || '',
+        work_environment: contextData.work_environment || '',
+        key_focus_areas: Array.isArray(contextData.key_focus_areas) ? contextData.key_focus_areas : [],
+        content_types: Array.isArray(contextData.content_types) ? contextData.content_types : [],
+        analysis_preferences: Array.isArray(contextData.analysis_preferences) ? contextData.analysis_preferences : []
+      });
     } catch (error) {
       console.error('Failed to load professional context:', error);
       // Continue with empty context if loading fails
