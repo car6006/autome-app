@@ -83,11 +83,7 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
   const loadProfessionalContext = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/user/professional-context`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auto_me_token')}`
-        }
-      });
+      const response = await axios.get(`${API}/user/professional-context`);
       // Ensure arrays are properly initialized
       const contextData = response.data;
       setProfessionalContext({
