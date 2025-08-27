@@ -977,6 +977,9 @@ async def export_ai_conversations(
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
         filename = f"Meeting_Minutes_{filename_base}.txt"
         
+        # Mark note as completed since file was generated
+        await NotesStore.update_status(note_id, "completed")
+        
         return Response(
             content=content,
             media_type="text/plain",
