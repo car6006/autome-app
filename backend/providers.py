@@ -88,31 +88,45 @@ async def split_audio_file(file_path: str, chunk_duration: int = CHUNK_DURATION_
         logger.error(f"Error splitting audio file: {e}")
         return [file_path]  # Return original file if splitting fails
 
-async def transcribe_audio_chunk(chunk_path: str, api_key: str, language: str = "en") -> str:
-    """Transcribe a single audio chunk with language specification"""
-    try:
-        with open(chunk_path, "rb") as audio_file:
-            files = {"file": audio_file}
-            form = {
-                "model": "whisper-1", 
-                "response_format": "json",
-                "language": language  # Explicitly specify language
-            }
-            
-            async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout per chunk
-                r = await client.post(
-                    f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
-                    data=form,
-                    files=files,
-                    headers={"Authorization": f"Bearer {api_key}"}
-                )
-                r.raise_for_status()
-                data = r.json()
-                return data.get("text", "")
+async def transcribe_audio_chunk(chunk_path: str, api_key: str, language: str = "en", max_retries: int = 3) -> str:
+    """Transcribe a single audio chunk with language specification and retry logic"""
+    for attempt in range(max_retries):
+        try:
+            with open(chunk_path, "rb") as audio_file:
+                files = {"file": audio_file}
+                form = {
+                    "model": "whisper-1", 
+                    "response_format": "json",
+                    "language": language  # Explicitly specify language
+                }
                 
-    except Exception as e:
-        logger.error(f"Error transcribing chunk {chunk_path}: {e}")
-        return ""
+                async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout per chunk
+                    r = await client.post(
+                        f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
+                        data=form,
+                        files=files,
+                        headers={"Authorization": f"Bearer {api_key}"}
+                    )
+                    r.raise_for_status()
+                    data = r.json()
+                    return data.get("text", "")
+                    
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:  # Rate limit error
+                wait_time = (2 ** attempt) * 5  # Exponential backoff: 5s, 10s, 20s
+                logger.warning(f"Rate limit hit for chunk {chunk_path}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                await asyncio.sleep(wait_time)
+                continue
+            else:
+                logger.error(f"HTTP error transcribing chunk {chunk_path}: {e.response.status_code} - {e.response.text}")
+                return ""
+        except Exception as e:
+            logger.error(f"Error transcribing chunk {chunk_path} (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                return ""
+            await asyncio.sleep(2 ** attempt)  # Simple backoff for other errors
+    
+    return ""
 
 async def _download(url: str) -> str:
     """Download file from URL or return local path if it's a local file"""
