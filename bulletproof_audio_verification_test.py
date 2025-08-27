@@ -699,9 +699,9 @@ class BulletproofAudioVerificationTester:
         self.log("   Testing error handling...")
         
         error_tests = [
-            ("Non-existent note", "GET", "notes/non-existent-id", 404),
+            ("Non-existent note", "GET", "notes/non-existent-id", 404, None),
             ("Invalid note creation", "POST", "notes", 422, {"title": "", "kind": "invalid"}),
-            ("Invalid export format", "GET", "notes/test/export?format=invalid", 422),
+            ("Invalid export format", "GET", "notes/test/export?format=invalid", 422, None),
         ]
         
         error_handling_success = 0
@@ -711,7 +711,7 @@ class BulletproofAudioVerificationTester:
                 method,
                 endpoint,
                 expected_status,
-                data=data if len(error_tests[error_tests.index((test_name, method, endpoint, expected_status, data))]) > 4 else None
+                data=data
             )
             if success:
                 error_handling_success += 1
