@@ -1331,7 +1331,15 @@ async def export_note(
         if current_user:  # Only update status for authenticated users
             await NotesStore.update_status(note_id, "completed")
         
-        return Response(content=content, media_type="text/markdown")
+        # Use note title for filename
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"{clean_title}.md"
+        
+        return Response(
+            content=content, 
+            media_type="text/markdown",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
     
     elif format == "rtf":
         # Clean RTF format without markdown symbols
