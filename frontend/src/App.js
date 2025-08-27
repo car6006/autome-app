@@ -1940,7 +1940,7 @@ const NotesScreen = () => {
                         size="sm"
                         onClick={() => generateProfessionalReport(note.id)}
                         disabled={generatingReport[note.id]}
-                        className={`flex-1 ${
+                        className={`flex-1 text-xs sm:text-sm ${
                           theme.isExpeditors 
                             ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
                             : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white'
@@ -1949,12 +1949,14 @@ const NotesScreen = () => {
                         {generatingReport[note.id] ? (
                           <>
                             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                            Generating...
+                            <span className="hidden sm:inline">Generating...</span>
+                            <span className="sm:hidden">Gen...</span>
                           </>
                         ) : (
                           <>
                             <FileBarChart className="w-3 h-3 mr-1" />
-                            Professional Report
+                            <span className="hidden sm:inline">Professional Report</span>
+                            <span className="sm:hidden">Report</span>
                           </>
                         )}
                       </Button>
@@ -1963,7 +1965,7 @@ const NotesScreen = () => {
                         size="sm"
                         variant={selectedNotesForBatch.includes(note.id) ? "default" : "outline"}
                         onClick={() => toggleNoteSelection(note.id)}
-                        className={selectedNotesForBatch.includes(note.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                        className={`px-3 ${selectedNotesForBatch.includes(note.id) ? "bg-green-600 hover:bg-green-700" : ""}`}
                       >
                         {selectedNotesForBatch.includes(note.id) ? "✓" : "+"}
                       </Button>
