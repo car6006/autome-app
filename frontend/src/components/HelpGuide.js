@@ -541,7 +541,7 @@ const HelpGuide = () => {
             <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-100 to-pink-100">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Crown className="w-5 h-5 text-yellow-600" />
+                  <Zap className="w-5 h-5 text-yellow-600" />
                   <span>Premium Features</span>
                   <Badge className="bg-yellow-100 text-yellow-800">@expeditors.com</Badge>
                 </CardTitle>
