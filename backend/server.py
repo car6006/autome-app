@@ -1249,6 +1249,10 @@ async def generate_batch_report(
             if is_expeditors_user:
                 report_content = logo_header + report_content
             
+            # Mark all notes as completed since batch report was generated
+            for note_id in accessible_notes:
+                await NotesStore.update_status(note_id, "completed")
+            
             return {
                 "report": report_content,
                 "title": title,
