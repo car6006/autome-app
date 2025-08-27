@@ -2225,7 +2225,7 @@ const NotesScreen = () => {
                 </Button>
               </div>
               
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="p-3 sm:p-6 overflow-y-auto max-h-[60vh]">
                 {/* Previous Conversations */}
                 {aiConversations.length > 0 && (
                   <div className="mb-6">
