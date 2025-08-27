@@ -568,6 +568,13 @@ def main():
     
     monitor = ServiceHealthMonitor()
     
+    # Initial FFmpeg verification
+    logger.info("🔧 Performing initial FFmpeg verification...")
+    is_healthy, message = monitor.check_ffmpeg()
+    if not is_healthy:
+        logger.info("FFmpeg not found, attempting installation...")
+        monitor.ensure_ffmpeg_installed()
+    
     if args.report:
         print(monitor.generate_health_report())
     elif args.daemon:
