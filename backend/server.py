@@ -230,7 +230,7 @@ async def continue_to_iisb_analysis(
     if not note or note.get("user_id") != current_user["id"]:
         raise HTTPException(status_code=404, detail="Note not found")
     
-    # Extract client name from network diagram artifacts if available
+    # Extract client name from note if available
     client_name = request.get("client_name", "")
     if not client_name and note.get("artifacts"):
         # Try to extract client name from note title or artifacts
