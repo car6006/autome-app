@@ -944,6 +944,9 @@ async def export_ai_conversations(
         filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
         filename = f"Meeting_Minutes_{filename_base}.docx"
         
+        # Mark note as completed since file was generated
+        await NotesStore.update_status(note_id, "completed")
+        
         return Response(
             content=buffer.getvalue(),
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
