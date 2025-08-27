@@ -1874,47 +1874,29 @@ const NotesScreen = () => {
                       </Button>
                     </div>
                     
-                    {/* Admin-only export buttons */}
-                    {user?.email?.includes('@admin') && (
-                      <div className="grid grid-cols-3 gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => exportNote(note.id, 'txt')}
-                          className="w-full text-xs"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          TXT
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => exportNote(note.id, 'rtf')}
-                          className="w-full text-xs"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          RTF
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => exportNote(note.id, 'md')}
-                          className="w-full text-xs"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          MD
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => exportNote(note.id, 'json')}
-                          className="w-full text-xs"
-                        >
-                          <Download className="w-3 h-3 mr-1" />
-                          JSON
-                        </Button>
-                      </div>
-                    )}
+                    {/* Clean Export buttons - TXT and RTF */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => exportNote(note.id, 'txt')}
+                        className="w-full text-xs px-2"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        <span className="hidden sm:inline">Export TXT</span>
+                        <span className="sm:hidden">TXT</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => exportNote(note.id, 'rtf')}
+                        className="w-full text-xs px-2"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        <span className="hidden sm:inline">Export RTF</span>
+                        <span className="sm:hidden">RTF</span>
+                      </Button>
+                    </div>
                     
                     {/* AI Chat Feature - Moved to Top */}
                     <div className="mb-2 sm:mb-3">
