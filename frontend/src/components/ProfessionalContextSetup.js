@@ -122,9 +122,22 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
       onClose();
     } catch (error) {
       console.error('Failed to save professional context:', error);
+      
+      // Get more specific error message
+      let errorMessage = "Failed to update professional context. Please try again.";
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.status === 401) {
+        errorMessage = "Please log in to save your professional context.";
+      } else if (error.response?.status === 422) {
+        errorMessage = "Invalid data format. Please check your selections.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to update professional context. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
