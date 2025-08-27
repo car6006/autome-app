@@ -2587,24 +2587,68 @@ const NotesScreen = () => {
                   {/* Export Section - Only show if there are conversations */}
                   {aiConversations.length > 0 && (
                     <div className="mt-6 pt-4 border-t border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export Professional Report</h4>
-                      <div className="grid grid-cols-3 gap-2">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export Analysis Report</h4>
+                      
+                      {/* Mobile: Stack vertically */}
+                      <div className="sm:hidden space-y-2">
                         <Button
                           onClick={() => exportAiAnalysis('pdf')}
-                          className={`flex-1 ${
+                          className={`w-full ${
                             theme.isExpeditors 
                               ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                               : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
                           }`}
                         >
                           <FileDown className="w-4 h-4 mr-2" />
-                          PDF
+                          Professional PDF
+                        </Button>
+                        
+                        <div className="grid grid-cols-3 gap-1">
+                          <Button
+                            onClick={() => exportAiAnalysis('docx')}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Word
+                          </Button>
+                          <Button
+                            onClick={() => exportAiAnalysis('txt')}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            TXT
+                          </Button>
+                          <Button
+                            onClick={() => exportAiAnalysis('rtf')}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            RTF
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Desktop: Grid layout */}
+                      <div className="hidden sm:grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => exportAiAnalysis('pdf')}
+                          className={`col-span-2 ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                          }`}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          Professional PDF
                         </Button>
                         
                         <Button
                           onClick={() => exportAiAnalysis('docx')}
                           variant="outline"
-                          className={`flex-1 ${
+                          className={`${
                             theme.isExpeditors 
                               ? 'border-red-600 text-red-600 hover:bg-red-50'
                               : 'border-blue-600 text-blue-600 hover:bg-blue-50'
@@ -2617,14 +2661,28 @@ const NotesScreen = () => {
                         <Button
                           onClick={() => exportAiAnalysis('txt')}
                           variant="outline"
-                          className="flex-1"
+                          className="text-sm"
                         >
-                          <FileText className="w-4 h-4 mr-2" />
-                          TXT
+                          <Download className="w-4 h-4 mr-2" />
+                          Clean TXT
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportAiAnalysis('rtf')}
+                          variant="outline"
+                          className={`col-span-2 ${
+                            theme.isExpeditors 
+                              ? 'border-red-600 text-red-600 hover:bg-red-50'
+                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                          }`}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Clean RTF Format
                         </Button>
                       </div>
+                      
                       <p className="text-xs text-gray-500 mt-2">
-                        Clean, professional format (no questions included)
+                        ✨ All formats are clean (no *** or ### symbols)
                       </p>
                     </div>
                   )}
