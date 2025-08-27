@@ -1367,46 +1367,56 @@ async def export_note(
         )
     
     elif format == "rtf":
-        # Clean RTF format without markdown symbols
-        # Use the note title for filename
+        # Clean RTF format - completely raw transcript without any AI formatting
         clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
         filename = f"{clean_title}.rtf"
         
         # RTF Header
         content = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
         
-        # Title
+        # Title (minimal formatting)
         content += f"\\b\\fs28 {note['title']}\\b0\\fs24\\par\\par "
         
         # Metadata  
         content += f"Created: {note['created_at']}\\par "
         content += f"Type: {note['kind']}\\par\\par "
         
-        # Content sections
+        # Raw transcript content - completely clean
         if artifacts.get("transcript"):
-            content += "\\b TRANSCRIPT\\b0\\par "
-            # Clean transcript - remove markdown formatting
-            clean_transcript = artifacts["transcript"].replace("**", "").replace("###", "").replace("##", "").replace("#", "")
-            content += clean_transcript.replace("\n", "\\par ") + "\\par\\par "
+            # Remove ALL AI formatting: markdown, bullets, headers, etc.
+            raw_transcript = artifacts["transcript"]
+            
+            # Remove markdown formatting
+            raw_transcript = raw_transcript.replace("**", "")
+            raw_transcript = raw_transcript.replace("###", "")
+            raw_transcript = raw_transcript.replace("##", "")
+            raw_transcript = raw_transcript.replace("#", "")
+            raw_transcript = raw_transcript.replace("*", "")
+            raw_transcript = raw_transcript.replace("_", "")
+            
+            # Remove bullet points and list formatting
+            lines = raw_transcript.split('\n')
+            clean_lines = []
+            for line in lines:
+                line = line.strip()
+                if line:
+                    # Remove bullet points, dashes, numbers
+                    line = line.lstrip('•-*1234567890. ')
+                    if line:  # Only add non-empty lines
+                        clean_lines.append(line)
+            
+            # Join with simple line breaks
+            clean_content = ' '.join(clean_lines)
+            
+            # Convert to RTF format
+            content += clean_content.replace("\n", " ").replace("\\", "\\\\") + "\\par\\par "
         
-        if artifacts.get("text"): 
-            content += "\\b EXTRACTED TEXT\\b0\\par "
-            # Clean text - remove markdown formatting  
-            clean_text = artifacts["text"].replace("**", "").replace("###", "").replace("##", "").replace("#", "")
-            content += clean_text.replace("\n", "\\par ") + "\\par\\par "
-        
-        if artifacts.get("summary"):
-            content += "\\b SUMMARY\\b0\\par "
-            # Clean summary - remove markdown formatting
-            clean_summary = artifacts["summary"].replace("**", "").replace("###", "").replace("##", "").replace("#", "")
-            content += clean_summary.replace("\n", "\\par ") + "\\par\\par "
-        
-        if artifacts.get("actions"):
-            content += "\\b ACTION ITEMS\\b0\\par "
-            for action in artifacts["actions"]:
-                # Clean action items
-                clean_action = action.replace("**", "").replace("###", "").replace("##", "").replace("#", "")
-                content += f"\\bullet {clean_action}\\par "
+        # Raw OCR text if available
+        if artifacts.get("text"):
+            raw_text = artifacts["text"]
+            # Clean text completely
+            raw_text = raw_text.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
+            content += raw_text.replace("\n", " ").replace("\\", "\\\\") + "\\par\\par "
         
         # RTF Footer
         content += "}"
@@ -1421,31 +1431,49 @@ async def export_note(
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
     
-    else:  # txt format
+    else:  # txt format - completely clean raw content
         content = f"{note['title']}\n"
         content += "=" * len(note['title']) + "\n\n"
         content += f"Created: {note['created_at']}\n"
         content += f"Type: {note['kind']}\n\n"
         
+        # Raw transcript - completely clean without any AI formatting
         if artifacts.get("transcript"):
-            content += "TRANSCRIPT:\n"
-            content += artifacts["transcript"] + "\n\n"
+            raw_transcript = artifacts["transcript"]
+            
+            # Remove ALL formatting markers
+            raw_transcript = raw_transcript.replace("**", "")
+            raw_transcript = raw_transcript.replace("###", "") 
+            raw_transcript = raw_transcript.replace("##", "")
+            raw_transcript = raw_transcript.replace("#", "")
+            raw_transcript = raw_transcript.replace("*", "")
+            raw_transcript = raw_transcript.replace("_", "")
+            
+            # Remove bullet points and list formatting
+            lines = raw_transcript.split('\n')
+            clean_lines = []
+            for line in lines:
+                line = line.strip()
+                if line:
+                    # Remove bullet points, dashes, numbers, section headers
+                    line = line.lstrip('•-*1234567890. ')
+                    # Remove common AI section headers
+                    if not any(header in line.upper() for header in ['ATTENDEES:', 'APOLOGIES:', 'MEETING MINUTES:', 'ACTION ITEMS:', 'KEY INSIGHTS:', 'ASSESSMENTS:', 'RISK ASSESSMENT:', 'NEXT STEPS:']):
+                        if line:  # Only add non-empty meaningful lines
+                            clean_lines.append(line)
+            
+            # Join as continuous text with natural breaks
+            content += '\n'.join(clean_lines) + "\n\n"
         
+        # Raw OCR text if available
         if artifacts.get("text"):
-            content += "OCR TEXT:\n"
-            content += artifacts["text"] + "\n\n"
-        
-        if artifacts.get("summary"):
-            content += "SUMMARY:\n"
-            content += artifacts["summary"] + "\n\n"
-        
-        if artifacts.get("actions"):
-            content += "ACTION ITEMS:\n"
-            for action in artifacts["actions"]:
-                content += f"- {action}\n"
+            raw_text = artifacts["text"]
+            # Clean completely - no AI formatting
+            raw_text = raw_text.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
+            content += raw_text + "\n\n"
         
         # Mark note as completed since file was exported
-        if current_user:  # Only update status for authenticated users
+        if current_user:
             await NotesStore.update_status(note_id, "completed")
         
         # Use note title for filename
