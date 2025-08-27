@@ -27,7 +27,7 @@ class AutoMeAPITester:
         self.expeditors_user_data = None
         self.test_user_data = {
             "email": f"test_user_{int(time.time())}@example.com",
-            "username": f"testuser_{int(time.time())}",
+            "username": f"testuser{int(time.time())}",  # Remove underscore for validation
             "password": "TestPassword123!",
             "first_name": "Test",
             "last_name": "User"
