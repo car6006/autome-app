@@ -1668,7 +1668,7 @@ const NotesScreen = () => {
               <CardHeader className="pb-3 px-3 sm:px-6">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-sm sm:text-base md:text-lg truncate flex-1 min-w-0 pr-2">{note.title}</CardTitle>
-                  <Badge className={`${getStatusColor(note.status)} text-xs shrink-0`}>
+                  <Badge className={`${getStatusColor(note.status)} text-xs shrink-0 transition-all duration-200 cursor-pointer border`}>
                     {note.status}
                   </Badge>
                 </div>
