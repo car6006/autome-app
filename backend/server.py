@@ -394,6 +394,54 @@ async def delete_note(
     return {"message": "Note deleted successfully"}
 
 
+@api_router.post("/user/professional-context")
+async def update_professional_context(
+    context_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user's professional context for personalized AI responses"""
+    user_id = current_user["id"]
+    
+    # Extract professional context fields
+    professional_updates = {
+        "primary_industry": context_data.get("primary_industry", ""),
+        "job_role": context_data.get("job_role", ""),
+        "work_environment": context_data.get("work_environment", ""),
+        "key_focus_areas": context_data.get("key_focus_areas", []),
+        "content_types": context_data.get("content_types", []),
+        "analysis_preferences": context_data.get("analysis_preferences", [])
+    }
+    
+    # Update user profile
+    await db["users"].update_one(
+        {"id": user_id},
+        {"$set": {f"profile.{key}": value for key, value in professional_updates.items()}}
+    )
+    
+    return {"message": "Professional context updated successfully", "context": professional_updates}
+
+@api_router.get("/user/professional-context")
+async def get_professional_context(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get user's current professional context"""
+    user_id = current_user["id"]
+    user = await db["users"].find_one({"id": user_id})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    profile = user.get("profile", {})
+    
+    return {
+        "primary_industry": profile.get("primary_industry", ""),
+        "job_role": profile.get("job_role", ""),
+        "work_environment": profile.get("work_environment", ""),
+        "key_focus_areas": profile.get("key_focus_areas", []),
+        "content_types": profile.get("content_types", []),
+        "analysis_preferences": profile.get("analysis_preferences", [])
+    }
+
 from ai_context_processor import ai_context_processor
 
 @api_router.post("/notes/{note_id}/ai-chat")
