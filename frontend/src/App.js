@@ -1831,26 +1831,28 @@ const NotesScreen = () => {
                 )}
                 
                 {note.status === 'ready' && (
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {/* Mobile-first action buttons layout */}
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedNote(selectedNote === note.id ? null : note.id)}
-                        className="w-full text-xs"
+                        className="w-full text-xs px-2"
                       >
                         <Mail className="w-3 h-3 mr-1" />
-                        Email
+                        <span className="hidden sm:inline">Email</span>
+                        <span className="sm:hidden">Mail</span>
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => syncToGit(note.id)}
-                        className="w-full text-xs"
+                        className="w-full text-xs px-2"
                       >
                         <GitBranch className="w-3 h-3 mr-1" />
-                        Sync
+                        <span className="hidden sm:inline">Sync</span>
+                        <span className="sm:hidden">Git</span>
                       </Button>
                     </div>
                     
