@@ -187,6 +187,26 @@ class AIContextProcessor:
             'daily_standup': {
                 'patterns': ['yesterday', 'today', 'tomorrow', 'blockers', 'completed', 'working on'],
                 'structure': 'daily standup summary format'
+            },
+            'training_session': {
+                'patterns': ['training', 'learning', 'course', 'workshop', 'skill', 'knowledge'],
+                'structure': 'training summary format'
+            },
+            'performance_review': {
+                'patterns': ['review', 'performance', 'goals', 'achievements', 'feedback', 'evaluation'],
+                'structure': 'performance evaluation format'
+            },
+            'audit_report': {
+                'patterns': ['audit', 'compliance', 'inspection', 'verification', 'standards', 'requirements'],
+                'structure': 'audit findings format'
+            },
+            'financial_report': {
+                'patterns': ['budget', 'expenses', 'revenue', 'profit', 'financial', 'cost'],
+                'structure': 'financial analysis format'
+            },
+            'strategic_planning': {
+                'patterns': ['strategy', 'planning', 'objectives', 'goals', 'vision', 'roadmap'],
+                'structure': 'strategic plan format'
             }
         }
     
