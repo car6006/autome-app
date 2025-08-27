@@ -22,15 +22,15 @@ class NetworkRemovalVerificationTester:
         self.auth_token = None
         self.expeditors_token = None
         self.test_user_data = {
-            "email": f"test_removal_{int(time.time())}@example.com",
-            "username": f"testremoval_{int(time.time())}",
+            "email": f"testremoval{int(time.time())}@example.com",
+            "username": f"testremoval{int(time.time())}",
             "password": "TestPassword123!",
             "first_name": "Test",
             "last_name": "User"
         }
         self.expeditors_user_data = {
-            "email": f"test_expeditors_{int(time.time())}@expeditors.com",
-            "username": f"expeditors_test_{int(time.time())}",
+            "email": f"testexpeditors{int(time.time())}@expeditors.com",
+            "username": f"expeditorstest{int(time.time())}",
             "password": "ExpeditorsPass123!",
             "first_name": "Expeditors",
             "last_name": "User"
