@@ -358,7 +358,7 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
         </div>
         
         {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-gray-200 flex justify-between">
+        <div className="flex-shrink-0 p-4 sm:p-6 border-t border-gray-200 flex justify-between">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
