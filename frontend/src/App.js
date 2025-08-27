@@ -1711,7 +1711,7 @@ const NotesScreen = () => {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-600 line-clamp-3">{note.artifacts.transcript}</p>
+                          <p className="text-sm text-gray-600 line-clamp-3 break-words">{note.artifacts.transcript}</p>
                         )}
                       </div>
                     )}
