@@ -1272,7 +1272,7 @@ async def export_note(
     format: str = Query("txt", regex="^(txt|md|json|rtf)$"),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Export note in various formats (txt, md, json)"""
+    """Export note in various formats (txt, md, json, rtf)"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
