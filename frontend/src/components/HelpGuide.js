@@ -549,18 +549,7 @@ const HelpGuide = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
-                      <Network className="w-4 h-4 text-purple-600" />
-                      <span>Network Diagram Mapper</span>
-                    </h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Generate supply chain network diagrams</li>
-                      <li>• Voice or sketch input supported</li>
-                      <li>• Professional PowerPoint-ready visuals</li>
-                      <li>• Airport code and warehouse recognition</li>
-                    </ul>
-                  </div>
+
                   <div className="space-y-2">
                     <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
                       <BarChart3 className="w-4 h-4 text-green-600" />
