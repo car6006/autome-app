@@ -697,10 +697,10 @@ async def generate_meeting_minutes(
 @api_router.get("/notes/{note_id}/ai-conversations/export")
 async def export_ai_conversations(
     note_id: str,
-    format: str = Query("pdf", regex="^(pdf|docx|txt)$"),
+    format: str = Query("pdf", regex="^(pdf|docx|txt|rtf)$"),
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Export meeting minutes to PDF, Word DOC, or TXT format"""
+    """Export AI conversations/analysis to PDF, Word DOC, TXT, or RTF format"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
@@ -710,13 +710,82 @@ async def export_ai_conversations(
         raise HTTPException(status_code=403, detail="Not authorized to access this note")
     
     artifacts = note.get("artifacts", {})
+    
+    # Try to get AI conversations first, then fall back to meeting minutes
+    ai_conversations = artifacts.get("ai_conversations", [])
     meeting_minutes = artifacts.get("meeting_minutes", "")
     
-    if not meeting_minutes:
-        raise HTTPException(status_code=400, detail="No meeting minutes found. Please generate meeting minutes first.")
+    if not ai_conversations and not meeting_minutes:
+        raise HTTPException(status_code=400, detail="No AI analysis or meeting minutes found. Please generate AI analysis first.")
     
     # Check if user is from Expeditors for branding
     is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+    
+    # Clean content function to remove all AI formatting
+    def clean_content(text):
+        if not text:
+            return text
+        # Remove markdown formatting
+        cleaned = text.replace("**", "").replace("***", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
+        # Remove bullet points and section formatting
+        lines = cleaned.split('\n')
+        clean_lines = []
+        for line in lines:
+            line = line.strip()
+            if line:
+                line = line.lstrip('•-*1234567890. ')
+                # Remove common AI section headers but keep content
+                if not any(header in line.upper() for header in ['ATTENDEES:', 'APOLOGIES:', 'MEETING MINUTES:', 'ACTION ITEMS:', 'KEY INSIGHTS:', 'ASSESSMENTS:', 'RISK ASSESSMENT:', 'NEXT STEPS:']):
+                    if line:
+                        clean_lines.append(line)
+        return '\n'.join(clean_lines)
+    
+    # Prepare content based on what's available
+    content_title = note['title']
+    export_content = ""
+    
+    if ai_conversations:
+        export_content = f"AI Content Analysis for: {content_title}\n\n"
+        for i, conv in enumerate(ai_conversations, 1):
+            question = conv.get("question", "")
+            response = conv.get("response", "")
+            timestamp = conv.get("timestamp", "")
+            
+            export_content += f"Question {i}: {question}\n\n"
+            export_content += f"AI Analysis:\n{clean_content(response)}\n\n"
+            if i < len(ai_conversations):
+                export_content += "=" * 50 + "\n\n"
+    elif meeting_minutes:
+        export_content = f"Meeting Minutes for: {content_title}\n\n{clean_content(meeting_minutes)}"
+    
+    if format == "txt":
+        # Plain text format
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"AI_Analysis_{clean_title}.txt"
+        
+        return Response(
+            content=export_content,
+            media_type="text/plain",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "rtf":
+        # RTF format
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"AI_Analysis_{clean_title}.rtf"
+        
+        # RTF header
+        rtf_content = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
+        
+        # Convert content to RTF
+        rtf_body = export_content.replace("\\", "\\\\").replace("\n", "\\par ")
+        rtf_content += rtf_body + "}"
+        
+        return Response(
+            content=rtf_content,
+            media_type="application/rtf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
     
     if format == "pdf":
         from reportlab.lib.pagesizes import letter, A4
