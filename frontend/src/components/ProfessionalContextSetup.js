@@ -106,6 +106,25 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
   };
 
   const saveProfessionalContext = async () => {
+    // Validation
+    if (!professionalContext.primary_industry.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please select your primary industry.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!professionalContext.job_role.trim()) {
+      toast({
+        title: "Missing Information", 
+        description: "Please select your job role.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSaving(true);
     try {
       await axios.post(`${API}/user/professional-context`, professionalContext, {
