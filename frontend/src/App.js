@@ -1307,7 +1307,7 @@ const NotesScreen = () => {
     }
   };
 
-  const generateBatchReport = async () => {
+  const generateBatchReport = async (format = 'professional') => {
     if (selectedNotesForBatch.length === 0) {
       toast({ 
         title: "No notes selected", 
@@ -1322,20 +1322,43 @@ const NotesScreen = () => {
     try {
       const response = await axios.post(`${API}/notes/batch-report`, {
         note_ids: selectedNotesForBatch,
-        title: `Batch Analysis Report - ${new Date().toLocaleDateString()}`
+        title: `Batch Analysis Report - ${new Date().toLocaleDateString()}`,
+        format: format
       });
       
-      setCurrentReport({
-        type: 'batch',
-        data: response.data
-      });
-      setShowReportModal(true);
-      setSelectedNotesForBatch([]);
-      
-      toast({ 
-        title: "📊 Batch Report Generated", 
-        description: `Combined analysis from ${response.data.note_count} notes is ready` 
-      });
+      if (format === 'txt' || format === 'rtf') {
+        // Direct download for clean formats
+        const blob = new Blob([response.data.content], { 
+          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = response.data.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        setSelectedNotesForBatch([]);
+        
+        toast({ 
+          title: `📁 ${format.toUpperCase()} Export Complete`, 
+          description: `Clean batch report exported from ${response.data.note_count} notes` 
+        });
+      } else {
+        // Show modal for professional report
+        setCurrentReport({
+          type: 'batch',
+          data: response.data,
+          selectedNotes: selectedNotesForBatch.length
+        });
+        setShowReportModal(true);
+        setSelectedNotesForBatch([]);
+        
+        toast({ 
+          title: "📊 Professional Report Generated", 
+          description: `AI analysis from ${response.data.note_count} notes is ready` 
+        });
+      }
       
     } catch (error) {
       toast({ 
