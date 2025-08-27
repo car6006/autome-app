@@ -41,6 +41,15 @@ class UserProfile(BaseModel):
     profession: str = ""
     industry: str = ""
     interests: str = ""
+    
+    # Professional Context Setup Fields
+    primary_industry: str = ""
+    job_role: str = ""
+    work_environment: str = ""
+    key_focus_areas: List[str] = Field(default_factory=list)
+    content_types: List[str] = Field(default_factory=list)
+    analysis_preferences: List[str] = Field(default_factory=list)
+    
     preferences: Dict[str, Any] = Field(default_factory=dict)
 
 class User(BaseModel):
