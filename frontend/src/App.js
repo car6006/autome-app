@@ -2698,7 +2698,7 @@ function AppContent() {
             <Route path="/notes" element={<NotesScreen />} />
             <Route path="/metrics" element={<MetricsScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
-            <Route path="/network" element={<NetworkDiagramScreen />} />
+
             <Route path="/iisb" element={<IISBAnalysisScreen />} />
             <Route path="/help" element={<HelpGuide />} />
           </Routes>
