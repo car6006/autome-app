@@ -1696,6 +1696,16 @@ Next Steps:
         successful_scenarios = self.test_industry_specific_scenarios()
         self.log(f"   Industry Scenarios: {successful_scenarios}/3 successful")
 
+        # === ULTIMATE STRESS TEST: 62MB AUDIO FILE ===
+        self.log("\n🚀 ULTIMATE STRESS TEST: 62MB REGIONAL MEETING AUDIO FILE")
+        
+        # Run the comprehensive large file chunking stress test
+        stress_test_success = self.test_large_audio_file_chunking_stress_test()
+        if stress_test_success:
+            self.log("🎉 ULTIMATE STRESS TEST COMPLETED SUCCESSFULLY!")
+        else:
+            self.log("⚠️  Ultimate stress test encountered issues - check logs above")
+
         # === EXPEDITORS HIDDEN NETWORK DIAGRAM FEATURE TESTS ===
         self.log("\n👑 EXPEDITORS NETWORK DIAGRAM FEATURE TESTS")
         
