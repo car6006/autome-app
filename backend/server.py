@@ -1155,9 +1155,20 @@ async def generate_batch_report(
 
 """
         
+        # Generate professional context-aware prompt for batch report
+        batch_prompt = ai_context_processor.generate_dynamic_prompt(
+            content=full_content,
+            user_profile=user_profile,
+            analysis_type="strategic_planning"
+        )
+        
         prompt = f"""
-        You are a senior business consultant creating a comprehensive executive report{" for Expeditors International" if is_expeditors_user else ""}. 
-        Below is content from multiple sources that need to be synthesized into a professional business analysis.
+        {logo_header}
+        
+        {batch_prompt}
+        
+        BATCH REPORT INSTRUCTIONS:
+        You are creating a comprehensive executive report combining insights from {len(note_titles)} business documents. Generate a professional strategic analysis.
 
         Combined Content:
         {full_content}
