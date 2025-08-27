@@ -1320,6 +1320,10 @@ async def export_note(
             for action in artifacts["actions"]:
                 content += f"- {action}\n"
         
+        # Mark note as completed since file was exported
+        if current_user:  # Only update status for authenticated users
+            await NotesStore.update_status(note_id, "completed")
+        
         return Response(content=content, media_type="text/markdown")
     
     else:  # txt format
