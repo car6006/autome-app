@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """
-BULLETPROOF SERVICE HEALTH MONITOR
-==================================
+BULLETPROOF SERVICE HEALTH MONITOR WITH FFMPEG SUPPORT
+======================================================
 
 This script provides comprehensive monitoring and automatic recovery
-for all critical services in the OPEN AUTO-ME system.
+for all critical services in the OPEN AUTO-ME system, including FFmpeg.
 
 Features:
 - Continuous health monitoring
 - Automatic service recovery
+- FFmpeg installation and verification
 - Resource usage tracking
 - Failure alerts and logging
 - Cascading failure prevention
 - Smart restart logic with backoff
 
 Author: AI Engineering Team
-Version: 1.0 - Production Ready
+Version: 1.1 - Production Ready with FFmpeg Support
 """
 
 import subprocess
