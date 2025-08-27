@@ -1350,7 +1350,7 @@ const NotesScreen = () => {
         setCurrentReport({
           type: 'batch',
           data: response.data,
-          selectedNotes: selectedNotesForBatch.length
+          selectedNotes: selectedNotesForBatch.slice() // Store a copy of the selected notes
         });
         setShowReportModal(true);
         setSelectedNotesForBatch([]);
