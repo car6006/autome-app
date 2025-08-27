@@ -1685,7 +1685,7 @@ const NotesScreen = () => {
               </CardHeader>
               
               <CardContent className="space-y-3 px-3 sm:px-6">
-                {note.status === 'ready' && note.artifacts && (
+                {(note.status === 'ready' || note.status === 'completed') && note.artifacts && (
                   <div className="space-y-3">
                     {note.artifacts.transcript && (
                       <div>
