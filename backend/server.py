@@ -787,6 +787,197 @@ async def export_ai_conversations(
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
     
+    elif format == "pdf":
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.colors import Color, black
+        from io import BytesIO
+        import os
+        
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        
+        # Create custom styles
+        styles = getSampleStyleSheet()
+        
+        # Custom styles for professional AI analysis
+        title_style = ParagraphStyle(
+            'AnalysisTitle',
+            parent=styles['Heading1'],
+            fontSize=20,
+            spaceAfter=20,
+            alignment=1,  # Center
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        heading_style = ParagraphStyle(
+            'SectionHeading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            spaceBefore=16,
+            spaceAfter=8,
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else Color(0.2, 0.2, 0.2)
+        )
+        
+        body_style = ParagraphStyle(
+            'BodyText',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceBefore=6,
+            spaceAfter=6,
+            leftIndent=0,
+            rightIndent=0
+        )
+        
+        story = []
+        
+        # Add logo if Expeditors user
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    img = Image(logo_path, width=3*inch, height=1*inch)
+                    img.hAlign = 'CENTER'
+                    story.append(img)
+                    story.append(Spacer(1, 20))
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
+        # Title
+        title_text = f"AI Content Analysis: {content_title}"
+        story.append(Paragraph(title_text, title_style))
+        story.append(Spacer(1, 20))
+        
+        # Content
+        if ai_conversations:
+            for i, conv in enumerate(ai_conversations, 1):
+                question = conv.get("question", "")
+                response = conv.get("response", "")
+                
+                # Question
+                story.append(Paragraph(f"Question {i}:", heading_style))
+                story.append(Paragraph(question, body_style))
+                story.append(Spacer(1, 12))
+                
+                # Response
+                story.append(Paragraph("AI Analysis:", heading_style))
+                # Clean and process response
+                clean_response = clean_content(response)
+                story.append(Paragraph(clean_response, body_style))
+                
+                if i < len(ai_conversations):
+                    story.append(Spacer(1, 20))
+        elif meeting_minutes:
+            clean_minutes = clean_content(meeting_minutes)
+            story.append(Paragraph(clean_minutes, body_style))
+        
+        # Footer
+        if is_expeditors_user:
+            story.append(Spacer(1, 30))
+            story.append(Paragraph("Confidential - Expeditors International", 
+                                 ParagraphStyle('Footer', parent=styles['Normal'], 
+                                               fontSize=8, alignment=1, textColor=Color(0.5, 0.5, 0.5))))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        
+        # Create filename
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"AI_Analysis_{filename_base}.pdf"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "docx":
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.shared import OxmlElement, qn
+        from io import BytesIO
+        import os
+        
+        doc = Document()
+        
+        # Set document margins
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+        
+        # Add logo if Expeditors user
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo_para = doc.add_paragraph()
+                    logo_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = logo_para.runs[0] if logo_para.runs else logo_para.add_run()
+                    run.add_picture(logo_path, width=Inches(3))
+                    doc.add_paragraph()  # Spacer
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
+        # Title
+        if is_expeditors_user:
+            title = doc.add_heading('EXPEDITORS INTERNATIONAL', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            subtitle = doc.add_heading(f'AI Content Analysis: {content_title}', level=1)
+            subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        else:
+            title = doc.add_heading(f'AI Content Analysis: {content_title}', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Content
+        if ai_conversations:
+            for i, conv in enumerate(ai_conversations, 1):
+                question = conv.get("question", "")
+                response = conv.get("response", "")
+                
+                # Question
+                doc.add_heading(f'Question {i}:', level=2)
+                doc.add_paragraph(question)
+                
+                # Response
+                doc.add_heading('AI Analysis:', level=2)
+                clean_response = clean_content(response)
+                doc.add_paragraph(clean_response)
+                
+                if i < len(ai_conversations):
+                    doc.add_paragraph()  # Spacer
+        elif meeting_minutes:
+            clean_minutes = clean_content(meeting_minutes)
+            doc.add_paragraph(clean_minutes)
+        
+        # Footer
+        if is_expeditors_user:
+            footer_para = doc.add_paragraph()
+            footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            footer_run = footer_para.add_run("Confidential - Expeditors International")
+            footer_run.font.size = Pt(8)
+        
+        # Save to buffer
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        # Create filename
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"AI_Analysis_{filename_base}.docx"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
     if format == "pdf":
         from reportlab.lib.pagesizes import letter, A4
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
