@@ -1789,7 +1789,7 @@ const NotesScreen = () => {
                         {note.status === 'uploading' && 'Uploading file to server...'}
                         {note.status === 'processing' && note.kind === 'audio' && 'AI transcribing your audio...'}
                         {note.status === 'processing' && note.kind === 'photo' && 'AI extracting text from image...'}
-                        {note.status === 'processing' && note.kind === 'network_diagram' && 'Processing network diagram...'}
+
                       </div>
                       
                       {getProcessingTime(note.id) > 30 && (
