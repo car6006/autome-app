@@ -23,7 +23,7 @@ import { Toaster } from "./components/ui/toaster";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthModal from "./components/AuthModal";
 import ProfileScreen from "./components/ProfileScreen";
-import NetworkDiagramScreen from "./components/NetworkDiagramScreen";
+
 import IISBAnalysisScreen from "./components/IISBAnalysisScreen";
 import HelpGuide from "./components/HelpGuide";
 import { getThemeClasses, getBrandingElements, isExpeditorsUser } from "./utils/themeUtils";
