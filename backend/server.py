@@ -420,6 +420,31 @@ async def update_professional_context(
     
     return {"message": "Professional context updated successfully", "context": professional_updates}
 
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Check database connection
+        await db["users"].find_one({})
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "services": {
+                "database": "connected",
+                "api": "running"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "unhealthy", 
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "error": "Database connection failed"
+            }
+        )
+
 @api_router.get("/user/professional-context")
 async def get_professional_context(
     current_user: dict = Depends(get_current_user)
