@@ -70,7 +70,8 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
     'Compliance & Regulatory', 'Innovation & Growth', 'Cost Optimization'
   ];
 
-  const API = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+  const API = `${BACKEND_URL}/api`;
 
   // Load existing context on mount
   useEffect(() => {
