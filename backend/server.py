@@ -1138,12 +1138,14 @@ async def generate_professional_report(
 
 @api_router.post("/notes/batch-report")
 async def generate_batch_report(
-    note_ids: List[str],
-    title: str = "Combined Analysis Report", 
-    format: str = "professional",  # Options: "professional", "txt", "rtf"
+    request: BatchReportRequest,
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Generate a combined report from multiple notes in multiple formats"""
+    note_ids = request.note_ids
+    title = request.title
+    format = request.format
+    
     if not note_ids:
         raise HTTPException(status_code=400, detail="No notes provided")
     
