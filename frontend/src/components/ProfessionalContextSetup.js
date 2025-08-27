@@ -184,7 +184,7 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
         </div>
         
         {/* Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-140px)]">
+        <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
