@@ -124,11 +124,7 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
     
     setSaving(true);
     try {
-      await axios.post(`${API}/user/professional-context`, professionalContext, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auto_me_token')}`
-        }
-      });
+      await axios.post(`${API}/user/professional-context`, professionalContext);
       
       toast({
         title: "🎯 Professional Context Updated!",
