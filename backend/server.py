@@ -272,8 +272,7 @@ async def upload_media(
         background_tasks.add_task(enqueue_transcription, note_id)
     elif note["kind"] == "photo":
         background_tasks.add_task(enqueue_ocr, note_id)
-    elif note["kind"] == "network_diagram":
-        background_tasks.add_task(enqueue_network_diagram_processing, note_id)
+
     
     return {"message": "File uploaded successfully", "status": "processing"}
 
