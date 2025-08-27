@@ -1393,6 +1393,73 @@ const NotesScreen = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadReportAs = async (reportData, format) => {
+    try {
+      if (!reportData || !reportData.data) {
+        toast({ title: "Error", description: "No report data available", variant: "destructive" });
+        return;
+      }
+
+      // For batch reports, we need to regenerate in the requested format
+      if (reportData.type === 'batch' && reportData.selectedNotes) {
+        // Use the stored note IDs if available, otherwise try to extract from current data
+        const noteIds = reportData.selectedNotes || [];
+        if (noteIds.length === 0) {
+          toast({ title: "Error", description: "Cannot export - note IDs not available", variant: "destructive" });
+          return;
+        }
+
+        // Call the batch report API with the requested format
+        const response = await axios.post(`${API}/notes/batch-report`, {
+          note_ids: noteIds,
+          title: reportData.data.title || `Batch Report - ${new Date().toLocaleDateString()}`,
+          format: format
+        });
+
+        // Download the formatted content
+        const blob = new Blob([response.data.content], { 
+          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = response.data.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Clean report downloaded successfully" });
+      } else {
+        // For individual note reports, clean the content manually
+        let content = reportData.data.report || '';
+        
+        // Clean formatting for txt/rtf
+        if (format !== 'professional') {
+          content = content.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').replace(/\*/g, '').replace(/_/g, '');
+        }
+
+        if (format === 'rtf') {
+          // Convert to RTF format
+          const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}`;
+          content = rtfContent;
+        }
+
+        const blob = new Blob([content], { 
+          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `report-${Date.now()}.${format}`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Report downloaded successfully" });
+      }
+    } catch (error) {
+      toast({ title: "Export Error", description: "Failed to export report", variant: "destructive" });
+    }
+  };
+
   const toggleNoteSelection = (noteId) => {
     setSelectedNotesForBatch(prev => 
       prev.includes(noteId) 
