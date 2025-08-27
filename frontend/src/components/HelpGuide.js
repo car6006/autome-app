@@ -559,7 +559,7 @@ const HelpGuide = () => {
                       <li>• Issues, Impact, Solutions, Benefits framework</li>
                       <li>• Client supply chain issue documentation</li>
                       <li>• Structured analysis for sales teams</li>
-                      <li>• Integration with network diagrams</li>
+
                     </ul>
                   </div>
                 </div>
