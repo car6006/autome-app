@@ -1647,9 +1647,9 @@ const NotesScreen = () => {
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {notes.map((note) => (
             <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass} w-full overflow-hidden`}>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 px-3 sm:px-6">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base sm:text-lg truncate flex-1 min-w-0">{note.title}</CardTitle>
+                  <CardTitle className="text-sm sm:text-base md:text-lg truncate flex-1 min-w-0 pr-2">{note.title}</CardTitle>
                   <Badge className={`${getStatusColor(note.status)} text-xs shrink-0`}>
                     {note.status}
                   </Badge>
