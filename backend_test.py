@@ -387,7 +387,7 @@ class AutoMeAPITester:
         """Test Expeditors user registration"""
         expeditors_user_data = {
             "email": f"test_expeditors_{int(time.time())}@expeditors.com",
-            "username": f"expeditors_user_{int(time.time())}",
+            "username": f"expeditorsuser{int(time.time())}",  # Remove underscore for validation
             "password": "ExpeditorsPass123!",
             "first_name": "Expeditors",
             "last_name": "User"
