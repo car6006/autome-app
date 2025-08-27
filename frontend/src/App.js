@@ -2168,7 +2168,28 @@ const NotesScreen = () => {
                       <div className="text-sm text-gray-600">
                         Generated: {new Date(currentReport.data.generated_at).toLocaleString()}
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                        {/* Mobile: Stack vertically */}
+                        <div className="sm:hidden grid grid-cols-2 gap-1 w-full">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadReportAs(currentReport, 'txt')}
+                            className="text-xs"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            TXT
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadReportAs(currentReport, 'rtf')}
+                            className="text-xs"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            RTF
+                          </Button>
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"
@@ -2181,10 +2202,32 @@ const NotesScreen = () => {
                               ? currentReport.data.title
                               : currentReport.data.note_title
                           )}
+                          className="w-full sm:w-auto"
                         >
                           <Download className="w-4 h-4 mr-1" />
-                          Download
+                          <span className="hidden sm:inline">Download Professional</span>
+                          <span className="sm:hidden">Professional</span>
                         </Button>
+                        
+                        {/* Desktop: Show horizontally */}
+                        <div className="hidden sm:flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadReportAs(currentReport, 'txt')}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            TXT
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadReportAs(currentReport, 'rtf')}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            RTF
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
