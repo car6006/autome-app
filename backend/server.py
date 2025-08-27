@@ -217,7 +217,7 @@ async def continue_to_iisb_analysis(
     request: Dict[str, str],
     current_user: dict = Depends(get_current_user)
 ):
-    """Continue from Network Diagram to IISB analysis (HIDDEN - Expeditors only)"""
+    """IISB analysis (HIDDEN - Expeditors only)"""
     # Check if user has @expeditors.com email
     if not current_user["email"].endswith("@expeditors.com"):
         raise HTTPException(
