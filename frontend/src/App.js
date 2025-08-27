@@ -1890,18 +1890,19 @@ const NotesScreen = () => {
                     )}
                     
                     {/* AI Chat Feature - Moved to Top */}
-                    <div className="mb-3">
+                    <div className="mb-2 sm:mb-3">
                       <Button
                         size="sm"
                         onClick={() => openAiChat(note)}
-                        className={`w-full ${
+                        className={`w-full text-xs sm:text-sm ${
                           theme.isExpeditors 
                             ? 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white'
                             : 'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white'
                         }`}
                       >
                         <Bot className="w-3 h-3 mr-1" />
-                        Ask AI about this content
+                        <span className="hidden sm:inline">Ask AI about this content</span>
+                        <span className="sm:hidden">Ask AI</span>
                       </Button>
                     </div>
                     
