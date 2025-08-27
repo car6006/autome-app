@@ -1080,6 +1080,7 @@ const NotesScreen = () => {
   const [generatingReport, setGeneratingReport] = useState({});
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentReport, setCurrentReport] = useState(null);
+  const [showBatchReportMenu, setShowBatchReportMenu] = useState(false);
   const [selectedNotesForBatch, setSelectedNotesForBatch] = useState([]);
   const [showAiChatModal, setShowAiChatModal] = useState(false);
   const [aiChatNote, setAiChatNote] = useState(null);
