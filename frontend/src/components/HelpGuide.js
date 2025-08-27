@@ -264,7 +264,7 @@ const HelpGuide = () => {
                   <div>
                     <h5 className="font-semibold text-orange-700 mb-2">🔧 Technical Details:</h5>
                     <ul className="text-sm text-orange-600 space-y-1">
-                      <li>• Auto-chunking for files >24MB</li>
+                      <li>• Auto-chunking for files &gt;24MB</li>
                       <li>• FFmpeg-powered processing</li>
                       <li>• Sequential chunk processing</li>
                       <li>• Rate limit protection</li>
