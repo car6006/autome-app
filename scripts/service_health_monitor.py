@@ -196,7 +196,22 @@ class ServiceHealthMonitor:
     def check_service_health(self, service_name: str, config: dict) -> ServiceStatus:
         """Comprehensive health check for a service"""
         
-        # Check supervisor status
+        # Special handling for FFmpeg
+        if service_name == 'ffmpeg':
+            is_healthy, message = self.check_ffmpeg()
+            status = 'healthy' if is_healthy else 'failed'
+            
+            return ServiceStatus(
+                name=service_name,
+                status=status,
+                cpu_usage=0.0,  # FFmpeg is not a running process
+                memory_usage=0.0,
+                last_check=datetime.now(),
+                restart_count=0,
+                last_restart=None
+            )
+        
+        # Check supervisor status for regular services
         supervisor_running = self.check_supervisor_service(config['supervisor_name'])
         
         # Get process info
