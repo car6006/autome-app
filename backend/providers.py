@@ -160,24 +160,44 @@ async def stt_transcribe(file_url: str):
             logger.info(f"Audio file size: {file_size / (1024*1024):.1f} MB")
             
             if file_size <= OPENAI_MAX_FILE_SIZE:
-                # Small file - process normally
-                logger.info("File size OK, processing directly")
+                # Small file - process with retry logic for rate limits
+                logger.info("File size OK, processing directly with rate limit handling")
                 
-                with open(local, "rb") as audio_file:
-                    files = {"file": audio_file}
-                    form = {"model": "whisper-1", "response_format": "json", "language": "en"}
-                    
-                    async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout per chunk
-                        r = await client.post(
-                            f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
-                            data=form,
-                            files=files,
-                            headers={"Authorization": f"Bearer {key}"}
-                        )
-                        r.raise_for_status()
-                        data = r.json()
-                        text = data.get("text", "")
-                        return {"text": text, "summary": "", "actions": []}
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        with open(local, "rb") as audio_file:
+                            files = {"file": audio_file}
+                            form = {"model": "whisper-1", "response_format": "json", "language": "en"}
+                            
+                            async with httpx.AsyncClient(timeout=600) as client:  # 10 minute timeout
+                                r = await client.post(
+                                    f'{os.getenv("WHISPER_API_BASE","https://api.openai.com/v1")}/audio/transcriptions',
+                                    data=form,
+                                    files=files,
+                                    headers={"Authorization": f"Bearer {key}"}
+                                )
+                                r.raise_for_status()
+                                data = r.json()
+                                text = data.get("text", "")
+                                return {"text": text, "summary": "", "actions": []}
+                                
+                    except httpx.HTTPStatusError as e:
+                        if e.response.status_code == 429:  # Rate limit error
+                            wait_time = (2 ** attempt) * 5  # Exponential backoff: 5s, 10s, 20s
+                            logger.warning(f"Rate limit hit for small file, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                            await asyncio.sleep(wait_time)
+                            continue
+                        else:
+                            logger.error(f"HTTP error transcribing small file: {e.response.status_code} - {e.response.text}")
+                            return {"text": "", "summary": "", "actions": [], "note": f"Transcription failed: HTTP {e.response.status_code}"}
+                    except Exception as e:
+                        logger.error(f"Error transcribing small file (attempt {attempt + 1}): {e}")
+                        if attempt == max_retries - 1:
+                            return {"text": "", "summary": "", "actions": [], "note": "Transcription failed after retries"}
+                        await asyncio.sleep(2 ** attempt)  # Simple backoff for other errors
+                
+                return {"text": "", "summary": "", "actions": [], "note": "Transcription failed after all retries"}
             
             else:
                 # Large file - split into chunks
