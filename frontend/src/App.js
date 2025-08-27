@@ -1606,6 +1606,19 @@ const NotesScreen = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+              {/* Personalize AI Button */}
+              <Button
+                onClick={() => setShowProfessionalContextModal(true)}
+                className={`w-full sm:w-auto ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
+                    : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white'
+                }`}
+              >
+                <Target className="w-4 h-4 mr-2" />
+                🎯 Personalize AI
+              </Button>
+              
               {/* Archive Toggle */}
               <Button
                 variant={showArchived ? "default" : "outline"}
