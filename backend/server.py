@@ -1292,6 +1292,10 @@ async def export_note(
             "created_at": note["created_at"].isoformat() if hasattr(note["created_at"], 'isoformat') else str(note["created_at"]),
             "artifacts": artifacts
         }
+        # Mark note as completed since file was exported
+        if current_user:  # Only update status for authenticated users
+            await NotesStore.update_status(note_id, "completed")
+        
         return JSONResponse(content=export_data)
     
     elif format == "md":
