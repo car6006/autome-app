@@ -190,7 +190,7 @@ async def stt_transcribe(file_url: str):
                 logger.info(f"Processing {len(chunks)} audio chunks")
                 transcriptions = []
                 
-                # Process each chunk
+                # Process each chunk sequentially with delays to avoid rate limits
                 for i, chunk_path in enumerate(chunks):
                     try:
                         logger.info(f"Transcribing chunk {i+1}/{len(chunks)}")
@@ -202,6 +202,13 @@ async def stt_transcribe(file_url: str):
                                 transcriptions.append(f"[Part {i+1}] {chunk_text}")
                             else:
                                 transcriptions.append(chunk_text)
+                        else:
+                            logger.warning(f"Empty transcription for chunk {i+1}")
+                        
+                        # Add delay between chunks to respect rate limits (except for last chunk)
+                        if i < len(chunks) - 1:
+                            logger.info(f"Waiting 3 seconds before processing next chunk...")
+                            await asyncio.sleep(3)
                         
                     except Exception as e:
                         logger.error(f"Error processing chunk {i+1}: {e}")
