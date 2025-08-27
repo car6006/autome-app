@@ -1,11 +1,17 @@
 import os, time, json, datetime, subprocess, pathlib
 import asyncio
+from dotenv import load_dotenv
+from pathlib import Path
 from store import NotesStore, db
 from storage import create_presigned_get_url
 from providers import stt_transcribe, ocr_read
 
 import httpx
 import logging
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 
