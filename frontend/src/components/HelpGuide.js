@@ -5,7 +5,8 @@ import { Separator } from "./ui/separator";
 import { 
   Mic, Camera, Upload, FileText, Mail, Download, Edit, 
   BarChart3, User, Zap, FileBarChart, Users, 
-  Clock, Layers, Scissors, Sparkles
+  Clock, Layers, Scissors, Sparkles, Shield, Bot, 
+  Settings, Smartphone, Monitor, FileDown
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -17,16 +18,857 @@ const HelpGuide = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">OPEN AUTO-ME v1 Help Guide</h1>
-          <p className="text-gray-600">Master your productivity with AI-powered features</p>
-          <Badge className="mt-2 bg-green-100 text-green-800 border-green-300">
-            Latest Update: Enhanced Security & Text Notes
-          </Badge>
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-800 mb-3">OPEN AUTO-ME v1</h1>
+          <h2 className="text-xl text-gray-700 mb-2">Complete User Guide & Documentation</h2>
+          <p className="text-gray-600 mb-4">Professional productivity platform with AI-powered transcription, analysis, and bulletproof large file processing</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Badge className="bg-green-100 text-green-800 border-green-300">
+              ✅ Bulletproof System
+            </Badge>
+            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+              🎯 Clean Exports
+            </Badge>
+            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+              📱 Mobile Responsive
+            </Badge>
+            <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+              ⚡ Large File Support
+            </Badge>
+          </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
+          
+          {/* Quick Start Guide */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center space-x-3 text-xl">
+                <Zap className="w-6 h-6" />
+                <span>Quick Start Guide</span>
+              </CardTitle>
+              <CardDescription className="text-blue-100">Get productive in 4 simple steps</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid gap-6 md:grid-cols-4">
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">1</div>
+                  <h3 className="font-bold text-gray-800 mb-2">Create Content</h3>
+                  <p className="text-sm text-gray-600">Record audio, scan documents, or type text directly</p>
+                </div>
+                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center text-white text-xl font-bold">2</div>
+                  <h3 className="font-bold text-gray-800 mb-2">AI Processing</h3>
+                  <p className="text-sm text-gray-600">Automatic transcription and AI analysis</p>
+                </div>
+                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold">3</div>
+                  <h3 className="font-bold text-gray-800 mb-2">Ask AI</h3>
+                  <p className="text-sm text-gray-600">Get personalized insights and analysis</p>
+                </div>
+                <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-orange-500 rounded-full flex items-center justify-center text-white text-xl font-bold">4</div>
+                  <h3 className="font-bold text-gray-800 mb-2">Export Clean</h3>
+                  <p className="text-sm text-gray-600">Download in TXT, RTF, PDF, or professional formats</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Core Features Overview */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Sparkles className="w-6 h-6 text-purple-600" />
+                <span>Core Features Overview</span>
+              </CardTitle>
+              <CardDescription>Professional-grade content processing and analysis platform</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                  <h4 className="font-bold text-blue-800 mb-3 flex items-center space-x-2">
+                    <Mic className="w-5 h-5" />
+                    <span>Audio Processing</span>
+                  </h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Unlimited audio recording</li>
+                    <li>• Large file support (62MB+ tested)</li>
+                    <li>• Professional transcription</li>
+                    <li>• Bulletproof chunking system</li>
+                    <li>• FFmpeg-powered processing</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                  <h4 className="font-bold text-green-800 mb-3 flex items-center space-x-2">
+                    <Camera className="w-5 h-5" />
+                    <span>Document Scanning</span>
+                  </h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    <li>• OCR text extraction</li>
+                    <li>• Multi-format support</li>
+                    <li>• High accuracy recognition</li>
+                    <li>• Professional document processing</li>
+                    <li>• Instant text conversion</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                  <h4 className="font-bold text-purple-800 mb-3 flex items-center space-x-2">
+                    <Bot className="w-5 h-5" />
+                    <span>AI Analysis</span>
+                  </h4>
+                  <ul className="text-sm text-purple-700 space-y-1">
+                    <li>• Personalized AI responses</li>
+                    <li>• Professional context awareness</li>
+                    <li>• Industry-specific insights</li>
+                    <li>• Interactive conversations</li>
+                    <li>• Strategic recommendations</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+                  <h4 className="font-bold text-orange-800 mb-3 flex items-center space-x-2">
+                    <FileDown className="w-5 h-5" />
+                    <span>Clean Exports</span>
+                  </h4>
+                  <ul className="text-sm text-orange-700 space-y-1">
+                    <li>• Raw TXT without AI formatting</li>
+                    <li>• Professional RTF documents</li>
+                    <li>• High-quality PDF reports</li>
+                    <li>• Microsoft Word compatibility</li>
+                    <li>• No *** or ### symbols</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl border border-red-200">
+                  <h4 className="font-bold text-red-800 mb-3 flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Batch Processing</span>
+                  </h4>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    <li>• Multi-note analysis</li>
+                    <li>• Strategic batch reports</li>
+                    <li>• Cross-cutting insights</li>
+                    <li>• Executive summaries</li>
+                    <li>• Multiple export formats</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                  <h4 className="font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                    <Shield className="w-5 h-5" />
+                    <span>Security & Reliability</span>
+                  </h4>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>• Enterprise-grade security</li>
+                    <li>• Bulletproof error handling</li>
+                    <li>• Service health monitoring</li>
+                    <li>• Auto-recovery systems</li>
+                    <li>• Data isolation & privacy</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Voice Recording & Audio Upload - Detailed Guide */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Mic className="w-6 h-6 text-blue-600" />
+                <span>Audio Processing - Complete Guide</span>
+                <Badge className="bg-green-100 text-green-800">Bulletproof System</Badge>
+              </CardTitle>
+              <CardDescription>Record, upload, and process audio files of any size with professional transcription</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Live Recording */}
+              <div className="bg-blue-50 p-5 rounded-xl">
+                <h4 className="font-bold text-blue-800 mb-4 flex items-center space-x-2">
+                  <Mic className="w-5 h-5" />
+                  <span>Live Audio Recording</span>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-blue-700 mb-2">✅ Features:</h5>
+                    <ul className="text-sm text-blue-600 space-y-1">
+                      <li>• No time limit - record for hours</li>
+                      <li>• Screen wake lock (prevents phone sleep)</li>
+                      <li>• Real-time waveform visualization</li>
+                      <li>• High-quality audio capture</li>
+                      <li>• Automatic noise suppression</li>
+                      <li>• One-click start/stop</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-blue-700 mb-2">📱 How to Use:</h5>
+                    <ol className="text-sm text-blue-600 space-y-1">
+                      <li>1. Navigate to "Record" tab at bottom</li>
+                      <li>2. Enter a descriptive note title</li>
+                      <li>3. Click the blue "Record Audio" button</li>
+                      <li>4. Speak clearly into your device</li>
+                      <li>5. Watch the waveform for audio levels</li>
+                      <li>6. Click "Stop" when finished</li>
+                      <li>7. Automatic transcription begins immediately</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              {/* File Upload */}
+              <div className="bg-green-50 p-5 rounded-xl">
+                <h4 className="font-bold text-green-800 mb-4 flex items-center space-x-2">
+                  <Upload className="w-5 h-5" />
+                  <span>Audio File Upload</span>
+                  <Badge className="bg-green-200 text-green-800 text-xs">Large Files Supported</Badge>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-green-700 mb-2">✅ Supported Formats:</h5>
+                    <ul className="text-sm text-green-600 space-y-1">
+                      <li>• MP3 (recommended for large files)</li>
+                      <li>• WAV (high quality)</li>
+                      <li>• M4A (Apple format)</li>
+                      <li>• WebM (web format)</li>
+                      <li>• OGG (open format)</li>
+                      <li>• No file size limit (62MB+ tested)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-green-700 mb-2">📁 How to Upload:</h5>
+                    <ol className="text-sm text-green-600 space-y-1">
+                      <li>1. Navigate to "Record" tab</li>
+                      <li>2. Click "Upload Audio" button</li>
+                      <li>3. Select your audio file</li>
+                      <li>4. Large files automatically trigger chunking</li>
+                      <li>5. Processing begins immediately</li>
+                      <li>6. Check processing status in notes</li>
+                      <li>7. Transcript appears when ready</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              {/* Large File Processing */}
+              <div className="bg-orange-50 p-5 rounded-xl border-2 border-orange-200">
+                <h4 className="font-bold text-orange-800 mb-4 flex items-center space-x-2">
+                  <Layers className="w-5 h-5" />
+                  <span>Large File Processing (Bulletproof System)</span>
+                  <Badge className="bg-orange-200 text-orange-800 text-xs">62MB+ Tested</Badge>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <h5 className="font-semibold text-orange-700 mb-2">🔧 Technical Details:</h5>
+                    <ul className="text-sm text-orange-600 space-y-1">
+                      <li>• Auto-chunking for files >24MB</li>
+                      <li>• FFmpeg-powered processing</li>
+                      <li>• Sequential chunk processing</li>
+                      <li>• Rate limit protection</li>
+                      <li>• Auto-recovery systems</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-orange-700 mb-2">⏱️ Processing Times:</h5>
+                    <ul className="text-sm text-orange-600 space-y-1">
+                      <li>• Small files (<5MB): 1-2 minutes</li>
+                      <li>• Medium files (5-24MB): 2-5 minutes</li>
+                      <li>• Large files (24MB+): 5-15 minutes</li>
+                      <li>• 62MB (3-hour file): ~15 minutes</li>
+                      <li>• System stays responsive throughout</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-orange-700 mb-2">💡 Best Practices:</h5>
+                    <ul className="text-sm text-orange-600 space-y-1">
+                      <li>• MP3 format for large files</li>
+                      <li>• Clear audio for better accuracy</li>
+                      <li>• Descriptive note titles</li>
+                      <li>• Monitor processing status</li>
+                      <li>• System handles everything automatically</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Text Notes */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <FileText className="w-6 h-6 text-green-600" />
+                <span>Text Notes - Direct Input</span>
+              </CardTitle>
+              <CardDescription>Create notes directly with text input for quick documentation</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800 mb-3">📝 How to Create Text Notes:</h4>
+                  <ol className="text-sm text-green-700 space-y-2">
+                    <li><strong>1.</strong> Click on "Text" tab at bottom navigation</li>
+                    <li><strong>2.</strong> Enter a descriptive title for your note</li>
+                    <li><strong>3.</strong> Type or paste your content in the text area</li>
+                    <li><strong>4.</strong> Click "Create Note" to save</li>
+                    <li><strong>5.</strong> Note is immediately available for AI analysis</li>
+                  </ol>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-3">✨ Text Note Features:</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Instant creation and saving</li>
+                    <li>• Full AI analysis support</li>
+                    <li>• Professional export options</li>
+                    <li>• Batch processing compatibility</li>
+                    <li>• Clean export without formatting</li>
+                    <li>• Mobile responsive interface</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Document Scanning */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Camera className="w-6 h-6 text-purple-600" />
+                <span>Document Scanning & OCR</span>
+              </CardTitle>
+              <CardDescription>Extract text from photos and documents with professional OCR</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 mb-3">📷 How to Scan Documents:</h4>
+                  <ol className="text-sm text-purple-700 space-y-2">
+                    <li><strong>1.</strong> Navigate to "Scan" tab at bottom</li>
+                    <li><strong>2.</strong> Click "Take Photo" or "Upload Image"</li>
+                    <li><strong>3.</strong> Capture or select your document image</li>
+                    <li><strong>4.</strong> OCR processing begins automatically</li>
+                    <li><strong>5.</strong> Review extracted text</li>
+                    <li><strong>6.</strong> Text is ready for AI analysis</li>
+                  </ol>
+                </div>
+                <div className="bg-indigo-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-indigo-800 mb-3">🎯 OCR Capabilities:</h4>
+                  <ul className="text-sm text-indigo-700 space-y-1">
+                    <li>• High-accuracy text extraction</li>
+                    <li>• Multi-language support</li>
+                    <li>• Handwriting recognition</li>
+                    <li>• Table and structured data</li>
+                    <li>• Professional document processing</li>
+                    <li>• Instant text conversion</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2">💡 Tips for Better OCR Results:</h4>
+                <div className="grid gap-2 md:grid-cols-3 text-sm text-gray-700">
+                  <div>
+                    <p><strong>Lighting:</strong> Use good, even lighting</p>
+                    <p><strong>Focus:</strong> Keep documents in sharp focus</p>
+                  </div>
+                  <div>
+                    <p><strong>Angle:</strong> Capture straight-on, avoid tilting</p>
+                    <p><strong>Quality:</strong> High contrast text works best</p>
+                  </div>
+                  <div>
+                    <p><strong>Format:</strong> Clear, printed text preferred</p>
+                    <p><strong>Size:</strong> Larger text improves accuracy</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Analysis & Conversations */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Bot className="w-6 h-6 text-indigo-600" />
+                <span>AI Analysis & Conversations</span>
+                <Badge className="bg-indigo-100 text-indigo-800">Personalized AI</Badge>
+              </CardTitle>
+              <CardDescription>Get intelligent insights and analysis tailored to your professional context</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              <div className="bg-indigo-50 p-5 rounded-xl">
+                <h4 className="font-bold text-indigo-800 mb-4 flex items-center space-x-2">
+                  <Settings className="w-5 h-5" />
+                  <span>Professional AI Personalization</span>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-indigo-700 mb-2">🎯 How to Personalize AI:</h5>
+                    <ol className="text-sm text-indigo-600 space-y-1">
+                      <li>1. Click "Personalize AI" button (crown icon)</li>
+                      <li>2. Select your industry and role</li>
+                      <li>3. Choose key focus areas</li>
+                      <li>4. Select preferred content types</li>
+                      <li>5. Set analysis preferences</li>
+                      <li>6. Save your professional profile</li>
+                    </ol>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-indigo-700 mb-2">✨ Personalization Benefits:</h5>
+                    <ul className="text-sm text-indigo-600 space-y-1">
+                      <li>• Industry-specific insights</li>
+                      <li>• Role-appropriate recommendations</li>
+                      <li>• Contextual analysis</li>
+                      <li>• Strategic business perspective</li>
+                      <li>• Professional terminology</li>
+                      <li>• Relevant actionable advice</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-5 rounded-xl">
+                <h4 className="font-bold text-blue-800 mb-4 flex items-center space-x-2">
+                  <Bot className="w-5 h-5" />
+                  <span>AI Conversations</span>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-blue-700 mb-2">💬 How to Chat with AI:</h5>
+                    <ol className="text-sm text-blue-600 space-y-1">
+                      <li>1. Open any processed note (ready status)</li>
+                      <li>2. Click "Ask AI about this content"</li>
+                      <li>3. Type your question in the chat</li>
+                      <li>4. Get personalized AI analysis</li>
+                      <li>5. Continue conversation as needed</li>
+                      <li>6. Export conversations in multiple formats</li>
+                    </ol>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-blue-700 mb-2">🎯 AI Conversation Features:</h5>
+                    <ul className="text-sm text-blue-600 space-y-1">
+                      <li>• Context-aware responses</li>
+                      <li>• Multi-turn conversations</li>
+                      <li>• Professional insights</li>
+                      <li>• Strategic recommendations</li>
+                      <li>• Industry expertise</li>
+                      <li>• Actionable advice</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {hasExpeditorsAccess && (
+                <div className="bg-red-50 p-5 rounded-xl border-2 border-red-200">
+                  <h4 className="font-bold text-red-800 mb-4 flex items-center space-x-2">
+                    <FileBarChart className="w-5 h-5" />
+                    <span>EXPEDITORS: IISB Analysis Framework</span>
+                    <Badge className="bg-red-200 text-red-800 text-xs">EXCLUSIVE</Badge>
+                  </h4>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <h5 className="font-semibold text-red-700 mb-2">📊 IISB Framework:</h5>
+                      <ul className="text-sm text-red-600 space-y-1">
+                        <li>• Issue identification and analysis</li>
+                        <li>• Impact assessment and evaluation</li>
+                        <li>• Solution development and options</li>
+                        <li>• Business case and recommendations</li>
+                        <li>• Professional Expeditors formatting</li>
+                        <li>• Branded reports and exports</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-red-700 mb-2">🏢 How to Access IISB:</h5>
+                      <ol className="text-sm text-red-600 space-y-1">
+                        <li>1. Process any note (audio, text, or scan)</li>
+                        <li>2. Click "Generate IISB Analysis"</li>
+                        <li>3. AI creates structured business analysis</li>
+                        <li>4. Review comprehensive framework</li>
+                        <li>5. Export with Expeditors branding</li>
+                        <li>6. Professional presentation ready</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Export System - Comprehensive Guide */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Download className="w-6 h-6 text-green-600" />
+                <span>Export System - Complete Guide</span>
+                <Badge className="bg-green-100 text-green-800">Clean Exports</Badge>
+              </CardTitle>
+              <CardDescription>Professional document exports without AI formatting symbols</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Individual Note Exports */}
+              <div className="bg-green-50 p-5 rounded-xl">
+                <h4 className="font-bold text-green-800 mb-4 flex items-center space-x-2">
+                  <FileDown className="w-5 h-5" />
+                  <span>Individual Note Exports</span>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-green-700 mb-2">📄 Export Options:</h5>
+                    <div className="space-y-2 text-sm text-green-600">
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-xs">TXT</Badge>
+                        <span>Clean plain text, no formatting</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-xs">RTF</Badge>
+                        <span>Rich text for Word processing</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-xs">PDF</Badge>
+                        <span>Professional formatted documents</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-xs">DOCX</Badge>
+                        <span>Microsoft Word compatible</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-green-700 mb-2">📁 How to Export:</h5>
+                    <ol className="text-sm text-green-600 space-y-1">
+                      <li>1. Find your note in the notes list</li>
+                      <li>2. Ensure note status is "ready"</li>
+                      <li>3. Click "Export TXT" or "Export RTF"</li>
+                      <li>4. File downloads automatically</li>
+                      <li>5. Content is completely clean</li>
+                      <li>6. No *** or ### symbols included</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Analysis Exports */}
+              <div className="bg-blue-50 p-5 rounded-xl">
+                <h4 className="font-bold text-blue-800 mb-4 flex items-center space-x-2">
+                  <Bot className="w-5 h-5" />
+                  <span>AI Analysis Exports</span>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-blue-700 mb-2">🎯 Export AI Conversations:</h5>
+                    <ol className="text-sm text-blue-600 space-y-1">
+                      <li>1. Complete AI conversation with note</li>
+                      <li>2. In conversation modal, scroll to bottom</li>
+                      <li>3. Choose export format:</li>
+                      <li>   • Professional PDF (recommended)</li>
+                      <li>   • Word DOCX format</li>
+                      <li>   • Clean TXT (no formatting)</li>
+                      <li>   • Clean RTF format</li>
+                      <li>4. Download begins immediately</li>
+                    </ol>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-blue-700 mb-2">✨ AI Export Features:</h5>
+                    <ul className="text-sm text-blue-600 space-y-1">
+                      <li>• Questions and answers clearly separated</li>
+                      <li>• Professional document formatting</li>
+                      <li>• Company branding (if applicable)</li>
+                      <li>• Clean content without AI symbols</li>
+                      <li>• Mobile responsive export buttons</li>
+                      <li>• Multiple format options</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Batch Reports */}
+              <div className="bg-purple-50 p-5 rounded-xl">
+                <h4 className="font-bold text-purple-800 mb-4 flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span>Batch Reports - Multiple Notes</span>
+                  <Badge className="bg-purple-200 text-purple-800 text-xs">Strategic Analysis</Badge>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h5 className="font-semibold text-purple-700 mb-2">📊 How to Create Batch Reports:</h5>
+                    <ol className="text-sm text-purple-600 space-y-1">
+                      <li>1. Select multiple notes (checkboxes)</li>
+                      <li>2. Choose export format:</li>
+                      <li>   • AI Report (strategic analysis)</li>
+                      <li>   • TXT (clean combined text)</li>
+                      <li>   • RTF (formatted document)</li>
+                      <li>3. Processing begins automatically</li>
+                      <li>4. Review generated analysis</li>
+                      <li>5. Download in preferred format</li>
+                    </ol>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-purple-700 mb-2">🎯 Batch Report Features:</h5>
+                    <ul className="text-sm text-purple-600 space-y-1">
+                      <li>• Cross-cutting strategic insights</li>
+                      <li>• Executive-level recommendations</li>
+                      <li>• Professional business analysis</li>
+                      <li>• Multiple export formats available</li>
+                      <li>• Mobile responsive interface</li>
+                      <li>• Clean content without AI symbols</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Clean Export Promise */}
+              <div className="bg-yellow-50 p-5 rounded-xl border-2 border-yellow-300">
+                <h4 className="font-bold text-yellow-800 mb-3 flex items-center space-x-2">
+                  <Sparkles className="w-5 h-5" />
+                  <span>Clean Export Guarantee</span>
+                </h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <h5 className="font-semibold text-yellow-700 mb-2">❌ Removed:</h5>
+                    <ul className="text-sm text-yellow-600 space-y-1">
+                      <li>• *** symbols</li>
+                      <li>• ### headers</li>
+                      <li>• ** bold markers</li>
+                      <li>• * bullet points</li>
+                      <li>• _ underlines</li>
+                      <li>• AI section headers</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-yellow-700 mb-2">✅ Included:</h5>
+                    <ul className="text-sm text-yellow-600 space-y-1">
+                      <li>• Pure, readable content</li>
+                      <li>• Professional structure</li>
+                      <li>• Clean formatting</li>
+                      <li>• Natural text flow</li>
+                      <li>• Proper punctuation</li>
+                      <li>• Business-ready documents</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-yellow-700 mb-2">🎯 Quality:</h5>
+                    <ul className="text-sm text-yellow-600 space-y-1">
+                      <li>• Professional presentation</li>
+                      <li>• Executive-ready format</li>
+                      <li>• Client-suitable content</li>
+                      <li>• Report-quality documents</li>
+                      <li>• Corporate standards</li>
+                      <li>• Publication ready</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Mobile Experience */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Smartphone className="w-6 h-6 text-pink-600" />
+                <span>Mobile Experience</span>
+                <Badge className="bg-pink-100 text-pink-800">Fully Responsive</Badge>
+              </CardTitle>
+              <CardDescription>Optimized for smartphones and tablets with touch-friendly interface</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-pink-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-pink-800 mb-3">📱 Mobile Features:</h4>
+                  <ul className="text-sm text-pink-700 space-y-1">
+                    <li>• Screen wake lock during recording</li>
+                    <li>• Touch-optimized buttons and controls</li>
+                    <li>• Responsive modal dialogs</li>
+                    <li>• Mobile-friendly export options</li>
+                    <li>• Compressed layouts for small screens</li>
+                    <li>• Gesture-friendly navigation</li>
+                  </ul>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-3">💡 Mobile Tips:</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Hold phone steady during recording</li>
+                    <li>• Use good lighting for document scanning</li>
+                    <li>• Enable notifications for processing updates</li>
+                    <li>• Export files directly to your cloud storage</li>
+                    <li>• Use landscape mode for better typing</li>
+                    <li>• Keep app updated for best performance</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* System Requirements & Reliability */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Shield className="w-6 h-6 text-red-600" />
+                <span>System Reliability & Security</span>
+                <Badge className="bg-red-100 text-red-800">Enterprise Grade</Badge>
+              </CardTitle>
+              <CardDescription>Bulletproof system with enterprise-level security and reliability</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-red-800 mb-3 flex items-center space-x-2">
+                    <Shield className="w-4 h-4" />
+                    <span>Security</span>
+                  </h4>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    <li>• Enterprise-grade error handling</li>
+                    <li>• Secure API communications</li>
+                    <li>• Data isolation and privacy</li>
+                    <li>• No sensitive data exposure</li>
+                    <li>• Professional security headers</li>
+                    <li>• Safe error messages</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800 mb-3 flex items-center space-x-2">
+                    <Layers className="w-4 h-4" />
+                    <span>Reliability</span>
+                  </h4>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    <li>• Bulletproof service monitoring</li>
+                    <li>• Automatic error recovery</li>
+                    <li>• Health check endpoints</li>
+                    <li>• Service auto-restart systems</li>
+                    <li>• Resource usage monitoring</li>
+                    <li>• 99.9% uptime target</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-3 flex items-center space-x-2">
+                    <Monitor className="w-4 h-4" />
+                    <span>Performance</span>
+                  </h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• FFmpeg-powered processing</li>
+                    <li>• Optimized for large files</li>
+                    <li>• Efficient resource management</li>
+                    <li>• Fast response times</li>
+                    <li>• Scalable architecture</li>
+                    <li>• Production-ready performance</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-2">🔧 System Requirements:</h4>
+                <div className="grid gap-4 md:grid-cols-2 text-sm text-gray-700">
+                  <div>
+                    <p><strong>Browser Support:</strong></p>
+                    <ul className="mt-1 space-y-1">
+                      <li>• Chrome 90+ (recommended)</li>
+                      <li>• Firefox 88+</li>
+                      <li>• Safari 14+</li>
+                      <li>• Edge 90+</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p><strong>Device Requirements:</strong></p>
+                    <ul className="mt-1 space-y-1">
+                      <li>• Microphone access for recording</li>
+                      <li>• Camera access for scanning</li>
+                      <li>• Stable internet connection</li>
+                      <li>• Modern device (2018+)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Troubleshooting */}
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-xl">
+                <Settings className="w-6 h-6 text-gray-600" />
+                <span>Troubleshooting & Support</span>
+              </CardTitle>
+              <CardDescription>Common issues and solutions for smooth operation</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 mb-3">🔧 Common Issues:</h4>
+                  <div className="space-y-2 text-sm text-yellow-700">
+                    <div>
+                      <p><strong>Microphone not working:</strong></p>
+                      <p>Check browser permissions and device settings</p>
+                    </div>
+                    <div>
+                      <p><strong>Processing taking long:</strong></p>
+                      <p>Large files need more time - system will complete automatically</p>
+                    </div>
+                    <div>
+                      <p><strong>Export not downloading:</strong></p>
+                      <p>Check browser download settings and popup blockers</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800 mb-3">✅ Quick Solutions:</h4>
+                  <div className="space-y-2 text-sm text-green-700">
+                    <div>
+                      <p><strong>Refresh the page:</strong></p>
+                      <p>Solves most temporary issues</p>
+                    </div>
+                    <div>
+                      <p><strong>Check internet connection:</strong></p>
+                      <p>Stable connection required for processing</p>
+                    </div>
+                    <div>
+                      <p><strong>Clear browser cache:</strong></p>
+                      <p>Helps with outdated data issues</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">📞 Getting Help:</h4>
+                <p className="text-sm text-blue-700">
+                  The system is designed to be self-healing and bulletproof. If you encounter persistent issues:
+                </p>
+                <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                  <li>• Check the system status indicators</li>
+                  <li>• Wait a few minutes for automatic recovery</li>
+                  <li>• Refresh your browser and try again</li>
+                  <li>• Contact your system administrator if issues persist</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">
+              OPEN AUTO-ME v1 - Professional Productivity Platform
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              Built for reliability, designed for professionals
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default HelpGuide;
           {/* Quick Start */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
