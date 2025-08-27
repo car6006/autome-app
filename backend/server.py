@@ -81,6 +81,11 @@ async def general_exception_handler(request, exc):
 api_router = APIRouter(prefix="/api")
 
 # Models
+class BatchReportRequest(BaseModel):
+    note_ids: List[str]
+    title: str = "Combined Analysis Report"
+    format: str = "professional"  # Options: "professional", "txt", "rtf"
+
 class NoteCreate(BaseModel):
     title: str
     kind: str  # "audio", "photo", or "text"
