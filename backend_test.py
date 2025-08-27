@@ -848,6 +848,393 @@ class AutoMeAPITester:
         
         return success and success2
 
+    def test_professional_context_save(self):
+        """Test saving professional context for personalized AI responses"""
+        professional_context = {
+            "primary_industry": "Logistics & Supply Chain",
+            "job_role": "Logistics Manager",
+            "work_environment": "Global freight forwarding company",
+            "key_focus_areas": ["Cost optimization", "Supply chain risks", "Operational efficiency"],
+            "content_types": ["Meeting minutes", "CRM notes", "Project updates"],
+            "analysis_preferences": ["Strategic recommendations", "Risk assessment", "Action items"]
+        }
+        
+        success, response = self.run_test(
+            "Save Professional Context",
+            "POST",
+            "user/professional-context",
+            200,
+            data=professional_context,
+            auth_required=True
+        )
+        
+        if success:
+            self.log(f"   Context saved: {response.get('message', 'N/A')}")
+            context = response.get('context', {})
+            self.log(f"   Industry: {context.get('primary_industry', 'N/A')}")
+            self.log(f"   Role: {context.get('job_role', 'N/A')}")
+            self.log(f"   Focus areas: {len(context.get('key_focus_areas', []))} items")
+        
+        return success
+
+    def test_professional_context_retrieve(self):
+        """Test retrieving professional context"""
+        success, response = self.run_test(
+            "Retrieve Professional Context",
+            "GET",
+            "user/professional-context",
+            200,
+            auth_required=True
+        )
+        
+        if success:
+            self.log(f"   Industry: {response.get('primary_industry', 'N/A')}")
+            self.log(f"   Role: {response.get('job_role', 'N/A')}")
+            self.log(f"   Work environment: {response.get('work_environment', 'N/A')}")
+            self.log(f"   Focus areas: {response.get('key_focus_areas', [])}")
+            self.log(f"   Content types: {response.get('content_types', [])}")
+            self.log(f"   Analysis preferences: {response.get('analysis_preferences', [])}")
+        
+        return success, response
+
+    def test_professional_context_validation(self):
+        """Test professional context validation with invalid data"""
+        # Test with missing fields (should still work as fields are optional)
+        minimal_context = {
+            "primary_industry": "Healthcare"
+        }
+        
+        success, response = self.run_test(
+            "Save Minimal Professional Context",
+            "POST",
+            "user/professional-context",
+            200,
+            data=minimal_context,
+            auth_required=True
+        )
+        
+        return success
+
+    def test_create_text_note_with_content(self):
+        """Create a text note with content for AI chat testing"""
+        note_data = {
+            "title": "Supply Chain Meeting Minutes - Q4 Planning",
+            "kind": "text",
+            "text_content": """Meeting: Q4 Supply Chain Planning Session
+Date: December 19, 2024
+Attendees: Logistics Manager, Operations Director, Procurement Lead
+
+Key Discussion Points:
+- Reviewed current freight costs from Asia to North America
+- Discussed potential delays due to peak season congestion
+- Analyzed carrier performance metrics for Q3
+- Evaluated new warehouse facility in Memphis
+- Assessed inventory levels for holiday season
+
+Decisions Made:
+- Increase safety stock by 15% for key SKUs
+- Negotiate extended contracts with top 3 carriers
+- Implement new tracking system for shipment visibility
+- Schedule weekly reviews during peak season
+
+Action Items:
+- Procurement to finalize carrier contracts by Dec 30
+- Operations to coordinate Memphis facility setup
+- IT to deploy tracking system by Jan 15
+- Weekly status meetings every Tuesday at 2 PM
+
+Risks Identified:
+- Port congestion may impact delivery schedules
+- Currency fluctuations affecting freight rates
+- Limited warehouse capacity during peak season
+- Potential carrier capacity constraints
+
+Next Steps:
+- Follow up on carrier negotiations
+- Monitor port conditions daily
+- Prepare contingency plans for delays
+- Review inventory levels weekly"""
+        }
+        
+        success, response = self.run_test(
+            "Create Text Note with Supply Chain Content",
+            "POST",
+            "notes",
+            200,
+            data=note_data,
+            auth_required=True
+        )
+        
+        if success and 'id' in response:
+            note_id = response['id']
+            self.created_notes.append(note_id)
+            self.log(f"   Created text note ID: {note_id}")
+            self.log(f"   Status: {response.get('status', 'N/A')}")
+            return note_id
+        return None
+
+    def test_ai_chat_with_professional_context(self, note_id):
+        """Test AI chat with professional context for industry-specific responses"""
+        test_questions = [
+            {
+                "question": "Analyze the supply chain risks mentioned in this meeting",
+                "expected_context": "logistics terminology and risk assessment"
+            },
+            {
+                "question": "What are the key action items and their business impact?",
+                "expected_context": "logistics manager perspective"
+            },
+            {
+                "question": "Provide recommendations for optimizing freight costs",
+                "expected_context": "cost optimization focus"
+            },
+            {
+                "question": "Assess the operational efficiency improvements discussed",
+                "expected_context": "operational efficiency analysis"
+            }
+        ]
+        
+        successful_chats = 0
+        
+        for i, test_case in enumerate(test_questions):
+            question = test_case["question"]
+            expected_context = test_case["expected_context"]
+            
+            success, response = self.run_test(
+                f"AI Chat Question {i+1}: {question[:50]}...",
+                "POST",
+                f"notes/{note_id}/ai-chat",
+                200,
+                data={"question": question},
+                auth_required=True,
+                timeout=60
+            )
+            
+            if success:
+                successful_chats += 1
+                ai_response = response.get('response', '')
+                context_summary = response.get('context_summary', {})
+                
+                self.log(f"   ✅ AI Response length: {len(ai_response)} characters")
+                self.log(f"   Context used: {context_summary.get('profession_detected', 'N/A')}")
+                self.log(f"   User industry: {context_summary.get('user_industry', 'N/A')}")
+                
+                # Check for industry-specific terminology
+                logistics_terms = ['supply chain', 'freight', 'logistics', 'carrier', 'shipment', 'inventory']
+                found_terms = [term for term in logistics_terms if term.lower() in ai_response.lower()]
+                
+                if found_terms:
+                    self.log(f"   ✅ Industry terms found: {', '.join(found_terms[:3])}")
+                else:
+                    self.log(f"   ⚠️  No specific logistics terminology detected")
+                
+                # Check response quality
+                if len(ai_response) > 200:
+                    self.log(f"   ✅ Comprehensive response (>200 chars)")
+                else:
+                    self.log(f"   ⚠️  Response may be too brief")
+            else:
+                self.log(f"   ❌ AI Chat failed for question {i+1}")
+        
+        return successful_chats
+
+    def test_ai_chat_content_type_detection(self, note_id):
+        """Test AI chat with different content type scenarios"""
+        content_type_questions = [
+            {
+                "question": "Generate meeting minutes from this content",
+                "expected_type": "meeting_minutes"
+            },
+            {
+                "question": "Provide insights and analysis of the key points",
+                "expected_type": "insights"
+            },
+            {
+                "question": "Summarize the main discussion points",
+                "expected_type": "summary"
+            }
+        ]
+        
+        successful_detections = 0
+        
+        for test_case in content_type_questions:
+            question = test_case["question"]
+            expected_type = test_case["expected_type"]
+            
+            success, response = self.run_test(
+                f"Content Type Detection: {expected_type}",
+                "POST",
+                f"notes/{note_id}/ai-chat",
+                200,
+                data={"question": question},
+                auth_required=True,
+                timeout=60
+            )
+            
+            if success:
+                successful_detections += 1
+                ai_response = response.get('response', '')
+                
+                # Check for appropriate formatting based on content type
+                if expected_type == "meeting_minutes":
+                    if any(keyword in ai_response.upper() for keyword in ['ATTENDEES', 'DECISIONS', 'ACTION ITEMS']):
+                        self.log(f"   ✅ Meeting minutes format detected")
+                    else:
+                        self.log(f"   ⚠️  Meeting minutes format not clearly detected")
+                
+                elif expected_type == "insights":
+                    if any(keyword in ai_response.lower() for keyword in ['insight', 'analysis', 'recommendation']):
+                        self.log(f"   ✅ Insights format detected")
+                    else:
+                        self.log(f"   ⚠️  Insights format not clearly detected")
+                
+                elif expected_type == "summary":
+                    if any(keyword in ai_response.lower() for keyword in ['summary', 'main points', 'key']):
+                        self.log(f"   ✅ Summary format detected")
+                    else:
+                        self.log(f"   ⚠️  Summary format not clearly detected")
+        
+        return successful_detections
+
+    def test_industry_specific_scenarios(self):
+        """Test different industry scenarios with professional context"""
+        industry_scenarios = [
+            {
+                "industry": "Healthcare",
+                "role": "Healthcare Administrator",
+                "content": "Patient satisfaction scores have declined 15% this quarter. Staff reported increased workload and longer wait times. Need to address staffing levels and process efficiency.",
+                "focus_areas": ["Patient care quality", "Operational efficiency", "Staff management"]
+            },
+            {
+                "industry": "Construction",
+                "role": "Construction Manager", 
+                "content": "Project is 2 weeks behind schedule due to material delays and weather. Safety inspection found 3 minor violations. Budget is tracking 8% over due to overtime costs.",
+                "focus_areas": ["Project timeline", "Safety compliance", "Cost management"]
+            },
+            {
+                "industry": "Financial Services",
+                "role": "Financial Analyst",
+                "content": "Q4 revenue exceeded targets by 12%. However, operating expenses increased 18% due to technology investments. Client acquisition costs rose but retention improved.",
+                "focus_areas": ["Financial performance", "Cost analysis", "ROI assessment"]
+            }
+        ]
+        
+        successful_scenarios = 0
+        
+        for scenario in industry_scenarios:
+            # Set professional context for this scenario
+            context_data = {
+                "primary_industry": scenario["industry"],
+                "job_role": scenario["role"],
+                "work_environment": "Professional services environment",
+                "key_focus_areas": scenario["focus_areas"],
+                "content_types": ["Performance reports", "Status updates"],
+                "analysis_preferences": ["Strategic recommendations", "Risk assessment"]
+            }
+            
+            # Update professional context
+            context_success, _ = self.run_test(
+                f"Set Context for {scenario['industry']}",
+                "POST",
+                "user/professional-context",
+                200,
+                data=context_data,
+                auth_required=True
+            )
+            
+            if not context_success:
+                continue
+            
+            # Create note with industry-specific content
+            note_data = {
+                "title": f"{scenario['industry']} Analysis Report",
+                "kind": "text",
+                "text_content": scenario["content"]
+            }
+            
+            note_success, note_response = self.run_test(
+                f"Create {scenario['industry']} Note",
+                "POST",
+                "notes",
+                200,
+                data=note_data,
+                auth_required=True
+            )
+            
+            if not note_success or 'id' not in note_response:
+                continue
+            
+            note_id = note_response['id']
+            self.created_notes.append(note_id)
+            
+            # Test AI chat with industry-specific question
+            question = f"Analyze this {scenario['industry'].lower()} situation and provide strategic recommendations"
+            
+            chat_success, chat_response = self.run_test(
+                f"AI Chat for {scenario['industry']}",
+                "POST",
+                f"notes/{note_id}/ai-chat",
+                200,
+                data={"question": question},
+                auth_required=True,
+                timeout=60
+            )
+            
+            if chat_success:
+                successful_scenarios += 1
+                ai_response = chat_response.get('response', '')
+                context_summary = chat_response.get('context_summary', {})
+                
+                self.log(f"   ✅ {scenario['industry']} analysis completed")
+                self.log(f"   Response length: {len(ai_response)} characters")
+                self.log(f"   Context detected: {context_summary.get('profession_detected', 'N/A')}")
+                
+                # Check for industry-specific terminology
+                industry_keywords = {
+                    "Healthcare": ["patient", "clinical", "healthcare", "medical"],
+                    "Construction": ["project", "safety", "construction", "schedule"],
+                    "Financial Services": ["financial", "revenue", "budget", "ROI"]
+                }
+                
+                keywords = industry_keywords.get(scenario["industry"], [])
+                found_keywords = [kw for kw in keywords if kw.lower() in ai_response.lower()]
+                
+                if found_keywords:
+                    self.log(f"   ✅ Industry keywords found: {', '.join(found_keywords)}")
+                else:
+                    self.log(f"   ⚠️  Limited industry-specific terminology")
+        
+        return successful_scenarios
+
+    def test_professional_context_unauthorized(self):
+        """Test professional context endpoints without authentication"""
+        # Test saving context without auth (should fail)
+        temp_token = self.auth_token
+        self.auth_token = None
+        
+        success, response = self.run_test(
+            "Save Context Without Auth (Should Fail)",
+            "POST",
+            "user/professional-context",
+            403,  # Should fail with 403 Forbidden
+            data={"primary_industry": "Test"},
+            auth_required=True
+        )
+        
+        # Test retrieving context without auth (should fail)
+        success2, response2 = self.run_test(
+            "Retrieve Context Without Auth (Should Fail)",
+            "GET",
+            "user/professional-context",
+            403,  # Should fail with 403 Forbidden
+            auth_required=True
+        )
+        
+        # Restore token
+        self.auth_token = temp_token
+        
+        return success and success2
+
     def wait_for_processing(self, note_id, max_wait=30):
         """Wait for note processing to complete"""
         self.log(f"⏳ Waiting for note {note_id[:8]}... to process (max {max_wait}s)")
