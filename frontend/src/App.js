@@ -2367,6 +2367,12 @@ const NotesScreen = () => {
             </div>
           </div>
         )}
+        
+        {/* Professional Context Setup Modal */}
+        <ProfessionalContextSetup 
+          isOpen={showProfessionalContextModal}
+          onClose={() => setShowProfessionalContextModal(false)}
+        />
       </div>
     </div>
   );
