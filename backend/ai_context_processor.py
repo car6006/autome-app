@@ -175,26 +175,41 @@ class AIContextProcessor:
                               content: str, 
                               user_profile: Dict[str, Any], 
                               analysis_type: str = 'general') -> str:
-        """Generate dynamic AI prompt based on user context and content"""
+        """Generate dynamic AI prompt based on enhanced user professional context"""
         
+        # Get professional context fields
+        primary_industry = user_profile.get('primary_industry', user_profile.get('industry', 'Business'))
+        job_role = user_profile.get('job_role', user_profile.get('profession', 'Professional'))
+        work_environment = user_profile.get('work_environment', '')
+        key_focus_areas = user_profile.get('key_focus_areas', [])
+        content_types = user_profile.get('content_types', [])
+        analysis_preferences = user_profile.get('analysis_preferences', [])
+        
+        # Auto-detect content type and profession context
         profession_key = self.detect_profession_context(user_profile)
-        content_type = self.detect_content_type(content)
+        detected_content_type = self.detect_content_type(content)
         
-        # Get profession context
-        profession_context = self.profession_contexts.get(profession_key, {})
+        # Get profession context template
+        profession_context = self.profession_contexts.get(profession_key, self.profession_contexts.get('business', {}))
         
         # Build personalized prompt
-        user_name = user_profile.get('first_name', 'User')
-        profession = user_profile.get('profession', 'Professional')
-        industry = user_profile.get('industry', 'your industry')
+        user_name = user_profile.get('first_name', 'Professional')
         
         prompt = f"""
-        You are an AI assistant specializing in {industry} and working with {user_name}, a {profession}.
-        
-        Content to analyze:
-        {content}
-        
-        Context: This appears to be {content_type.replace('_', ' ')} content from a {profession} in {industry}.
+You are an expert AI assistant specialized in {primary_industry} working with {user_name}, a {job_role}.
+
+PROFESSIONAL CONTEXT:
+- Industry: {primary_industry}
+- Role: {job_role}
+- Work Environment: {work_environment or 'Professional setting'}
+- Key Focus Areas: {', '.join(key_focus_areas) if key_focus_areas else 'General business operations'}
+- Content Types: {', '.join(content_types) if content_types else 'Mixed business content'}
+- Analysis Style: {', '.join(analysis_preferences) if analysis_preferences else 'Comprehensive analysis'}
+
+CONTENT TO ANALYZE:
+{content}
+
+ANALYSIS TYPE: {detected_content_type.replace('_', ' ').title()}
         """
         
         # Add profession-specific analysis focus
