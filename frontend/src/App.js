@@ -1658,29 +1658,99 @@ const NotesScreen = () => {
                 {showArchived ? 'Hide Archived' : 'Show Archived'}
               </Button>
               
-              {/* Batch Report Button */}
+              {/* Batch Report Buttons - Multiple Export Options */}
               {selectedNotesForBatch.length > 0 && (
-                <Button
-                  onClick={generateBatchReport}
-                  disabled={generatingReport.batch}
-                  className={`w-full sm:w-auto ${
-                    theme.isExpeditors 
-                      ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white'
-                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
-                  }`}
-                >
-                  {generatingReport.batch ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Users className="w-4 h-4 mr-2" />
-                      Batch Report
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  {/* Mobile: Show expanded options or compact dropdown */}
+                  <div className="sm:hidden w-full">
+                    <div className="grid grid-cols-1 gap-2 w-full">
+                      <Button
+                        onClick={() => generateBatchReport('professional')}
+                        disabled={generatingReport.batch}
+                        className={`w-full text-xs ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white'
+                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                        }`}
+                      >
+                        {generatingReport.batch ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Users className="w-3 h-3 mr-1" />
+                            AI Report ({selectedNotesForBatch.length})
+                          </>
+                        )}
+                      </Button>
+                      <div className="grid grid-cols-2 gap-1 w-full">
+                        <Button
+                          onClick={() => generateBatchReport('txt')}
+                          disabled={generatingReport.batch}
+                          variant="outline"
+                          className="w-full text-xs px-1"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          TXT
+                        </Button>
+                        <Button
+                          onClick={() => generateBatchReport('rtf')}
+                          disabled={generatingReport.batch}
+                          variant="outline"
+                          className="w-full text-xs px-1"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          RTF
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Desktop: Show horizontal layout */}
+                  <div className="hidden sm:flex gap-2">
+                    <Button
+                      onClick={() => generateBatchReport('professional')}
+                      disabled={generatingReport.batch}
+                      className={`${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-600 to-gray-800 hover:from-red-700 hover:to-gray-900 text-white'
+                          : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                      }`}
+                    >
+                      {generatingReport.batch ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Users className="w-4 h-4 mr-2" />
+                          AI Report ({selectedNotesForBatch.length})
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => generateBatchReport('txt')}
+                      disabled={generatingReport.batch}
+                      variant="outline"
+                      className="px-3"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      TXT
+                    </Button>
+                    <Button
+                      onClick={() => generateBatchReport('rtf')}
+                      disabled={generatingReport.batch}
+                      variant="outline"
+                      className="px-3"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      RTF
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
