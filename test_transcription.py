@@ -6,6 +6,13 @@ Test transcription functionality directly
 import asyncio
 import sys
 import os
+from pathlib import Path
+
+# Load environment variables first
+from dotenv import load_dotenv
+ROOT_DIR = Path(__file__).parent / 'backend'
+load_dotenv(ROOT_DIR / '.env')
+
 sys.path.append('/app/backend')
 
 from providers import stt_transcribe
@@ -16,6 +23,16 @@ logging.basicConfig(level=logging.INFO)
 
 async def test_transcription():
     """Test the transcription function directly"""
+    
+    # Check environment variables
+    whisper_key = os.getenv("WHISPER_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    
+    print(f"WHISPER_API_KEY: {'Found' if whisper_key else 'NOT FOUND'}")
+    print(f"OPENAI_API_KEY: {'Found' if openai_key else 'NOT FOUND'}")
+    
+    if whisper_key:
+        print(f"WHISPER_API_KEY starts with: {whisper_key[:10]}...")
     
     # Test file paths
     test_files = [
