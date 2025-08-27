@@ -138,7 +138,13 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
         description: "Your AI assistant is now personalized for your role and industry."
       });
       
-      onClose();
+      // Force reload context to ensure it persists
+      await loadProfessionalContext();
+      
+      // Small delay before closing to show success
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error('Failed to save professional context:', error);
       
