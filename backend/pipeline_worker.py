@@ -90,8 +90,10 @@ class PipelineWorker:
             if job.current_stage == TranscriptionStage.CREATED:
                 await self.stage_validate(job)
             elif job.current_stage == TranscriptionStage.VALIDATING:
-                await self.stage_transcode(job)
+                await self.stage_validate(job)  # Stay in validation stage until it transitions
             elif job.current_stage == TranscriptionStage.TRANSCODING:
+                await self.stage_transcode(job)
+            elif job.current_stage == TranscriptionStage.SEGMENTING:
                 await self.stage_segment(job)
             elif job.current_stage == TranscriptionStage.SEGMENTING:
                 await self.stage_detect_language(job)
