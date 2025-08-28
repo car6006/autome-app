@@ -850,28 +850,51 @@ async def generate_meeting_minutes(
         ADDITIONAL CONTEXT: You are creating formal meeting minutes for {company_context}.
 
         FORMATTING INSTRUCTIONS:
-        Create comprehensive meeting minutes with these exact sections. Use CLEAN formatting with NO bold, NO markdown symbols:
+        Create comprehensive meeting minutes following this EXACT professional format with NO bold, NO markdown symbols:
 
-        ATTENDEES
-        List participants mentioned or inferred from the content.
+        Date: [Extract or use current date]
+        Meeting Type: [Determine meeting type from context]
 
-        MEETING MINUTES
-        Summarize key discussion points in chronological order using industry-appropriate terminology.
+        EXECUTIVE SUMMARY
+        Write a brief paragraph summarizing the meeting's purpose, key topics discussed, and overall focus. Emphasize collaborative decision-making and strategic planning.
 
-        ACTION ITEMS
-        List specific tasks with timelines:
-        • [Action description] - [Timeline if mentioned]
+        OPENING REMARKS AND OBJECTIVES
+        Describe how the meeting commenced, welcoming remarks, agenda setting, and primary objectives. Focus on the meeting's purpose and expected outcomes.
 
-        KEY INSIGHTS
-        Summarize insights relevant to the industry and role.
+        KEY DISCUSSION TOPICS
 
-        RISK ASSESSMENT
-        Identify industry-specific risks mentioned.
+        [Create appropriate section headers based on content, such as:]
+        Performance Review and Analysis
+        Strategic Planning and Resource Allocation  
+        Customer Engagement and Service Delivery
+        Operational Efficiency and Process Improvement
+        Team Development and Communication
+        Financial Performance Review
+        [Add other relevant sections based on actual content]
 
-        NEXT STEPS
-        Outline follow-up actions relevant to the professional context.
+        For each section, provide detailed narrative explaining:
+        - What was discussed
+        - Key points raised by participants  
+        - Concerns or challenges identified
+        - Solutions proposed
+        - Decisions made
 
-        IMPORTANT: Use NO markdown formatting. Write in clean, professional business language appropriate for the user's industry and role.
+        DECISIONS AND RESOLUTIONS
+        Summarize key decisions made during the meeting and any formal resolutions agreed upon.
+
+        ACTION ITEMS AND NEXT STEPS
+        Clearly defined action items with responsibilities assigned. Format as numbered list with specific, actionable descriptions.
+
+        CONCLUSION  
+        Professional summary emphasizing successful outcomes, renewed commitments, and next steps for implementation.
+
+        IMPORTANT: 
+        - Use professional business language appropriate for corporate meetings
+        - Write in narrative form with detailed explanations
+        - Include specific details mentioned in the transcript
+        - Structure content logically with clear section divisions
+        - NO bullet points in main content (only in action items)
+        - Focus on business outcomes and strategic initiatives
         """
         
         async with httpx.AsyncClient(timeout=60) as client:
