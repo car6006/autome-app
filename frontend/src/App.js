@@ -2379,31 +2379,31 @@ const NotesScreen = () => {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                
-                {selectedNote === note.id && (
-                  <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-                    <Input
-                      placeholder="recipient@email.com"
-                      value={emailTo}
-                      onChange={(e) => setEmailTo(e.target.value)}
-                    />
-                    <Input
-                      placeholder="Email subject"
-                      value={emailSubject}
-                      onChange={(e) => setEmailSubject(e.target.value)}
-                    />
-                    <Button 
-                      size="sm" 
-                      onClick={() => sendEmail(note.id)}
-                      className="w-full"
-                    >
-                      Send Email
-                    </Button>
+
+                    {selectedNote === note.id && (
+                      <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
+                        <Input
+                          placeholder="recipient@email.com"
+                          value={emailTo}
+                          onChange={(e) => setEmailTo(e.target.value)}
+                        />
+                        <Input
+                          placeholder="Email subject"
+                          value={emailSubject}
+                          onChange={(e) => setEmailSubject(e.target.value)}
+                        />
+                        <Button 
+                          size="sm" 
+                          onClick={() => sendEmail(note.id)}
+                          className="w-full"
+                        >
+                          Send Email
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>>
           ))}
         </div>
         
