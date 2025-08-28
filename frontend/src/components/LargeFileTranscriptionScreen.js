@@ -289,24 +289,55 @@ const LargeFileTranscriptionScreen = () => {
           
           <div className="flex items-center space-x-2">
             {job.status === 'processing' && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => getJobDetails(job.job_id)}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Details
-              </Button>
+              <div className="flex items-center space-x-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => getJobDetails(job.job_id)}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Details
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => cancelJob(job.job_id)}
+                  className="text-orange-600 hover:text-orange-700"
+                >
+                  Cancel
+                </Button>
+              </div>
             )}
             
             {job.status === 'failed' && (
+              <div className="flex items-center space-x-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => retryJob(job.job_id)}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => deleteJob(job.job_id)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  Delete
+                </Button>
+              </div>
+            )}
+            
+            {(job.status === 'complete' || job.status === 'cancelled') && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => retryJob(job.job_id)}
+                onClick={() => deleteJob(job.job_id)}
+                className="text-red-600 hover:text-red-700"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
+                Delete
               </Button>
             )}
             
