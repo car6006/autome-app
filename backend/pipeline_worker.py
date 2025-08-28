@@ -442,6 +442,427 @@ class PipelineWorker:
         except Exception as e:
             await self.handle_job_error(job.id, "LANGUAGE_DETECTION_FAILED", str(e))
     
+    async def stage_transcribe(self, job: TranscriptionJob):
+        """Stage 5: Transcribe audio segments"""
+        stage = TranscriptionStage.TRANSCRIBING
+        logger.info(f"🎤 Job {job.id}: Transcribing audio segments")
+        
+        start_time = time.time()
+        await TranscriptionJobStore.update_job_stage(job.id, stage, 5.0)
+        
+        try:
+            job_data = await TranscriptionJobStore.get_job(job.id)
+            
+            # Get segments for transcription
+            checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.SEGMENTING)
+            if not checkpoint or not checkpoint.get("segments"):
+                raise Exception("Segment data not found")
+            
+            segments = checkpoint["segments"]
+            total_segments = len(segments)
+            
+            transcripts = []
+            api_key = os.getenv("WHISPER_API_KEY") or os.getenv("OPENAI_API_KEY")
+            
+            if not api_key:
+                raise Exception("No OpenAI API key available for transcription")
+            
+            logger.info(f"Transcribing {total_segments} segments for job {job.id}")
+            
+            for i, segment in enumerate(segments):
+                try:
+                    segment_path = get_file_path(segment["storage_key"])
+                    
+                    # Transcribe segment using OpenAI Whisper
+                    with open(segment_path, "rb") as audio_file:
+                        files = {"file": audio_file}
+                        form = {
+                            "model": "whisper-1",
+                            "language": job_data.detected_language or "en",
+                            "response_format": "verbose_json",
+                            "temperature": 0.2
+                        }
+                        
+                        # Use existing retry logic from providers.py
+                        max_retries = 3
+                        retry_delay = 5
+                        
+                        for attempt in range(max_retries):
+                            try:
+                                async with httpx.AsyncClient(timeout=60) as client:
+                                    response = await client.post(
+                                        "https://api.openai.com/v1/audio/transcriptions",
+                                        data=form,
+                                        files=files,
+                                        headers={"Authorization": f"Bearer {api_key}"}
+                                    )
+                                    response.raise_for_status()
+                                    
+                                    result = response.json()
+                                    transcript_text = result.get("text", "")
+                                    
+                                    # Store segment transcript with timing info
+                                    transcripts.append({
+                                        "index": i,
+                                        "start_time": segment["original_start"],
+                                        "end_time": segment["original_end"],
+                                        "text": transcript_text,
+                                        "confidence": 1.0,  # Whisper doesn't provide confidence
+                                        "segments": result.get("segments", [])
+                                    })
+                                    
+                                    logger.info(f"Transcribed segment {i+1}/{total_segments} for job {job.id}")
+                                    break
+                                    
+                            except httpx.HTTPStatusError as e:
+                                if e.response.status_code == 429 and attempt < max_retries - 1:
+                                    # Rate limited, wait with exponential backoff
+                                    wait_time = retry_delay * (2 ** attempt)
+                                    logger.warning(f"Rate limited, waiting {wait_time}s before retry {attempt + 1}")
+                                    await asyncio.sleep(wait_time)
+                                    continue
+                                else:
+                                    raise Exception(f"Transcription API error: {e.response.status_code}")
+                            except Exception as e:
+                                if attempt < max_retries - 1:
+                                    await asyncio.sleep(retry_delay)
+                                    continue
+                                else:
+                                    raise e
+                    
+                    # Update progress
+                    progress = 10.0 + ((i + 1) / total_segments) * 80.0
+                    await TranscriptionJobStore.update_stage_progress(job.id, stage, progress)
+                    
+                    # Add delay between requests to avoid rate limits
+                    if i < total_segments - 1:
+                        await asyncio.sleep(2)
+                        
+                except Exception as e:
+                    logger.error(f"Failed to transcribe segment {i}: {str(e)}")
+                    # Continue with other segments, mark this as empty
+                    transcripts.append({
+                        "index": i,
+                        "start_time": segment["original_start"],
+                        "end_time": segment["original_end"],
+                        "text": "[Transcription failed]",
+                        "confidence": 0.0,
+                        "segments": []
+                    })
+            
+            if not any(t["text"] for t in transcripts if t["text"] != "[Transcription failed]"):
+                raise Exception("All segment transcriptions failed")
+            
+            # Store transcription results as checkpoint
+            checkpoint_data = {
+                "transcripts": transcripts,
+                "total_segments_transcribed": len([t for t in transcripts if t["text"] != "[Transcription failed]"])
+            }
+            await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, checkpoint_data)
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
+            
+            # Record stage completion
+            duration_seconds = time.time() - start_time
+            await TranscriptionJobStore.record_stage_duration(job.id, stage, duration_seconds)
+            
+            # Move to next stage
+            await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.MERGING, 0.0)
+            logger.info(f"✅ Job {job.id}: Transcription complete ({len(transcripts)} segments)")
+            
+        except Exception as e:
+            await self.handle_job_error(job.id, "TRANSCRIPTION_FAILED", str(e))
+    
+    async def stage_merge(self, job: TranscriptionJob):
+        """Stage 6: Merge segment transcriptions"""
+        stage = TranscriptionStage.MERGING
+        logger.info(f"🔗 Job {job.id}: Merging transcripts")
+        
+        start_time = time.time()
+        await TranscriptionJobStore.update_job_stage(job.id, stage, 20.0)
+        
+        try:
+            # Get transcription results
+            checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.TRANSCRIBING)
+            if not checkpoint or not checkpoint.get("transcripts"):
+                raise Exception("Transcription data not found")
+            
+            transcripts = checkpoint["transcripts"]
+            
+            # Sort by index to ensure correct order
+            transcripts.sort(key=lambda x: x["index"])
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 40.0)
+            
+            # Merge into final transcript
+            final_text = []
+            total_words = 0
+            
+            for transcript in transcripts:
+                if transcript["text"] and transcript["text"] != "[Transcription failed]":
+                    final_text.append(transcript["text"].strip())
+                    total_words += len(transcript["text"].split())
+            
+            merged_transcript = "\n\n".join(final_text)
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 70.0)
+            
+            # Store merged results
+            merge_results = {
+                "final_transcript": merged_transcript,
+                "word_count": total_words,
+                "segment_count": len(transcripts),
+                "failed_segments": len([t for t in transcripts if t["text"] == "[Transcription failed]"])
+            }
+            
+            await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, merge_results)
+            
+            # Update job with results
+            await TranscriptionJobStore.set_job_results(job.id, {
+                "word_count": total_words
+            })
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
+            
+            # Record stage completion
+            duration_seconds = time.time() - start_time
+            await TranscriptionJobStore.record_stage_duration(job.id, stage, duration_seconds)
+            
+            # Move to next stage
+            await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.DIARIZING, 0.0)
+            logger.info(f"✅ Job {job.id}: Merge complete ({total_words} words)")
+            
+        except Exception as e:
+            await self.handle_job_error(job.id, "MERGE_FAILED", str(e))
+    
+    async def stage_diarize(self, job: TranscriptionJob):
+        """Stage 7: Speaker diarization (simplified for Phase 2)"""
+        stage = TranscriptionStage.DIARIZING
+        logger.info(f"👥 Job {job.id}: Speaker diarization")
+        
+        start_time = time.time()
+        await TranscriptionJobStore.update_job_stage(job.id, stage, 20.0)
+        
+        try:
+            job_data = await TranscriptionJobStore.get_job(job.id)
+            
+            # For Phase 2, we'll skip speaker diarization if not enabled
+            # or implement a simplified version
+            if not job_data.enable_diarization:
+                logger.info(f"Diarization disabled for job {job.id}, skipping")
+                await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
+                
+                # Record stage completion
+                duration_seconds = time.time() - start_time
+                await TranscriptionJobStore.record_stage_duration(job.id, stage, duration_seconds)
+                
+                # Move to next stage
+                await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.GENERATING_OUTPUTS, 0.0)
+                return
+            
+            # Get merge results
+            checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.MERGING)
+            if not checkpoint:
+                raise Exception("Merge data not found")
+            
+            final_transcript = checkpoint.get("final_transcript", "")
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 50.0)
+            
+            # Simplified diarization - just label as single speaker for now
+            # In Phase 3, this would integrate with proper diarization models
+            diarized_transcript = f"Speaker 1: {final_transcript}"
+            
+            diarization_results = {
+                "diarized_transcript": diarized_transcript,
+                "speaker_count": 1,
+                "speakers": [{"id": "Speaker 1", "duration": job_data.total_duration or 0}]
+            }
+            
+            await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, diarization_results)
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
+            
+            # Record stage completion
+            duration_seconds = time.time() - start_time
+            await TranscriptionJobStore.record_stage_duration(job.id, stage, duration_seconds)
+            
+            # Move to next stage
+            await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.GENERATING_OUTPUTS, 0.0)
+            logger.info(f"✅ Job {job.id}: Diarization complete")
+            
+        except Exception as e:
+            await self.handle_job_error(job.id, "DIARIZATION_FAILED", str(e))
+    
+    async def stage_generate_outputs(self, job: TranscriptionJob):
+        """Stage 8: Generate multiple output formats"""
+        stage = TranscriptionStage.GENERATING_OUTPUTS
+        logger.info(f"📄 Job {job.id}: Generating output formats")
+        
+        start_time = time.time()
+        await TranscriptionJobStore.update_job_stage(job.id, stage, 10.0)
+        
+        try:
+            # Get final transcript data
+            merge_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.MERGING)
+            diarization_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.DIARIZING)
+            
+            if not merge_checkpoint:
+                raise Exception("Merge data not found")
+            
+            final_transcript = merge_checkpoint.get("final_transcript", "")
+            diarized_transcript = diarization_checkpoint.get("diarized_transcript", final_transcript) if diarization_checkpoint else final_transcript
+            
+            # Get detailed segments for JSON/SRT/VTT generation
+            transcription_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.TRANSCRIBING)
+            segments = transcription_checkpoint.get("transcripts", []) if transcription_checkpoint else []
+            
+            assets_created = []
+            
+            # Generate TXT format
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 20.0)
+            txt_content = diarized_transcript
+            txt_key = await store_file_content(txt_content.encode('utf-8'), f"job_{job.id}_transcript.txt")
+            
+            txt_asset = TranscriptionAsset(
+                job_id=job.id,
+                kind="txt",
+                storage_key=txt_key,
+                file_size=len(txt_content.encode('utf-8')),
+                mime_type="text/plain"
+            )
+            await TranscriptionAssetStore.create_asset(txt_asset)
+            assets_created.append("txt")
+            
+            # Generate JSON format
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 40.0)
+            json_data = {
+                "transcript": final_transcript,
+                "diarized_transcript": diarized_transcript,
+                "segments": segments,
+                "metadata": {
+                    "language": job.detected_language,
+                    "duration": job.total_duration,
+                    "word_count": merge_checkpoint.get("word_count", 0),
+                    "confidence": 0.95  # Simplified confidence
+                }
+            }
+            
+            import json
+            json_content = json.dumps(json_data, indent=2, ensure_ascii=False)
+            json_key = await store_file_content(json_content.encode('utf-8'), f"job_{job.id}_transcript.json")
+            
+            json_asset = TranscriptionAsset(
+                job_id=job.id,
+                kind="json",
+                storage_key=json_key,
+                file_size=len(json_content.encode('utf-8')),
+                mime_type="application/json"
+            )
+            await TranscriptionAssetStore.create_asset(json_asset)
+            assets_created.append("json")
+            
+            # Generate SRT format
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 60.0)
+            srt_content = self._generate_srt(segments)
+            srt_key = await store_file_content(srt_content.encode('utf-8'), f"job_{job.id}_transcript.srt")
+            
+            srt_asset = TranscriptionAsset(
+                job_id=job.id,
+                kind="srt",
+                storage_key=srt_key,
+                file_size=len(srt_content.encode('utf-8')),
+                mime_type="application/x-subrip"
+            )
+            await TranscriptionAssetStore.create_asset(srt_asset)
+            assets_created.append("srt")
+            
+            # Generate VTT format
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 80.0)
+            vtt_content = self._generate_vtt(segments)
+            vtt_key = await store_file_content(vtt_content.encode('utf-8'), f"job_{job.id}_transcript.vtt")
+            
+            vtt_asset = TranscriptionAsset(
+                job_id=job.id,
+                kind="vtt",
+                storage_key=vtt_key,
+                file_size=len(vtt_content.encode('utf-8')),
+                mime_type="text/vtt"
+            )
+            await TranscriptionAssetStore.create_asset(vtt_asset)
+            assets_created.append("vtt")
+            
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
+            
+            # Store output results
+            output_results = {
+                "assets_created": assets_created,
+                "output_formats": ["txt", "json", "srt", "vtt"]
+            }
+            await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, output_results)
+            
+            # Record stage completion
+            duration_seconds = time.time() - start_time
+            await TranscriptionJobStore.record_stage_duration(job.id, stage, duration_seconds)
+            
+            # Move to final stage
+            await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.COMPLETE, 0.0)
+            logger.info(f"✅ Job {job.id}: Output generation complete ({len(assets_created)} formats)")
+            
+        except Exception as e:
+            await self.handle_job_error(job.id, "OUTPUT_GENERATION_FAILED", str(e))
+    
+    def _generate_srt(self, segments):
+        """Generate SRT subtitle format"""
+        srt_lines = []
+        
+        for i, segment in enumerate(segments, 1):
+            if segment.get("text") and segment["text"] != "[Transcription failed]":
+                start_time = self._seconds_to_srt_time(segment["start_time"])
+                end_time = self._seconds_to_srt_time(segment["end_time"])
+                
+                srt_lines.extend([
+                    str(i),
+                    f"{start_time} --> {end_time}",
+                    segment["text"].strip(),
+                    ""
+                ])
+        
+        return "\n".join(srt_lines)
+    
+    def _generate_vtt(self, segments):
+        """Generate WebVTT format"""
+        vtt_lines = ["WEBVTT", ""]
+        
+        for segment in segments:
+            if segment.get("text") and segment["text"] != "[Transcription failed]":
+                start_time = self._seconds_to_vtt_time(segment["start_time"])
+                end_time = self._seconds_to_vtt_time(segment["end_time"])
+                
+                vtt_lines.extend([
+                    f"{start_time} --> {end_time}",
+                    segment["text"].strip(),
+                    ""
+                ])
+        
+        return "\n".join(vtt_lines)
+    
+    def _seconds_to_srt_time(self, seconds):
+        """Convert seconds to SRT time format (HH:MM:SS,mmm)"""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        millisecs = int((seconds % 1) * 1000)
+        return f"{hours:02d}:{minutes:02d}:{secs:02d},{millisecs:03d}"
+    
+    def _seconds_to_vtt_time(self, seconds):
+        """Convert seconds to VTT time format (HH:MM:SS.mmm)"""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        millisecs = int((seconds % 1) * 1000)
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}.{millisecs:03d}"
+
     async def handle_job_error(self, job_id: str, error_code: str, error_message: str):
         """Handle job errors and determine if retry is possible"""
         logger.error(f"❌ Job {job_id} error: {error_code} - {error_message}")
