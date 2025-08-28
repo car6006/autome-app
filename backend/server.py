@@ -440,40 +440,88 @@ async def update_professional_context(
     return {"message": "Professional context updated successfully", "context": professional_updates}
 
 @api_router.get("/health")
+@monitor_endpoint("health_check")
 async def health_check():
-    """Health check endpoint for monitoring"""
+    """Enhanced health check endpoint with Phase 4 monitoring"""
     try:
         # Check database connection
         await db["users"].find_one({})
+        database_health = "healthy"
         
         # Check pipeline status
         try:
             from worker_manager import get_pipeline_status
             pipeline_status = await get_pipeline_status()
-            pipeline_health = "healthy" if pipeline_status["worker"]["running"] else "degraded"
+            pipeline_health = "healthy" if pipeline_status.get("worker", {}).get("running") else "degraded"
         except Exception as e:
             pipeline_health = "unknown"
             pipeline_status = {"error": str(e)}
         
-        overall_status = "healthy" if pipeline_health in ["healthy", "degraded"] else "unhealthy"
+        # Phase 4: Check production services
+        services_health = {
+            "database": database_health,
+            "api": "running",
+            "pipeline": pipeline_health
+        }
+        
+        # Check cache status
+        try:
+            cache_stats = await cache_manager.get_cache_stats()
+            services_health["cache"] = "healthy" if cache_stats.get("enabled") else "disabled"
+        except Exception as e:
+            services_health["cache"] = "error"
+        
+        # Check storage status
+        try:
+            storage_stats = storage_manager.get_usage_stats()
+            services_health["storage"] = "healthy"
+        except Exception as e:
+            services_health["storage"] = "error"
+        
+        # Check webhook manager
+        try:
+            webhook_stats = await webhook_manager.get_delivery_stats()
+            services_health["webhooks"] = "healthy" if webhook_stats.get("enabled") else "disabled"
+        except Exception as e:
+            services_health["webhooks"] = "error"
+        
+        # Get comprehensive metrics
+        try:
+            metrics = await monitoring_service.get_comprehensive_metrics()
+        except Exception as e:
+            logger.warning(f"Failed to get comprehensive metrics: {e}")
+            metrics = {"error": "metrics_unavailable"}
+        
+        # Determine overall health
+        critical_services = ["database", "api", "pipeline"]
+        unhealthy_critical = [s for s in critical_services if services_health.get(s) not in ["healthy", "running"]]
+        
+        if unhealthy_critical:
+            overall_status = "unhealthy"
+        elif any(status == "degraded" for status in services_health.values()):
+            overall_status = "degraded"
+        else:
+            overall_status = "healthy"
         
         return {
             "status": overall_status,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "services": {
-                "database": "connected",
-                "api": "running",
-                "pipeline": pipeline_health
-            },
-            "pipeline": pipeline_status
+            "services": services_health,
+            "pipeline": pipeline_status,
+            "metrics": metrics,
+            "version": "Phase 4 Production",
+            "uptime_hours": (datetime.now(timezone.utc) - datetime.fromtimestamp(time.time() - 3600, timezone.utc)).total_seconds() / 3600
         }
+        
     except Exception as e:
+        logger.error(f"Health check failed: {e}")
         raise HTTPException(
             status_code=503,
             detail={
                 "status": "unhealthy", 
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "error": "Database connection failed"
+                "error": "Health check failed",
+                "details": str(e)
             }
         )
 
