@@ -2401,8 +2401,9 @@ const NotesScreen = () => {
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
           ))}
         </div>
         
