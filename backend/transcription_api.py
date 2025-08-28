@@ -256,6 +256,73 @@ async def cancel_job(
         logger.error(f"Failed to cancel job {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to cancel job")
 
+@router.delete("/{job_id}")
+async def delete_job(
+    job_id: str,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Delete transcription job and associated files"""
+    try:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        
+        # Get job to verify ownership
+        job = await TranscriptionJobStore.get_job(job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        if job.user_id != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Cancel job first if it's still processing
+        if job.status in [TranscriptionStatus.CREATED, TranscriptionStatus.PROCESSING]:
+            logger.info(f"🛑 Cancelling job {job_id} before deletion")
+            await TranscriptionJobStore.update_job_status(job_id, TranscriptionStatus.CANCELLED)
+        
+        # Delete associated files from storage
+        try:
+            from cloud_storage import storage_manager
+            
+            # Delete transcription assets
+            assets = await TranscriptionAssetStore.list_assets_by_job(job_id)
+            for asset in assets:
+                try:
+                    await storage_manager.delete_file(asset.storage_key)
+                    logger.info(f"🗑️ Deleted asset file: {asset.storage_key}")
+                except Exception as e:
+                    logger.warning(f"Failed to delete asset file {asset.storage_key}: {e}")
+            
+            # Delete assets from database
+            await TranscriptionAssetStore.delete_assets_by_job(job_id)
+            
+            # Delete upload session and associated files if exists
+            if hasattr(job, 'upload_id') and job.upload_id:
+                from enhanced_store import UploadSessionStore
+                try:
+                    session = await UploadSessionStore.get_session(job.upload_id)
+                    if session and session.storage_key:
+                        await storage_manager.delete_file(session.storage_key)
+                        logger.info(f"🗑️ Deleted upload file: {session.storage_key}")
+                    await UploadSessionStore.delete_session(job.upload_id)
+                except Exception as e:
+                    logger.warning(f"Failed to delete upload session: {e}")
+                    
+        except Exception as e:
+            logger.warning(f"Failed to clean up files for job {job_id}: {e}")
+        
+        # Delete job from database
+        await TranscriptionJobStore.delete_job(job_id)
+        
+        logger.info(f"🗑️ Job {job_id} and associated files deleted successfully")
+        
+        return {"message": "Job deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete job {job_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete job")
+
 @router.get("/")
 async def list_jobs(
     status: Optional[str] = Query(None, regex="^(created|processing|complete|failed|cancelled)$"),
