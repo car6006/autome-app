@@ -626,6 +626,13 @@ class PipelineWorker:
                                     break
                                     
                             except httpx.HTTPStatusError as e:
+                                error_details = "Unknown error"
+                                try:
+                                    error_response = e.response.json()
+                                    error_details = error_response.get("error", {}).get("message", str(error_response))
+                                except:
+                                    error_details = e.response.text[:200]
+                                
                                 if e.response.status_code == 429 and attempt < max_retries - 1:
                                     # Rate limited, wait with exponential backoff
                                     wait_time = retry_delay * (2 ** attempt)
@@ -633,7 +640,8 @@ class PipelineWorker:
                                     await asyncio.sleep(wait_time)
                                     continue
                                 else:
-                                    raise Exception(f"Transcription API error: {e.response.status_code}")
+                                    logger.error(f"OpenAI API Error {e.response.status_code}: {error_details}")
+                                    raise Exception(f"Transcription API error: {e.response.status_code} - {error_details}")
                             except Exception as e:
                                 if attempt < max_retries - 1:
                                     await asyncio.sleep(retry_delay)
