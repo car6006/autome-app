@@ -943,7 +943,11 @@ class PipelineWorker:
             # Generate DOCX format (Phase 3 enhancement)
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 90.0)
             docx_content = await self._generate_docx(job.id, diarized_transcript, segments, json_data)
-            docx_key = await store_file_content_async(docx_content, f"job_{job.id}_transcript.docx")
+            docx_key = await storage_manager.store_file(
+                docx_content,
+                f"job_{job.id}_transcript.docx",
+                job_id=job.id
+            )
             
             docx_asset = TranscriptionAsset(
                 job_id=job.id,
