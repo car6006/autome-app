@@ -671,7 +671,15 @@ class PipelineWorker:
                 "transcripts": transcripts,
                 "total_segments_transcribed": len([t for t in transcripts if t["text"] != "[Transcription failed]"])
             }
+            logger.info(f"💾 Job {job.id}: Saving checkpoint with {len(transcripts)} transcripts...")
             await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, checkpoint_data)
+            
+            # Verify the checkpoint was saved
+            verification = await TranscriptionJobStore.get_stage_checkpoint(job.id, stage)
+            if verification and verification.get("transcripts"):
+                logger.info(f"✅ Job {job.id}: Checkpoint verified - {len(verification['transcripts'])} transcripts saved")
+            else:
+                logger.error(f"❌ Job {job.id}: Checkpoint verification failed!")
             
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
             
