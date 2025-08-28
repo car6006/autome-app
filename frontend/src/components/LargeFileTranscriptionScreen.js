@@ -205,6 +205,26 @@ const LargeFileTranscriptionScreen = () => {
     loadJobs();
   };
 
+  // Cleanup stuck jobs
+  const cleanupStuckJobs = async () => {
+    try {
+      const response = await axios.post(`${API}/transcriptions/cleanup`);
+      
+      toast({
+        title: "Cleanup Complete",
+        description: response.data.message || `Fixed ${response.data.fixed_count} jobs`
+      });
+      
+      loadJobs();
+    } catch (error) {
+      toast({
+        title: "Cleanup Failed",
+        description: error.response?.data?.detail || "Failed to cleanup stuck jobs",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Download transcription
   const downloadTranscription = async (jobId, format = 'txt') => {
     try {
