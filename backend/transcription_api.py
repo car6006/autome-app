@@ -425,7 +425,7 @@ async def cleanup_stuck_jobs(current_user: Optional[dict] = Depends(get_current_
         from enhanced_store import TranscriptionJobStore
         
         # Get user's jobs
-        user_jobs = await TranscriptionJobStore.list_jobs(current_user["id"])
+        user_jobs = await TranscriptionJobStore.list_jobs_for_user(current_user["id"])
         
         fixed_count = 0
         for job in user_jobs:
