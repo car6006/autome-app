@@ -169,23 +169,8 @@ class TranscriptionJobStore:
     async def get_stage_checkpoint(job_id: str, stage: TranscriptionStage) -> Optional[Dict[str, Any]]:
         """Get checkpoint data for stage"""
         job = await TranscriptionJobStore.get_job(job_id)
-        logger.info(f"🔍 Checkpoint retrieval for {job_id}, stage {stage.value}")
-        
-        if job:
-            logger.info(f"   Job found, stage_checkpoints type: {type(job.stage_checkpoints)}")
-            logger.info(f"   Available checkpoints: {list(job.stage_checkpoints.keys()) if job.stage_checkpoints else 'None'}")
-            
-            if job.stage_checkpoints:
-                checkpoint_data = job.stage_checkpoints.get(stage.value)
-                if checkpoint_data:
-                    logger.info(f"✅ Found checkpoint for {stage.value}: {list(checkpoint_data.keys())}")
-                    return checkpoint_data
-                else:
-                    logger.warning(f"❌ No checkpoint data found for stage {stage.value}")
-            else:
-                logger.warning(f"❌ No stage_checkpoints field in job")
-        else:
-            logger.error(f"❌ Job {job_id} not found")
+        if job and job.stage_checkpoints:
+            return job.stage_checkpoints.get(stage.value)
         return None
     
     @staticmethod
