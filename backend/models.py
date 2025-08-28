@@ -52,6 +52,7 @@ class TranscriptionJob(BaseModel):
     """Main transcription job with pipeline tracking"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: Optional[str] = None
+    note_id: Optional[str] = None  # Reference to main notes system
     upload_id: str  # Reference to UploadSession
     
     # Job configuration
