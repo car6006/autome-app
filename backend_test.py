@@ -1495,6 +1495,242 @@ Next Steps:
         self.log(f"⏰ Timeout waiting for note processing")
         return False
 
+    def test_large_file_transcription_pipeline(self):
+        """Test the Phase 2 Large-file Audio Transcription Pipeline"""
+        self.log("\n🎵 LARGE-FILE TRANSCRIPTION PIPELINE TESTS")
+        
+        # Test 1: Create Upload Session
+        self.log("📤 Testing upload session creation...")
+        session_data = {
+            "filename": "large_meeting_recording.mp3",
+            "total_size": 52428800,  # 50MB
+            "mime_type": "audio/mpeg",
+            "language": None,
+            "enable_diarization": True
+        }
+        
+        success, response = self.run_test(
+            "Create Upload Session",
+            "POST",
+            "uploads/sessions",
+            200,
+            data=session_data,
+            auth_required=True
+        )
+        
+        if not success:
+            self.log("❌ Upload session creation failed - skipping pipeline tests")
+            return False
+        
+        upload_id = response.get('upload_id')
+        chunk_size = response.get('chunk_size', 5242880)  # 5MB default
+        
+        if not upload_id:
+            self.log("❌ No upload_id returned - skipping pipeline tests")
+            return False
+        
+        self.log(f"   Upload ID: {upload_id}")
+        self.log(f"   Chunk size: {chunk_size} bytes")
+        
+        # Test 2: Upload Status Check
+        success, status_response = self.run_test(
+            "Get Upload Status",
+            "GET",
+            f"uploads/sessions/{upload_id}/status",
+            200,
+            auth_required=True
+        )
+        
+        if success:
+            self.log(f"   Status: {status_response.get('status')}")
+            self.log(f"   Progress: {status_response.get('progress', 0)}%")
+            self.log(f"   Total chunks: {status_response.get('total_chunks', 0)}")
+        
+        # Test 3: Simulate Chunk Upload (simplified for testing)
+        self.log("📦 Testing chunk upload...")
+        
+        # Create a small test chunk
+        import tempfile
+        chunk_data = b'FAKE_AUDIO_CHUNK_DATA' * 1000  # ~23KB test chunk
+        
+        with tempfile.NamedTemporaryFile(suffix='.chunk', delete=False) as tmp_file:
+            tmp_file.write(chunk_data)
+            tmp_file.flush()
+            
+            with open(tmp_file.name, 'rb') as f:
+                files = {'chunk': ('chunk_0', f, 'application/octet-stream')}
+                success, chunk_response = self.run_test(
+                    "Upload Chunk 0",
+                    "POST",
+                    f"uploads/sessions/{upload_id}/chunks/0",
+                    200,
+                    files=files,
+                    auth_required=True
+                )
+            
+            os.unlink(tmp_file.name)
+        
+        if success:
+            self.log(f"   Chunk uploaded: {chunk_response.get('uploaded', False)}")
+        
+        # Test 4: Finalize Upload (this will create transcription job)
+        self.log("✅ Testing upload finalization...")
+        
+        finalize_data = {
+            "upload_id": upload_id,
+            "sha256": None  # Optional for testing
+        }
+        
+        success, finalize_response = self.run_test(
+            "Finalize Upload",
+            "POST",
+            f"uploads/sessions/{upload_id}/complete",
+            200,
+            data=finalize_data,
+            auth_required=True
+        )
+        
+        job_id = None
+        if success:
+            job_id = finalize_response.get('job_id')
+            self.log(f"   Transcription job created: {job_id}")
+            self.log(f"   Status: {finalize_response.get('status')}")
+        
+        if not job_id:
+            self.log("❌ No job_id returned - skipping transcription tests")
+            return False
+        
+        # Test 5: Job Status Tracking
+        self.log("📊 Testing job status tracking...")
+        
+        success, job_status = self.run_test(
+            "Get Job Status",
+            "GET",
+            f"transcriptions/{job_id}",
+            200,
+            auth_required=True
+        )
+        
+        if success:
+            self.log(f"   Job status: {job_status.get('status')}")
+            self.log(f"   Current stage: {job_status.get('current_stage')}")
+            self.log(f"   Progress: {job_status.get('progress', 0)}%")
+            self.log(f"   Detected language: {job_status.get('detected_language', 'N/A')}")
+        
+        # Test 6: List User's Transcription Jobs
+        self.log("📋 Testing job listing...")
+        
+        success, jobs_list = self.run_test(
+            "List Transcription Jobs",
+            "GET",
+            "transcriptions/",
+            200,
+            auth_required=True
+        )
+        
+        if success:
+            jobs = jobs_list.get('jobs', [])
+            self.log(f"   Found {len(jobs)} transcription jobs")
+            for job in jobs[:3]:  # Show first 3
+                self.log(f"   - {job.get('filename', 'N/A')} ({job.get('status', 'N/A')})")
+        
+        # Test 7: Test Download Endpoints (will fail if not complete, but should return proper error)
+        self.log("💾 Testing download endpoints...")
+        
+        for format_type in ['txt', 'json', 'srt', 'vtt']:
+            success, download_response = self.run_test(
+                f"Download {format_type.upper()} Format",
+                "GET",
+                f"transcriptions/{job_id}/download?format={format_type}",
+                400,  # Expect 400 since job won't be complete yet
+                auth_required=True
+            )
+            # 400 is expected since job processing takes time
+        
+        # Test 8: Test Retry Functionality
+        self.log("🔄 Testing job retry functionality...")
+        
+        retry_data = {
+            "job_id": job_id,
+            "from_stage": "transcribing"
+        }
+        
+        success, retry_response = self.run_test(
+            "Retry Job (Should Fail - Not Failed)",
+            "POST",
+            f"transcriptions/{job_id}/retry",
+            400,  # Should fail since job is not in failed state
+            data=retry_data,
+            auth_required=True
+        )
+        # This is expected to fail since the job is not in failed state
+        
+        # Test 9: Test Cancel Job
+        self.log("🚫 Testing job cancellation...")
+        
+        success, cancel_response = self.run_test(
+            "Cancel Job",
+            "POST",
+            f"transcriptions/{job_id}/cancel",
+            200,
+            auth_required=True
+        )
+        
+        if success:
+            self.log(f"   Cancel message: {cancel_response.get('message', 'N/A')}")
+        
+        # Test 10: Health Check with Pipeline Status
+        self.log("🏥 Testing health check with pipeline status...")
+        
+        success, health_response = self.run_test(
+            "Health Check with Pipeline",
+            "GET",
+            "health",
+            200
+        )
+        
+        if success:
+            pipeline_info = health_response.get('pipeline', {})
+            self.log(f"   Pipeline status: {pipeline_info}")
+            
+            services = health_response.get('services', {})
+            self.log(f"   Database: {services.get('database', 'N/A')}")
+            self.log(f"   API: {services.get('api', 'N/A')}")
+            self.log(f"   Pipeline: {services.get('pipeline', 'N/A')}")
+        
+        # Test 11: Error Handling Tests
+        self.log("⚠️  Testing error handling...")
+        
+        # Test invalid upload session
+        success, error_response = self.run_test(
+            "Get Invalid Upload Session",
+            "GET",
+            "uploads/sessions/invalid-id/status",
+            404,
+            auth_required=True
+        )
+        
+        # Test invalid job ID
+        success, error_response = self.run_test(
+            "Get Invalid Job Status",
+            "GET",
+            "transcriptions/invalid-job-id",
+            404,
+            auth_required=True
+        )
+        
+        # Test invalid chunk upload
+        success, error_response = self.run_test(
+            "Upload to Invalid Session",
+            "POST",
+            "uploads/sessions/invalid-id/chunks/0",
+            404,
+            auth_required=True
+        )
+        
+        self.log("✅ Large-file transcription pipeline tests completed!")
+        return True
+
     def run_comprehensive_test(self):
         """Run all tests in sequence"""
         self.log("🚀 Starting AUTO-ME API Comprehensive Tests")
