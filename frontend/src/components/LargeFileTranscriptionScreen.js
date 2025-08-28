@@ -212,12 +212,23 @@ const LargeFileTranscriptionScreen = () => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <FileAudio className="w-5 h-5 text-blue-600" />
+            <div className="relative">
+              <FileAudio className="w-5 h-5 text-blue-600" />
+              {job.status === 'processing' && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              )}
+            </div>
             <div>
               <CardTitle className="text-base">{job.filename}</CardTitle>
               <CardDescription className="text-sm">
                 {job.total_duration ? formatDuration(job.total_duration) : 'Processing...'}
                 {job.detected_language && ` • ${job.detected_language.toUpperCase()}`}
+                {job.status === 'processing' && (
+                  <span className="ml-2 inline-flex items-center">
+                    <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1"></span>
+                    Live
+                  </span>
+                )}
               </CardDescription>
             </div>
           </div>
