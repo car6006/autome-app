@@ -354,53 +354,64 @@ class PipelineWorker:
             await self.handle_job_error(job.id, "SEGMENTATION_FAILED", str(e))
     
     async def stage_detect_language(self, job: TranscriptionJob):
-        """Stage 4: Detect audio language"""
+        """Stage 4: Enhanced language detection (Phase 3)"""
         stage = TranscriptionStage.DETECTING_LANGUAGE
-        logger.info(f"🌍 Job {job.id}: Detecting language")
+        logger.info(f"🌍 Job {job.id}: Enhanced language detection")
         
         start_time = time.time()
-        await TranscriptionJobStore.update_job_stage(job.id, stage, 20.0)
+        await TranscriptionJobStore.update_job_stage(job.id, stage, 10.0)
         
         try:
             job_data = await TranscriptionJobStore.get_job(job.id)
             
-            # If language already specified, skip detection
+            # If language already specified, validate and enhance
             if job_data.language:
                 detected_language = job_data.language
+                confidence = 1.0  # User specified
                 logger.info(f"Language pre-specified: {detected_language}")
             else:
-                # Get segments for language detection
+                # Enhanced language detection using multiple segments
                 checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.SEGMENTING)
                 if not checkpoint or not checkpoint.get("segments"):
                     raise Exception("Segment data not found")
                 
                 segments = checkpoint["segments"]
                 
-                # Use first few segments for language detection (max 3 minutes)
+                # Phase 3: Use multiple segments for better accuracy
                 detection_segments = []
                 total_detection_time = 0
                 
-                for segment in segments[:10]:  # First 10 segments max
-                    if total_detection_time >= 180:  # 3 minutes max
-                        break
-                    detection_segments.append(segment)
-                    total_detection_time += segment["duration"]
+                # Sample segments from beginning, middle, and end
+                segment_indices = []
+                if len(segments) >= 3:
+                    segment_indices = [0, len(segments)//2, len(segments)-1]
+                elif len(segments) >= 2:
+                    segment_indices = [0, len(segments)-1]
+                else:
+                    segment_indices = [0]
                 
-                await TranscriptionJobStore.update_stage_progress(job.id, stage, 40.0)
+                for idx in segment_indices:
+                    if idx < len(segments) and total_detection_time < 300:  # 5 minutes max
+                        segment = segments[idx]
+                        detection_segments.append(segment)
+                        total_detection_time += segment["duration"]
                 
-                # Run language detection on first segment (simplified for now)
-                if detection_segments:
-                    first_segment = detection_segments[0]
-                    segment_path = get_file_path(first_segment["storage_key"])
+                await TranscriptionJobStore.update_stage_progress(job.id, stage, 30.0)
+                
+                api_key = os.getenv("WHISPER_API_KEY") or os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    detected_language = "en"
+                    confidence = 0.5
+                    logger.warning("No API key for language detection, defaulting to English")
+                else:
+                    # Detect language from multiple segments for better accuracy
+                    language_votes = {}
+                    detection_results = []
                     
-                    # Use Whisper for language detection (can be improved with dedicated language detection)
-                    api_key = os.getenv("WHISPER_API_KEY") or os.getenv("OPENAI_API_KEY")
-                    if not api_key:
-                        detected_language = "en"  # Default fallback
-                        logger.warning("No API key for language detection, defaulting to English")
-                    else:
+                    for i, segment in enumerate(detection_segments):
                         try:
-                            # Quick transcription for language detection
+                            segment_path = get_file_path(segment["storage_key"])
+                            
                             with open(segment_path, "rb") as audio_file:
                                 files = {"file": audio_file}
                                 form = {"model": "whisper-1", "response_format": "verbose_json"}
@@ -415,21 +426,49 @@ class PipelineWorker:
                                     response.raise_for_status()
                                     
                                     result = response.json()
-                                    detected_language = result.get("language", "en")
+                                    lang = result.get("language", "en")
+                                    
+                                    # Vote for this language
+                                    language_votes[lang] = language_votes.get(lang, 0) + 1
+                                    detection_results.append({
+                                        "segment": i,
+                                        "language": lang,
+                                        "text_sample": result.get("text", "")[:100]
+                                    })
+                                    
+                                    await TranscriptionJobStore.update_stage_progress(
+                                        job.id, stage, 40.0 + (i * 20.0)
+                                    )
                                     
                         except Exception as e:
-                            logger.warning(f"Language detection failed: {e}, defaulting to English")
-                            detected_language = "en"
-                else:
-                    detected_language = "en"  # Default
+                            logger.warning(f"Language detection failed for segment {i}: {e}")
+                            continue
+                    
+                    # Determine most voted language
+                    if language_votes:
+                        detected_language = max(language_votes, key=language_votes.get)
+                        total_votes = sum(language_votes.values())
+                        confidence = language_votes[detected_language] / total_votes
+                        
+                        logger.info(f"Language detection results: {language_votes}")
+                        logger.info(f"Detected language: {detected_language} (confidence: {confidence:.2f})")
+                    else:
+                        detected_language = "en"
+                        confidence = 0.3
+                        detection_results = []
                 
-                await TranscriptionJobStore.update_stage_progress(job.id, stage, 80.0)
+                await TranscriptionJobStore.update_stage_progress(job.id, stage, 90.0)
             
-            # Store detected language
-            await TranscriptionJobStore.set_job_results(job.id, {
+            # Store enhanced language detection results
+            language_results = {
                 "detected_language": detected_language,
-                "language": detected_language  # Set as job language
-            })
+                "language": detected_language,
+                "language_confidence": confidence,
+                "detection_method": "multi_segment_whisper" if not job_data.language else "user_specified",
+                "detection_results": detection_results if 'detection_results' in locals() else []
+            }
+            
+            await TranscriptionJobStore.set_job_results(job.id, language_results)
             
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
             
@@ -439,7 +478,7 @@ class PipelineWorker:
             
             # Move to next stage
             await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.TRANSCRIBING, 0.0)
-            logger.info(f"✅ Job {job.id}: Language detection complete - {detected_language}")
+            logger.info(f"✅ Job {job.id}: Enhanced language detection complete - {detected_language} (conf: {confidence:.2f})")
             
         except Exception as e:
             await self.handle_job_error(job.id, "LANGUAGE_DETECTION_FAILED", str(e))
