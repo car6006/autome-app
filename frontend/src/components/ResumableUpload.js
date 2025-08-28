@@ -214,6 +214,42 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
       }
     }
   };
+  // Finalize upload with specific session (to avoid state race conditions)
+  const finalizeUploadWithSession = async (session) => {
+    try {
+      setUploadState('finalizing');
+      
+      // Calculate file hash for integrity check
+      const sha256 = await calculateSHA256(currentFile);
+      
+      const response = await axios.post(`${API}/api/uploads/sessions/${session.upload_id}/complete`, {
+        upload_id: session.upload_id,
+        sha256: sha256
+      });
+      
+      setUploadState('completed');
+      setUploadProgress(100);
+      
+      // Notify parent component
+      if (onUploadComplete) {
+        onUploadComplete({
+          jobId: response.data.job_id,
+          uploadId: response.data.upload_id,
+          filename: currentFile.name,
+          fileSize: currentFile.size
+        });
+      }
+      
+    } catch (error) {
+      console.error('Failed to finalize upload:', error);
+      setErrorMessage(error.response?.data?.detail || 'Failed to finalize upload');
+      setUploadState('error');
+      
+      if (onUploadError) {
+        onUploadError(error);
+      }
+    }
+  };
 
   // Start new upload
   const startUpload = async (file) => {
