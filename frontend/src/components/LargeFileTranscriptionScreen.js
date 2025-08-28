@@ -517,15 +517,15 @@ const LargeFileTranscriptionScreen = () => {
   }
 
   return (
-    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : theme.gradientBg}`}>
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className={`min-h-screen p-2 sm:p-4 md:p-6 ${theme.isExpeditors ? 'bg-white' : theme.gradientBg}`}>
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             {branding.logoText} Large File Transcription
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 px-2">
             Upload audio files up to 500MB for professional transcription with resumable uploads
           </p>
         </div>
