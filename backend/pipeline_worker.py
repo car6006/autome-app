@@ -328,7 +328,7 @@ class PipelineWorker:
             if "normalized" not in storage_paths:
                 raise Exception("Normalized audio file not found - transcoding may have failed")
             
-            normalized_path = await get_file_path(storage_paths["normalized"])
+            normalized_path = get_file_path_sync(storage_paths["normalized"])
             
             # Calculate segment parameters
             segment_duration = self.config.segment_duration  # 60 seconds default
