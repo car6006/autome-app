@@ -317,7 +317,7 @@ class PipelineWorker:
         try:
             # Get normalized audio file
             job_data = await TranscriptionJobStore.get_job(job.id)
-            normalized_path = get_file_path(job_data.storage_paths["normalized"])
+            normalized_path = await get_file_path(job_data.storage_paths["normalized"])
             
             # Calculate segment parameters
             segment_duration = self.config.segment_duration  # 60 seconds default
