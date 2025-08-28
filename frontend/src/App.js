@@ -836,7 +836,7 @@ const PhotoScanScreen = () => {
   };
 
   return (
-    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-green-50 via-white to-blue-50'}`}>
+    <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-green-50 via-white to-blue-50'}`}>
       <div className="max-w-md mx-auto">
         {/* User greeting */}
         {user && (
