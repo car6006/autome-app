@@ -177,6 +177,26 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
+  // Format stage names for better readability
+  const formatStageName = (stage) => {
+    if (!stage) return 'Initializing';
+    
+    const stageMap = {
+      'CREATED': '🔄 Initializing',
+      'VALIDATING': '🔍 Validating File',
+      'TRANSCODING': '🔄 Converting Audio',
+      'SEGMENTING': '✂️ Segmenting Audio',
+      'DETECTING_LANGUAGE': '🌍 Detecting Language',
+      'TRANSCRIBING': '🎤 Transcribing Audio',
+      'MERGING': '🔗 Merging Transcripts',
+      'DIARIZING': '👥 Speaker Analysis',
+      'GENERATING_OUTPUTS': '📄 Generating Files',
+      'COMPLETE': '✅ Complete'
+    };
+    
+    return stageMap[stage] || stage.replace(/_/g, ' ').toLowerCase();
+  };
+
   // Render job card
   const JobCard = ({ job, showProgress = false }) => (
     <Card key={job.job_id} className="mb-4">
