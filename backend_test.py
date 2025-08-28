@@ -2016,6 +2016,23 @@ Next Steps:
         # Test the Phase 2 implementation
         self.test_large_file_transcription_pipeline()
         
+        # === REVIEW REQUEST TESTS - TRANSFER TO NOTES ===
+        self.log("\n🎯 REVIEW REQUEST TESTS - TRANSFER TO NOTES")
+        
+        # Test the specific functionality requested in the review
+        transfer_success = self.test_transfer_to_notes_functionality()
+        cleanup_success = self.test_large_file_cleanup_verification()
+        
+        if transfer_success:
+            self.log("✅ Transfer-to-notes functionality: WORKING")
+        else:
+            self.log("❌ Transfer-to-notes functionality: NEEDS ATTENTION")
+        
+        if cleanup_success:
+            self.log("✅ Large file cleanup: WORKING")
+        else:
+            self.log("❌ Large file cleanup: NEEDS ATTENTION")
+        
         # === ANONYMOUS TESTS ===
         self.log("\n👤 ANONYMOUS USER TESTS")
         
