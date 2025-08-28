@@ -112,7 +112,10 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
 
   // Resume upload from last successful chunk
   const resumeUpload = async () => {
-    if (!uploadSession || !currentFile) return;
+    if (!uploadSession || !currentFile) {
+      setErrorMessage('Cannot resume upload: missing file or session data');
+      return;
+    }
     await resumeUploadWithSession(uploadSession, currentFile);
   };
 
