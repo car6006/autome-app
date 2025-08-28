@@ -669,9 +669,23 @@ test_plan:
   stress_test_upload_time: "2.0s"
   stress_test_system_stability: "maintained"
 
+  - task: "Large-file audio transcription pipeline - Phase 2: Job Pipeline Architecture"
+    implemented: true
+    working: false
+    file: "pipeline_worker.py, transcription_api.py, worker_manager.py, enhanced_store.py, upload_api.py, models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Phase 2 implementation completed. Created complete pipeline worker with all stages (validate, transcode, segment, detect_language, transcribe, merge, diarize, generate_outputs). Integrated transcription API endpoints and worker manager. Added ResumableUpload component and LargeFileTranscriptionScreen to frontend. Ready for testing."
+
 agent_communication:
   - agent: "main"
     message: "Database cleanup completed successfully. All test notes deleted, user data preserved. Starting systematic bug fixing process with backend issues first, then frontend issues."
+  - agent: "main"
+    message: "Phase 2: Job Pipeline Architecture implementation completed. The system now includes: 1) Complete pipeline worker with 8 processing stages, 2) Transcription API for job status and downloads, 3) Worker manager for lifecycle management, 4) Frontend components for large file upload and job tracking, 5) Integration with existing server infrastructure. The pipeline supports resumable uploads, background processing, multiple output formats (TXT, JSON, SRT, VTT), and proper error handling with retry capabilities. Ready for backend testing."
   - agent: "main"
     message: "BACKEND FIXES COMPLETED: Successfully fixed all critical backend issues - notes processing (file URL protocol fix), email delivery, JSON export (datetime serialization), file upload for scan, and export functionality. Backend testing shows 92% success rate. Ready to proceed with frontend bug fixes."
   - agent: "main"
