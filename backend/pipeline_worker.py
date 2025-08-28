@@ -1053,12 +1053,14 @@ class PipelineWorker:
     async def _update_main_note_with_results(self, job: TranscriptionJob):
         """Update the main notes system with transcription results from large file processing"""
         try:
+            logger.info(f"🔄 Starting main note update for job {job.id}")
+            
             # Get the final transcription results
             merge_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.MERGING)
             diarization_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.DIARIZING)
             
             if not merge_checkpoint:
-                logger.warning(f"No merge checkpoint found for job {job.id}, cannot update main note")
+                logger.warning(f"❌ No merge checkpoint found for job {job.id}, cannot update main note")
                 return
             
             final_transcript = merge_checkpoint.get("final_transcript", "")
@@ -1068,13 +1070,15 @@ class PipelineWorker:
             transcript_content = diarized_transcript or final_transcript
             
             if not transcript_content:
-                logger.warning(f"No transcript content found for job {job.id}")
+                logger.warning(f"❌ No transcript content found for job {job.id}")
                 return
             
-            # Find the corresponding main note by note_id (if available) or create artifacts
-            note_id = getattr(job, 'note_id', None)
+            logger.info(f"📝 Got transcript content: {len(transcript_content)} characters")
+            
+            # Find the corresponding main note
+            note_id = job.note_id
             if not note_id:
-                # Try to find note by matching title and user_id
+                # Fallback: Try to find note by matching title and user_id
                 from store import NotesStore
                 user_notes = await NotesStore.list_recent(limit=100, user_id=job.user_id)
                 matching_note = None
@@ -1087,10 +1091,12 @@ class PipelineWorker:
                 
                 if matching_note:
                     note_id = matching_note['id']
-                    logger.info(f"Found matching note {note_id} for job {job.id}")
+                    logger.info(f"📋 Found matching note {note_id} for job {job.id}")
                 else:
-                    logger.warning(f"No matching main note found for job {job.id} (filename: {job.filename})")
+                    logger.warning(f"❌ No matching main note found for job {job.id} (filename: {job.filename})")
                     return
+            
+            logger.info(f"🎯 Updating main note {note_id} with results from job {job.id}")
             
             # Update the main note with transcription results
             from store import NotesStore
@@ -1112,8 +1118,24 @@ class PipelineWorker:
             
             logger.info(f"✅ Successfully updated main note {note_id} with transcription results from job {job.id}")
             
+            # 🔥 MEMORY OPTIMIZATION: Clean up large file system data after successful transfer
+            try:
+                # Delete transcription assets from large file system to avoid duplication
+                from enhanced_store import TranscriptionAssetStore
+                await TranscriptionAssetStore.delete_assets_for_job(job.id)
+                logger.info(f"🗑️  Cleaned up large file assets for job {job.id} to avoid duplication")
+                
+                # Mark large file job as archived instead of deleting completely
+                await TranscriptionJobStore.update_job_status(job.id, TranscriptionStatus.COMPLETE)
+                logger.info(f"📁 Marked large file job {job.id} as complete")
+                
+            except Exception as cleanup_error:
+                logger.warning(f"⚠️  Failed to cleanup large file data for job {job.id}: {cleanup_error}")
+            
         except Exception as e:
-            logger.error(f"Failed to update main note for job {job.id}: {str(e)}")
+            logger.error(f"❌ Failed to update main note for job {job.id}: {str(e)}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             # Don't raise the error as this is a secondary operation
     
     def _generate_srt(self, segments):
