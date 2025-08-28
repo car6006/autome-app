@@ -482,9 +482,14 @@ class PipelineWorker:
                         try:
                             segment_path = get_file_path_sync(segment["storage_key"])
                             
+                            # Validate chunk size before API call (20MB ceiling)
+                            chunk_size_mb = os.path.getsize(segment_path) / (1024 * 1024)
+                            if chunk_size_mb > 20:
+                                raise Exception(f"Chunk too large: {chunk_size_mb:.1f}MB > 20MB limit. Re-segment required.")
+                            
                             with open(segment_path, "rb") as audio_file:
                                 files = {"file": audio_file}
-                                form = {"model": "whisper-1", "response_format": "verbose_json"}
+                                form = {"model": "gpt-4o-mini-transcribe", "response_format": "verbose_json"}
                                 
                                 async with httpx.AsyncClient(timeout=60) as client:
                                     response = await client.post(
