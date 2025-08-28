@@ -131,6 +131,50 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
+  // Cancel processing job
+  const cancelJob = async (jobId) => {
+    try {
+      await axios.post(`${API}/transcriptions/${jobId}/cancel`);
+      
+      toast({
+        title: "Job Cancelled",
+        description: "The transcription job has been cancelled successfully"
+      });
+      
+      loadJobs();
+    } catch (error) {
+      toast({
+        title: "Cancel Failed", 
+        description: error.response?.data?.detail || "Failed to cancel job",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Delete job and associated files
+  const deleteJob = async (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/transcriptions/${jobId}`);
+      
+      toast({
+        title: "Job Deleted",
+        description: "The transcription job and associated files have been deleted"
+      });
+      
+      loadJobs();
+    } catch (error) {
+      toast({
+        title: "Delete Failed",
+        description: error.response?.data?.detail || "Failed to delete job", 
+        variant: "destructive"
+      });
+    }
+  };
+
   // Download transcription
   const downloadTranscription = async (jobId, format = 'txt') => {
     try {
