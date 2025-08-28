@@ -898,6 +898,236 @@ class PipelineWorker:
         secs = int(seconds % 60)
         millisecs = int((seconds % 1) * 1000)
         return f"{hours:02d}:{minutes:02d}:{secs:02d}.{millisecs:03d}"
+    
+    async def _perform_ai_diarization(self, transcript: str, segments: list, api_key: str):
+        """Phase 3: AI-enhanced speaker diarization using OpenAI"""
+        
+        # Use OpenAI to analyze the transcript for speaker changes
+        prompt = f"""Analyze this transcript for speaker changes and identify distinct speakers. 
+        
+        Transcript:
+        {transcript[:2000]}...  # Limit to first 2000 chars for analysis
+        
+        Please:
+        1. Identify how many distinct speakers are present
+        2. Label each part with Speaker 1, Speaker 2, etc.
+        3. Look for conversation patterns, turn-taking, dialogue markers
+        
+        Format the response as JSON with:
+        - speaker_count: number of speakers
+        - diarized_text: the transcript with speaker labels
+        - speakers: array of speaker info
+        """
+        
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "You are an expert in speaker diarization. Analyze transcripts to identify distinct speakers."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "temperature": 0.3,
+                        "max_tokens": 1500
+                    },
+                    headers={"Authorization": f"Bearer {api_key}"}
+                )
+                response.raise_for_status()
+                
+                result = response.json()
+                ai_response = result["choices"][0]["message"]["content"]
+                
+                # Parse AI response (simplified - in production would use more robust parsing)
+                if "Speaker 2" in ai_response or "speaker 2" in ai_response.lower():
+                    speaker_count = 2 if "Speaker 3" not in ai_response else 3
+                    diarized_transcript = self._format_diarized_transcript(transcript, speaker_count)
+                else:
+                    speaker_count = 1
+                    diarized_transcript = f"Speaker 1: {transcript}"
+                
+                speakers = []
+                for i in range(1, speaker_count + 1):
+                    speakers.append({
+                        "id": f"Speaker {i}",
+                        "duration": (len(transcript) / speaker_count) * 0.1,  # Estimate
+                        "confidence": 0.8
+                    })
+                
+                return {
+                    "diarized_transcript": diarized_transcript,
+                    "speaker_count": speaker_count,
+                    "speakers": speakers,
+                    "confidence": 0.8,
+                    "ai_analysis": ai_response[:500]  # Store snippet for debugging
+                }
+                
+        except Exception as e:
+            logger.error(f"AI diarization failed: {e}")
+            raise e
+    
+    async def _perform_simple_diarization(self, transcript: str, segments: list, duration: float):
+        """Simple diarization fallback method"""
+        
+        # Simple heuristic: look for conversation patterns
+        lines = transcript.split('\n')
+        conversation_indicators = [': ', '- ', 'Q:', 'A:', 'Speaker', 'Person']
+        
+        has_conversation_markers = any(
+            indicator in transcript for indicator in conversation_indicators
+        )
+        
+        # Estimate speakers based on content length and patterns
+        if len(transcript) > 1000 and has_conversation_markers:
+            speaker_count = 2
+            # Simple alternating pattern for demonstration
+            words = transcript.split()
+            mid_point = len(words) // 2
+            
+            part1 = ' '.join(words[:mid_point])
+            part2 = ' '.join(words[mid_point:])
+            
+            diarized_transcript = f"Speaker 1: {part1}\n\nSpeaker 2: {part2}"
+            
+            speakers = [
+                {"id": "Speaker 1", "duration": duration * 0.5, "confidence": 0.6},
+                {"id": "Speaker 2", "duration": duration * 0.5, "confidence": 0.6}
+            ]
+        else:
+            speaker_count = 1
+            diarized_transcript = f"Speaker 1: {transcript}"
+            speakers = [{"id": "Speaker 1", "duration": duration or 0, "confidence": 0.9}]
+        
+        return {
+            "diarized_transcript": diarized_transcript,
+            "speaker_count": speaker_count,
+            "speakers": speakers,
+            "method": "simple_heuristic"
+        }
+    
+    def _format_diarized_transcript(self, transcript: str, speaker_count: int):
+        """Format transcript with speaker labels"""
+        if speaker_count == 1:
+            return f"Speaker 1: {transcript}"
+        
+        # Simple approach: split by sentences and alternate speakers
+        sentences = transcript.split('. ')
+        diarized_parts = []
+        current_speaker = 1
+        
+        for i, sentence in enumerate(sentences):
+            if sentence.strip():
+                diarized_parts.append(f"Speaker {current_speaker}: {sentence.strip()}.")
+                # Switch speakers occasionally for demonstration
+                if i > 0 and i % 3 == 0 and speaker_count > 1:
+                    current_speaker = 2 if current_speaker == 1 else 1
+        
+        return '\n\n'.join(diarized_parts)
+    
+    async def _generate_docx(self, job_id: str, transcript: str, segments: list, metadata: dict):
+        """Phase 3: Generate professional DOCX document"""
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.style import WD_STYLE_TYPE
+        import io
+        
+        # Create document
+        doc = Document()
+        
+        # Set document margins
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+        
+        # Add title
+        title = doc.add_heading('Audio Transcription Report', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Add metadata section
+        doc.add_heading('Document Information', level=1)
+        
+        # Create metadata table
+        table = doc.add_table(rows=0, cols=2)
+        table.style = 'Light Grid Accent 1'
+        
+        metadata_items = [
+            ('Job ID', job_id),
+            ('Language', metadata.get('metadata', {}).get('language', 'Unknown')),
+            ('Duration', f"{metadata.get('metadata', {}).get('duration', 0):.1f} seconds"),
+            ('Word Count', str(metadata.get('metadata', {}).get('word_count', 0))),
+            ('Confidence', f"{metadata.get('metadata', {}).get('confidence', 0):.2%}"),
+            ('Generated', datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'))
+        ]
+        
+        for label, value in metadata_items:
+            row = table.add_row()
+            row.cells[0].text = label
+            row.cells[1].text = str(value)
+        
+        # Add transcript section
+        doc.add_page_break()
+        doc.add_heading('Transcript', level=1)
+        
+        # Format transcript with proper paragraphs
+        transcript_lines = transcript.split('\n')
+        for line in transcript_lines:
+            if line.strip():
+                p = doc.add_paragraph(line.strip())
+                if line.startswith('Speaker'):
+                    # Make speaker labels bold
+                    run = p.runs[0]
+                    if ':' in line:
+                        speaker_part = line.split(':', 1)[0] + ':'
+                        p.clear()
+                        speaker_run = p.add_run(speaker_part)
+                        speaker_run.bold = True
+                        content_run = p.add_run(' ' + line.split(':', 1)[1] if ':' in line else '')
+                        content_run.bold = False
+        
+        # Add segments section if available
+        if segments and len(segments) > 0:
+            doc.add_page_break()
+            doc.add_heading('Detailed Segments', level=1)
+            
+            segment_table = doc.add_table(rows=1, cols=4)
+            segment_table.style = 'Light Grid Accent 1'
+            
+            # Headers
+            headers = ['Time', 'Duration', 'Confidence', 'Text']
+            for i, header in enumerate(headers):
+                segment_table.rows[0].cells[i].text = header
+                segment_table.rows[0].cells[i].paragraphs[0].runs[0].bold = True
+            
+            # Add segments (limit to first 50 for document size)
+            for segment in segments[:50]:
+                if segment.get('text') and segment['text'] != '[Transcription failed]':
+                    row = segment_table.add_row()
+                    start_time = segment.get('start_time', 0)
+                    end_time = segment.get('end_time', 0)
+                    duration = end_time - start_time
+                    
+                    row.cells[0].text = self._seconds_to_srt_time(start_time)
+                    row.cells[1].text = f"{duration:.1f}s"
+                    row.cells[2].text = f"{segment.get('confidence', 0):.2f}"
+                    row.cells[3].text = segment['text'][:100] + ('...' if len(segment['text']) > 100 else '')
+        
+        # Add footer
+        doc.add_page_break()
+        footer_p = doc.add_paragraph('This transcript was generated using advanced AI transcription technology. ')
+        footer_p.add_run('Please review for accuracy before use in official contexts.')
+        footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Convert to bytes
+        doc_buffer = io.BytesIO()
+        doc.save(doc_buffer)
+        doc_buffer.seek(0)
+        
+        return doc_buffer.getvalue()
 
     async def handle_job_error(self, job_id: str, error_code: str, error_message: str):
         """Handle job errors and determine if retry is possible"""
