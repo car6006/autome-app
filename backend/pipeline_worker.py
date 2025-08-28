@@ -638,18 +638,16 @@ class PipelineWorker:
             await self.handle_job_error(job.id, "MERGE_FAILED", str(e))
     
     async def stage_diarize(self, job: TranscriptionJob):
-        """Stage 7: Speaker diarization (simplified for Phase 2)"""
+        """Stage 7: Enhanced Speaker diarization (Phase 3)"""
         stage = TranscriptionStage.DIARIZING
-        logger.info(f"👥 Job {job.id}: Speaker diarization")
+        logger.info(f"👥 Job {job.id}: Enhanced speaker diarization")
         
         start_time = time.time()
-        await TranscriptionJobStore.update_job_stage(job.id, stage, 20.0)
+        await TranscriptionJobStore.update_job_stage(job.id, stage, 10.0)
         
         try:
             job_data = await TranscriptionJobStore.get_job(job.id)
             
-            # For Phase 2, we'll skip speaker diarization if not enabled
-            # or implement a simplified version
             if not job_data.enable_diarization:
                 logger.info(f"Diarization disabled for job {job.id}, skipping")
                 await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
@@ -662,24 +660,45 @@ class PipelineWorker:
                 await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.GENERATING_OUTPUTS, 0.0)
                 return
             
-            # Get merge results
-            checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.MERGING)
-            if not checkpoint:
-                raise Exception("Merge data not found")
+            # Get transcription and merge results
+            transcription_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.TRANSCRIBING)
+            merge_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.MERGING)
             
-            final_transcript = checkpoint.get("final_transcript", "")
+            if not transcription_checkpoint or not merge_checkpoint:
+                raise Exception("Transcription or merge data not found")
             
-            await TranscriptionJobStore.update_stage_progress(job.id, stage, 50.0)
+            segments = transcription_checkpoint.get("transcripts", [])
+            final_transcript = merge_checkpoint.get("final_transcript", "")
             
-            # Simplified diarization - just label as single speaker for now
-            # In Phase 3, this would integrate with proper diarization models
-            diarized_transcript = f"Speaker 1: {final_transcript}"
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 30.0)
             
-            diarization_results = {
-                "diarized_transcript": diarized_transcript,
-                "speaker_count": 1,
-                "speakers": [{"id": "Speaker 1", "duration": job_data.total_duration or 0}]
-            }
+            # Phase 3: Enhanced speaker diarization using OpenAI for speaker detection
+            logger.info(f"Performing advanced speaker diarization for {len(segments)} segments")
+            
+            # Use OpenAI to analyze speaker patterns in the transcript
+            api_key = os.getenv("WHISPER_API_KEY") or os.getenv("OPENAI_API_KEY")
+            
+            if api_key and len(final_transcript) > 100:  # Only for substantial content
+                try:
+                    diarized_result = await self._perform_ai_diarization(final_transcript, segments, api_key)
+                    
+                    await TranscriptionJobStore.update_stage_progress(job.id, stage, 80.0)
+                    
+                    diarization_results = {
+                        "diarized_transcript": diarized_result["diarized_transcript"],
+                        "speaker_count": diarized_result["speaker_count"],
+                        "speakers": diarized_result["speakers"],
+                        "confidence": diarized_result.get("confidence", 0.75),
+                        "method": "ai_enhanced"
+                    }
+                    
+                except Exception as e:
+                    logger.warning(f"AI diarization failed: {e}, falling back to simple method")
+                    # Fallback to simple diarization
+                    diarization_results = await self._perform_simple_diarization(final_transcript, segments, job_data.total_duration)
+            else:
+                # Simple diarization for short content or when no API key
+                diarization_results = await self._perform_simple_diarization(final_transcript, segments, job_data.total_duration)
             
             await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, diarization_results)
             
@@ -691,7 +710,7 @@ class PipelineWorker:
             
             # Move to next stage
             await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.GENERATING_OUTPUTS, 0.0)
-            logger.info(f"✅ Job {job.id}: Diarization complete")
+            logger.info(f"✅ Job {job.id}: Enhanced diarization complete ({diarization_results['speaker_count']} speakers)")
             
         except Exception as e:
             await self.handle_job_error(job.id, "DIARIZATION_FAILED", str(e))
