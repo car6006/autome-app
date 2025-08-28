@@ -553,7 +553,30 @@ const LargeFileTranscriptionScreen = () => {
                 </CardContent>
               </Card>
             ) : (
-              completedJobs.map(job => <JobCard key={job.job_id} job={job} />)
+              <>
+                {/* Bulk Actions */}
+                {completedJobs.filter(job => job.status === 'failed').length > 0 && (
+                  <Card className="mb-4">
+                    <CardContent className="py-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          {completedJobs.filter(job => job.status === 'failed').length} failed jobs
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteAllFailedJobs()}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Delete All Failed
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {completedJobs.map(job => <JobCard key={job.job_id} job={job} />)}
+              </>
             )}
           </TabsContent>
         </Tabs>
