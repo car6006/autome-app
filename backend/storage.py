@@ -32,6 +32,20 @@ def get_file_url(file_key: str) -> str:
         return f"file://{file_path}"
     raise FileNotFoundError(f"File not found: {file_key}")
 
+def store_file_content(content: bytes, filename: str) -> str:
+    """Store content as file and return a key"""
+    file_key = str(uuid.uuid4()) + "_" + filename
+    file_path = STORAGE_DIR / file_key
+    
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    return file_key
+
+async def store_file_content(content: bytes, filename: str) -> str:
+    """Async version of store_file_content"""
+    return store_file_content(content, filename)
+
 def create_presigned_get_url(file_key: str) -> str:
     """Create a presigned URL for file access (returns local path for processing)"""
     file_path = get_file_path(file_key)
