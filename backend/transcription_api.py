@@ -11,7 +11,7 @@ from models import (
     JobStatusResponse, RetryJobRequest, TranscriptionStage, TranscriptionStatus
 )
 from enhanced_store import TranscriptionJobStore, TranscriptionAssetStore
-from auth import get_current_user_optional
+from auth import get_current_user_optional, get_current_user
 from storage import create_presigned_get_url
 import logging
 
