@@ -214,13 +214,19 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
       }
     }
   };
-  // Finalize upload with specific session (to avoid state race conditions)
-  const finalizeUploadWithSession = async (session) => {
+  // Finalize upload with specific session and file (to avoid state race conditions)
+  const finalizeUploadWithSession = async (session, file) => {
     try {
       setUploadState('finalizing');
       
+      // Use the file from parameter or fall back to currentFile
+      const fileToUse = file || currentFile;
+      if (!fileToUse) {
+        throw new Error('No file available for finalization');
+      }
+      
       // Calculate file hash for integrity check
-      const sha256 = await calculateSHA256(currentFile);
+      const sha256 = await calculateSHA256(fileToUse);
       
       const response = await axios.post(`${API}/api/uploads/sessions/${session.upload_id}/complete`, {
         upload_id: session.upload_id,
@@ -235,8 +241,8 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
         onUploadComplete({
           jobId: response.data.job_id,
           uploadId: response.data.upload_id,
-          filename: currentFile.name,
-          fileSize: currentFile.size
+          filename: fileToUse.name,
+          fileSize: fileToUse.size
         });
       }
       
