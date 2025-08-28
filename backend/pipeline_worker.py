@@ -224,7 +224,7 @@ class PipelineWorker:
             await TranscriptionJobStore.record_stage_duration(job.id, stage, duration_seconds)
             
             # Move to next stage
-            await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.TRANSCODING, 0.0)
+            await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.VALIDATING, 100.0)
             logger.info(f"✅ Job {job.id}: Validation complete ({duration:.1f}s audio)")
             
         except Exception as e:
