@@ -1893,18 +1893,23 @@ APPENDIX: SESSION TRANSCRIPTS
 """
         
         else:
-            # Clean format for TXT/RTF
-            clean_minutes = meeting_minutes_result.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
-            clean_actions = action_items_result.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
-            
-            final_content = f"""{title}
-Multi-Session Report - {report_date}
+            # Clean format for TXT/RTF - Simple notes without speaker confusion
+            clean_content = f"""{title}
+Multi-Session Report
+Generated: {report_date}
 Sessions: {len(all_transcripts)}
 
-{clean_minutes}
-
-{clean_actions}
 """
+            # Just include the actual content without complex formatting
+            for item in all_transcripts:
+                clean_content += f"""
+SESSION: {item['title']}
+{'-' * 50}
+{item['content']}
+
+"""
+            
+            final_content = clean_content
         
         # Handle RTF format
         if format == "rtf":
