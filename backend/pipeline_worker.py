@@ -794,6 +794,21 @@ class PipelineWorker:
             await TranscriptionAssetStore.create_asset(vtt_asset)
             assets_created.append("vtt")
             
+            # Generate DOCX format (Phase 3 enhancement)
+            await TranscriptionJobStore.update_stage_progress(job.id, stage, 90.0)
+            docx_content = await self._generate_docx(job.id, diarized_transcript, segments, json_data)
+            docx_key = await store_file_content_async(docx_content, f"job_{job.id}_transcript.docx")
+            
+            docx_asset = TranscriptionAsset(
+                job_id=job.id,
+                kind="docx",
+                storage_key=docx_key,
+                file_size=len(docx_content),
+                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+            await TranscriptionAssetStore.create_asset(docx_asset)
+            assets_created.append("docx")
+            
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 100.0)
             
             # Store output results
