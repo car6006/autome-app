@@ -292,7 +292,8 @@ class PipelineWorker:
                     normalized_key = await store_file_content_async(f.read(), f"job_{job.id}_normalized.wav")
                 
                 # Update job with normalized file path
-                storage_paths = job_data.storage_paths.copy()
+                storage_paths = getattr(job_data, 'storage_paths', {}) or {}
+                storage_paths["original"] = session.storage_key
                 storage_paths["normalized"] = normalized_key
                 await TranscriptionJobStore.set_job_results(job.id, {
                     "storage_paths": storage_paths
