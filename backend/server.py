@@ -1889,6 +1889,7 @@ async def get_metrics(
 app.include_router(api_router)
 app.include_router(upload_router, prefix="/api")  # New resumable upload API
 app.include_router(transcription_router, prefix="/api")  # New transcription job API
+app.include_router(webhook_router, prefix="/api")  # Phase 4: Webhook management API
 
 app.add_middleware(
     CORSMiddleware,
