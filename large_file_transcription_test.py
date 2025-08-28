@@ -61,8 +61,10 @@ class LargeFileTranscriptionTester:
         try:
             user_data = {
                 "email": f"test_large_file_{int(time.time())}@expeditors.com",
+                "username": f"testuser_{int(time.time())}",
                 "password": "TestPassword123!",
-                "full_name": "Large File Test User"
+                "first_name": "Large File",
+                "last_name": "Test User"
             }
             
             async with httpx.AsyncClient(timeout=30) as client:
