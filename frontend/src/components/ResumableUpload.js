@@ -236,8 +236,8 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
       setUploadSession(session);
       setTotalChunks(Math.ceil(file.size / session.chunk_size));
       
-      // Start uploading
-      await resumeUpload();
+      // Start uploading - pass session directly to avoid state update race condition
+      await resumeUploadWithSession(session, file);
       
     } catch (error) {
       console.error('Failed to start upload:', error);
