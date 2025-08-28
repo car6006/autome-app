@@ -2401,30 +2401,6 @@ const NotesScreen = () => {
                     </Button>
                   </div>
                 )}
-                
-                {/* Action buttons - Delete and Archive */}
-                <div className="flex space-x-2 pt-2 border-t border-gray-200">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => archiveNote(note.id)}
-                    className="flex-1 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 text-xs sm:text-sm px-2"
-                  >
-                    <Archive className="w-3 h-3 mr-1" />
-                    <span className="hidden sm:inline">Archive</span>
-                    <span className="sm:hidden">Archive</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => deleteNote(note.id)}
-                    className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2"
-                  >
-                    <Trash2 className="w-3 h-3 mr-1" />
-                    <span className="hidden sm:inline">Delete</span>
-                    <span className="sm:hidden">Delete</span>
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           ))}
