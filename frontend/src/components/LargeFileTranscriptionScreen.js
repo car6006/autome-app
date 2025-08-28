@@ -60,11 +60,20 @@ const LargeFileTranscriptionScreen = () => {
     if (user) {
       loadJobs();
       
-      // Refresh jobs every 30 seconds
-      const interval = setInterval(loadJobs, 30000);
+      // More frequent updates for better real-time progress
+      const interval = setInterval(loadJobs, 5000); // Every 5 seconds
       return () => clearInterval(interval);
     }
   }, [user]);
+
+  // Additional effect for real-time progress updates on active jobs
+  useEffect(() => {
+    if (activeJobs.length > 0) {
+      // Even more frequent updates when there are active jobs
+      const activeJobsInterval = setInterval(loadJobs, 2000); // Every 2 seconds
+      return () => clearInterval(activeJobsInterval);
+    }
+  }, [activeJobs.length]);
 
   // Handle successful upload
   const handleUploadComplete = (uploadResult) => {
