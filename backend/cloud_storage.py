@@ -420,15 +420,23 @@ async def get_file_path(storage_key: str) -> str:
     return await storage_manager.get_file_url(storage_key)
 
 def get_file_path_sync(storage_key: str) -> str:
-    """Synchronous version for existing code"""
-    import asyncio
-    try:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(storage_manager.get_file_url(storage_key))
-    except RuntimeError:
-        # If no event loop, create one
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(storage_manager.get_file_url(storage_key))
-        finally:
-            loop.close()
+    """Synchronous version that directly accesses local storage"""
+    # For local storage, we can directly construct the path
+    storage_dir = Path(os.getenv("LOCAL_STORAGE_DIR", "/tmp/autome_storage"))
+    file_path = storage_dir / storage_key
+    
+    if file_path.exists():
+        return str(file_path.absolute())
+    else:
+        # Try to find the file in common locations
+        possible_paths = [
+            storage_dir / storage_key,
+            Path("/tmp/autome_storage") / storage_key,
+            Path("./storage") / storage_key
+        ]
+        
+        for path in possible_paths:
+            if path.exists():
+                return str(path.absolute())
+        
+        raise FileNotFoundError(f"File not found: {storage_key}"))
