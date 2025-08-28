@@ -233,6 +233,12 @@ class TranscriptionJobStore:
         }).sort("created_at", 1).limit(50)
         docs = await cursor.to_list(length=None)
         return [TranscriptionJob(**doc) for doc in docs]
+    
+    @staticmethod
+    async def delete_job(job_id: str):
+        """Delete job from database"""
+        result = await TranscriptionJobStore.collection.delete_one({"id": job_id})
+        return result.deleted_count > 0
 
 class TranscriptionAssetStore:
     """Store for managing transcription output assets"""
