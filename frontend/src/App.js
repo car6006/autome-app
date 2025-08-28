@@ -1095,6 +1095,9 @@ const NotesScreen = () => {
   const [showMeetingMinutesPreview, setShowMeetingMinutesPreview] = useState(false);
   const [meetingMinutes, setMeetingMinutes] = useState("");
   const [generatingMinutes, setGeneratingMinutes] = useState({});
+  const [generatingActionItems, setGeneratingActionItems] = useState({});
+  const [showActionItemsModal, setShowActionItemsModal] = useState(false);
+  const [currentActionItems, setCurrentActionItems] = useState(null);
   const [currentNoteForMinutes, setCurrentNoteForMinutes] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { toast } = useToast();
