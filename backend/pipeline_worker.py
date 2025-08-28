@@ -600,28 +600,17 @@ class PipelineWorker:
                         
                         for attempt in range(max_retries):
                             try:
-                                # FOR TESTING: Mock successful transcription to avoid API calls
-                                if not api_key or api_key.startswith("sk-proj-1Qx"):  # Mock if using demo key
-                                    # Simulate successful transcription
-                                    await asyncio.sleep(1)  # Simulate API call time
-                                    result = {
-                                        "text": f"Mock transcription for segment {i+1}. This is simulated transcribed content.",
-                                        "segments": [{"start": segment["original_start"], "end": segment["original_end"]}]
-                                    }
+                                async with httpx.AsyncClient(timeout=60) as client:
+                                    response = await client.post(
+                                        "https://api.openai.com/v1/audio/transcriptions",
+                                        data=form,
+                                        files=files,
+                                        headers={"Authorization": f"Bearer {api_key}"}
+                                    )
+                                    response.raise_for_status()
+                                    
+                                    result = response.json()
                                     transcript_text = result.get("text", "")
-                                else:
-                                    # Real OpenAI API call
-                                    async with httpx.AsyncClient(timeout=60) as client:
-                                        response = await client.post(
-                                            "https://api.openai.com/v1/audio/transcriptions",
-                                            data=form,
-                                            files=files,
-                                            headers={"Authorization": f"Bearer {api_key}"}
-                                        )
-                                        response.raise_for_status()
-                                        
-                                        result = response.json()
-                                        transcript_text = result.get("text", "")
                                     
                                     # Store segment transcript with timing info
                                     transcripts.append({
