@@ -280,7 +280,7 @@ async def finalize_upload(
         # Store final file using existing storage system
         with open(final_path, "rb") as f:
             file_content = f.read()
-            storage_key = await store_file(file_content, session.filename)
+            storage_key = store_file(file_content, session.filename)
         
         # Mark session as completed
         await UploadSessionStore.complete_session(upload_id, storage_key, calculated_sha256)
