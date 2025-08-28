@@ -71,7 +71,9 @@ class Phase4ProductionTester:
     
     def get_auth_headers(self) -> Dict[str, str]:
         """Get authentication headers"""
-        return {"Authorization": f"Bearer {self.auth_token}"}
+        if self.auth_token:
+            return {"Authorization": f"Bearer {self.auth_token}"}
+        return {}
     
     async def test_multi_backend_cloud_storage(self):
         """Test Multi-Backend Cloud Storage System"""
