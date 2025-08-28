@@ -674,6 +674,9 @@ class PipelineWorker:
             logger.info(f"💾 Job {job.id}: Saving checkpoint with {len(transcripts)} transcripts...")
             await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, checkpoint_data)
             
+            # Small delay to ensure database consistency
+            await asyncio.sleep(0.5)
+            
             # Verify the checkpoint was saved
             verification = await TranscriptionJobStore.get_stage_checkpoint(job.id, stage)
             if verification and verification.get("transcripts"):
