@@ -103,6 +103,53 @@ async def add_security_headers(request, call_next):
     
     return response
 
+# Input Validation and Rate Limiting
+@app.middleware("http")
+async def validate_and_rate_limit(request, call_next):
+    # Block common malicious patterns
+    malicious_patterns = [
+        "<script", "javascript:", "vbscript:", "onload=", "onerror=", 
+        "../../", "..\\", "%2e%2e", "..", "cmd.exe", "/etc/passwd",
+        "DROP TABLE", "SELECT * FROM", "UNION SELECT", "INSERT INTO",
+        "<?php", "<%", "{{", "{%", "<%=", "#{", "${", "/*", "*/", "--"
+    ]
+    
+    # Check URL and query parameters
+    url_path = str(request.url.path).lower()
+    query_string = str(request.url.query).lower()
+    
+    for pattern in malicious_patterns:
+        if pattern in url_path or pattern in query_string:
+            logger.warning(f"🚨 Blocked malicious request: {pattern} in {request.url}")
+            raise HTTPException(
+                status_code=400, 
+                detail="Request blocked for security reasons"
+            )
+    
+    # Rate limiting by IP (basic implementation)
+    client_ip = request.client.host
+    current_time = time.time()
+    
+    # Simple in-memory rate limiting (60 requests per minute per IP)
+    if not hasattr(app.state, "rate_limit"):
+        app.state.rate_limit = {}
+    
+    if client_ip in app.state.rate_limit:
+        requests, last_reset = app.state.rate_limit[client_ip]
+        if current_time - last_reset > 60:  # Reset every minute
+            app.state.rate_limit[client_ip] = (1, current_time)
+        elif requests > 60:
+            raise HTTPException(
+                status_code=429, 
+                detail="Rate limit exceeded. Please try again later."
+            )
+        else:
+            app.state.rate_limit[client_ip] = (requests + 1, last_reset)
+    else:
+        app.state.rate_limit[client_ip] = (1, current_time)
+    
+    return await call_next(request)
+
 # Global exception handler for enhanced security
 @app.exception_handler(500)
 async def internal_server_error_handler(request, exc):
