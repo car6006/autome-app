@@ -489,7 +489,7 @@ class PipelineWorker:
                             
                             with open(segment_path, "rb") as audio_file:
                                 files = {"file": audio_file}
-                                form = {"model": "gpt-4o-mini-transcribe", "response_format": "verbose_json"}
+                                form = {"model": "gpt-4o-mini-transcribe", "response_format": "json"}  # Changed from verbose_json to json
                                 
                                 async with httpx.AsyncClient(timeout=60) as client:
                                     response = await client.post(
