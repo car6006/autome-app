@@ -1719,6 +1719,11 @@ const NotesScreen = () => {
   };
 
   const formatReportText = (text) => {
+    // Handle undefined or null text input
+    if (!text || typeof text !== 'string') {
+      return '<p class="mb-4 text-gray-700 leading-relaxed">No content available</p>';
+    }
+    
     // Convert the clean report text to properly formatted HTML
     let formatted = text;
     
