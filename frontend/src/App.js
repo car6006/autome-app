@@ -13,6 +13,13 @@ import { Textarea } from "./components/ui/textarea";
 import { Separator } from "./components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "./components/ui/dropdown-menu";
+import { 
   Mic, Camera, Upload, Play, Square, Mail, GitBranch, Clock, FileText, 
   Zap, BarChart3, Loader2, User, Settings, UserPlus, LogIn, Sparkles,
   Heart, Download, Edit, Save, HelpCircle, Trash2, Archive, Target,
