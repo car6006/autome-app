@@ -84,7 +84,9 @@ class PipelineWorker:
             elif job.current_stage == TranscriptionStage.DIARIZING:
                 await self.stage_generate_outputs(job)
             elif job.current_stage == TranscriptionStage.GENERATING_OUTPUTS:
-                await self.stage_finalize(job)
+                await self.stage_generate_outputs(job)
+            elif job.current_stage == TranscriptionStage.COMPLETE:
+                logger.info(f"Job {job.id} already complete")
             else:
                 logger.warning(f"Job {job.id} in unknown stage: {job.current_stage}")
                 
