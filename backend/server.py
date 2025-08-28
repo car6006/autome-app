@@ -931,6 +931,94 @@ async def generate_meeting_minutes(
         logger.error(f"Meeting minutes generation error: {str(e)}")
         raise HTTPException(status_code=500, detail="Meeting minutes generation temporarily unavailable")
 
+@api_router.post("/notes/{note_id}/generate-action-items")
+async def generate_action_items(
+    note_id: str,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Generate structured action items table from meeting content"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    transcript = artifacts.get("transcript", "")
+    
+    if not transcript:
+        raise HTTPException(status_code=400, detail="No content available for action items generation")
+    
+    try:
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise HTTPException(status_code=503, detail="AI service configuration error")
+        
+        # Generate action items in table format
+        prompt = f"""
+        Based on the following meeting transcript, extract and create a comprehensive action items table.
+
+        TRANSCRIPT:
+        {transcript}
+
+        INSTRUCTIONS:
+        Create a structured action items table with the following format:
+
+        Consolidated Action Items
+
+        No. | Action Item | Start Date | End Date | Status | Responsible Person
+        1   | [Detailed action description] | | | |
+        2   | [Detailed action description] | | | |
+        [etc.]
+
+        REQUIREMENTS:
+        - Extract ALL actionable items, decisions, and commitments mentioned
+        - Write clear, specific action descriptions
+        - Number each item sequentially
+        - Leave Start Date, End Date, Status, and Responsible Person columns empty for manual completion
+        - Focus on concrete, measurable actions
+        - Include both explicit action items and implied commitments from discussions
+        - Use professional business language
+        - NO markdown formatting, just clean text
+
+        Format the response as a simple table that can be easily copied into a document.
+        """
+        
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 1500,
+                    "temperature": 0.2
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            
+            ai_analysis = response.json()
+            action_items_table = ai_analysis["choices"][0]["message"]["content"]
+            
+            # Store the action items in artifacts
+            updated_artifacts = {**artifacts, "action_items": action_items_table}
+            await NotesStore.set_artifacts(note_id, updated_artifacts)
+            
+            return {
+                "action_items": action_items_table,
+                "note_title": note["title"],
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "note_id": note_id
+            }
+    
+    except Exception as e:
+        logger.error(f"Action items generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Action items generation temporarily unavailable")
+
 @api_router.get("/notes/{note_id}/ai-conversations/export")
 async def export_ai_conversations(
     note_id: str,
