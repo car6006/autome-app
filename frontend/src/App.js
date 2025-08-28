@@ -2489,7 +2489,7 @@ const NotesScreen = () => {
         {/* AI Chat Modal */}
         {showAiChatModal && aiChatNote && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+            <div className="bg-white rounded-lg w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden mb-16 sm:mb-0">
               <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
