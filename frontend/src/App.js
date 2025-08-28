@@ -2260,97 +2260,124 @@ const NotesScreen = () => {
                       </Button>
                     </div>
                     
-                    {/* Generate Meeting Minutes Button */}
+                    {/* Grouped Action Buttons Dropdown */}
                     <div className="mb-2 sm:mb-3">
-                      <Button
-                        size="sm"
-                        onClick={() => generateMeetingMinutes(note)}
-                        disabled={generatingMinutes[note.id]}
-                        className={`w-full text-xs sm:text-sm ${
-                          theme.isExpeditors 
-                            ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
-                            : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
-                        }`}
-                      >
-                        {generatingMinutes[note.id] ? (
-                          <>
-                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                            <span className="hidden sm:inline">Generating...</span>
-                            <span className="sm:hidden">Gen...</span>
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="w-3 h-3 mr-1" />
-                            <span className="hidden sm:inline">Generate Meeting Minutes</span>
-                            <span className="sm:hidden">Minutes</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Generate Action Items Button */}
-                    <div className="mb-2 sm:mb-3">
-                      <Button
-                        size="sm"
-                        onClick={() => generateActionItems(note)}
-                        disabled={generatingActionItems[note.id]}
-                        className={`w-full text-xs sm:text-sm ${
-                          theme.isExpeditors 
-                            ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white'
-                            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                        }`}
-                      >
-                        {generatingActionItems[note.id] ? (
-                          <>
-                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                            <span className="hidden sm:inline">Generating...</span>
-                            <span className="sm:hidden">Gen...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            <span className="hidden sm:inline">Generate Action Items</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            className={`w-full text-xs sm:text-sm ${
+                              theme.isExpeditors 
+                                ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                                : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
+                            }`}
+                          >
+                            <Settings className="w-3 h-3 mr-1" />
+                            <span className="hidden sm:inline">Actions</span>
                             <span className="sm:hidden">Actions</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    
-                    {/* Professional Report Generation */}
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        onClick={() => generateProfessionalReport(note.id)}
-                        disabled={generatingReport[note.id]}
-                        className={`flex-1 text-xs sm:text-sm ${
-                          theme.isExpeditors 
-                            ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
-                            : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white'
-                        }`}
-                      >
-                        {generatingReport[note.id] ? (
-                          <>
-                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                            <span className="hidden sm:inline">Generating...</span>
-                            <span className="sm:hidden">Gen...</span>
-                          </>
-                        ) : (
-                          <>
-                            <FileBarChart className="w-3 h-3 mr-1" />
-                            <span className="hidden sm:inline">Professional Report</span>
-                            <span className="sm:hidden">Report</span>
-                          </>
-                        )}
-                      </Button>
-                      
-                      <Button
-                        size="sm"
-                        variant={selectedNotesForBatch.includes(note.id) ? "default" : "outline"}
-                        onClick={() => toggleNoteSelection(note.id)}
-                        className={`px-3 ${selectedNotesForBatch.includes(note.id) ? "bg-green-600 hover:bg-green-700" : ""}`}
-                      >
-                        {selectedNotesForBatch.includes(note.id) ? "✓" : "+"}
-                      </Button>
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          {/* Meeting Minutes */}
+                          <DropdownMenuItem 
+                            onClick={() => generateMeetingMinutes(note)}
+                            disabled={generatingMinutes[note.id]}
+                          >
+                            {generatingMinutes[note.id] ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                                Generating Minutes...
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="w-4 h-4 mr-3" />
+                                Generate Meeting Minutes
+                              </>
+                            )}
+                          </DropdownMenuItem>
+
+                          {/* Action Items */}
+                          <DropdownMenuItem 
+                            onClick={() => generateActionItems(note)}
+                            disabled={generatingActionItems[note.id]}
+                          >
+                            {generatingActionItems[note.id] ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                                Generating Actions...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-3" />
+                                Generate Action Items
+                              </>
+                            )}
+                          </DropdownMenuItem>
+
+                          {/* Professional Report */}
+                          <DropdownMenuItem 
+                            onClick={() => generateProfessionalReport(note.id)}
+                            disabled={generatingReport[note.id]}
+                          >
+                            {generatingReport[note.id] ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                                Generating Report...
+                              </>
+                            ) : (
+                              <>
+                                <FileBarChart className="w-4 h-4 mr-3" />
+                                Professional Report
+                              </>
+                            )}
+                          </DropdownMenuItem>
+
+                          <DropdownMenuSeparator />
+
+                          {/* Export Options */}
+                          <DropdownMenuItem onClick={() => exportNote(note, 'txt')}>
+                            <FileText className="w-4 h-4 mr-3" />
+                            Export as TXT
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => exportNote(note, 'rtf')}>
+                            <FileDown className="w-4 h-4 mr-3" />
+                            Export as RTF
+                          </DropdownMenuItem>
+
+                          <DropdownMenuSeparator />
+
+                          {/* Batch Selection */}
+                          <DropdownMenuItem onClick={() => toggleNoteSelection(note.id)}>
+                            {selectedNotesForBatch.includes(note.id) ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-3 text-green-600" />
+                                Remove from Batch
+                              </>
+                            ) : (
+                              <>
+                                <Users className="w-4 h-4 mr-3" />
+                                Add to Batch
+                              </>
+                            )}
+                          </DropdownMenuItem>
+
+                          <DropdownMenuSeparator />
+
+                          {/* Archive & Delete */}
+                          <DropdownMenuItem onClick={() => archiveNote(note.id)}>
+                            <Archive className="w-4 h-4 mr-3 text-yellow-600" />
+                            Archive Note
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => deleteNote(note.id)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4 mr-3" />
+                            Delete Note
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 )}
