@@ -706,22 +706,18 @@ class PipelineWorker:
         await TranscriptionJobStore.update_job_stage(job.id, stage, 20.0)
         
         try:
-            # Get transcription results
-            logger.info(f"🔍 Job {job.id}: Looking for transcription checkpoint...")
-            checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.TRANSCRIBING)
-            
-            if checkpoint:
-                logger.info(f"✅ Job {job.id}: Found checkpoint with keys: {list(checkpoint.keys())}")
-                transcripts = checkpoint.get("transcripts")
-                if transcripts:
-                    logger.info(f"✅ Job {job.id}: Found {len(transcripts)} transcripts in checkpoint")
-                else:
-                    logger.error(f"❌ Job {job.id}: Checkpoint exists but no transcripts found")
-            else:
-                logger.error(f"❌ Job {job.id}: No checkpoint found for TRANSCRIBING stage")
+            # Get transcription results with retry logic
+            checkpoint = None
+            for attempt in range(3):  # Try 3 times
+                checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.TRANSCRIBING)
+                if checkpoint and checkpoint.get("transcripts"):
+                    break
+                if attempt < 2:  # Wait before retrying
+                    logger.warning(f"🔄 Job {job.id}: Transcription checkpoint not found, retrying in 1s (attempt {attempt + 1}/3)")
+                    await asyncio.sleep(1)
             
             if not checkpoint or not checkpoint.get("transcripts"):
-                raise Exception("Transcription data not found")
+                raise Exception("Transcription data not found after retries")
             
             transcripts = checkpoint["transcripts"]
             
