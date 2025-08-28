@@ -2440,7 +2440,7 @@ const NotesScreen = () => {
                 </Button>
               </div>
               
-              <div className="overflow-y-auto" style={{maxHeight: 'calc(95vh - 120px)'}}>
+              <div className="overflow-y-auto max-h-[75vh]">
                 <div className="p-3 sm:p-6">
                   <div className="prose max-w-none">
                   <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg mb-6">
