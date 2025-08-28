@@ -649,7 +649,7 @@ frontend:
     file: "pipeline_worker.py, models.py, transcription_api.py, LargeFileTranscriptionScreen.js"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
