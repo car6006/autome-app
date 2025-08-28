@@ -526,6 +526,66 @@ async def health_check():
             }
         )
 
+@api_router.get("/metrics")
+@monitor_endpoint("system_metrics")
+async def get_system_metrics(current_user: Optional[dict] = Depends(get_current_user_optional)):
+    """Get comprehensive system metrics (Phase 4)"""
+    
+    # Check if user has access to metrics (admin only in production)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # In production, restrict to admin users
+    user_role = current_user.get("role", "user")
+    if user_role not in ["admin", "enterprise"]:
+        # Return limited metrics for regular users
+        try:
+            cache_stats = await cache_manager.get_cache_stats()
+            storage_stats = storage_manager.get_usage_stats()
+            
+            return {
+                "user_metrics": {
+                    "user_id": current_user["id"],
+                    "cache_enabled": cache_stats.get("enabled", False),
+                    "storage_usage_bytes": storage_stats.get("bytes_stored", 0),
+                    "files_stored": storage_stats.get("files_stored", 0)
+                },
+                "access_level": "limited",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Failed to retrieve user metrics")
+    
+    # Full metrics for admin users
+    try:
+        comprehensive_metrics = await monitoring_service.get_comprehensive_metrics()
+        
+        # Add Phase 4 service metrics
+        phase4_metrics = {
+            "cache": await cache_manager.get_cache_stats(),
+            "storage": storage_manager.get_usage_stats(),
+            "rate_limiting": rate_limiter.get_limits_status("system"),
+            "webhooks": await webhook_manager.get_delivery_stats()
+        }
+        
+        return {
+            **comprehensive_metrics,
+            "phase4_services": phase4_metrics,
+            "access_level": "full",
+            "generated_for": current_user["id"],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get system metrics: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to retrieve system metrics",
+                "details": str(e)
+            }
+        )
+
 @api_router.get("/user/professional-context")
 async def get_professional_context(
     current_user: dict = Depends(get_current_user)
