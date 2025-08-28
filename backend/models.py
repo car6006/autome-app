@@ -189,6 +189,12 @@ class PipelineConfig(BaseModel):
     fallback_model: str = "whisper-base"
     temperature: float = 0.2
     
+    # Phase 3: Advanced processing configuration
+    enable_ai_diarization_by_default: bool = True
+    max_speakers: int = 10
+    language_detection_segments: int = 3  # Number of segments to use for language detection
+    ai_diarization_confidence_threshold: float = 0.7
+    
     # Storage configuration
     storage_bucket: str = "transcription-pipeline"
     presigned_url_expiry: int = 3600  # 1 hour
