@@ -676,7 +676,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Large-file audio transcription pipeline - Phase 4: Production Features"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
