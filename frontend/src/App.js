@@ -1915,8 +1915,9 @@ const NotesScreen = () => {
                     </div>
                   </div>
                   
-                  {/* Desktop: Show horizontal layout */}
+                  {/* Desktop: Show horizontal layout with comprehensive options */}
                   <div className="hidden sm:flex gap-2">
+                    {/* Standard AI Report */}
                     <Button
                       onClick={() => generateBatchReport('professional')}
                       disabled={generatingReport.batch}
@@ -1938,6 +1939,44 @@ const NotesScreen = () => {
                         </>
                       )}
                     </Button>
+
+                    {/* Comprehensive Report with Minutes & Actions */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          disabled={generatingReport.batch}
+                          className={`${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white'
+                              : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
+                          }`}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Minutes & Actions ({selectedNotesForBatch.length})
+                          <ChevronDown className="w-4 h-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-64">
+                        <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('ai')}>
+                          <FileBarChart className="w-4 h-4 mr-3" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">Full Comprehensive Report</span>
+                            <span className="text-xs text-gray-500">With Meeting Minutes & Action Items</span>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('txt')}>
+                          <FileText className="w-4 h-4 mr-3" />
+                          Export Comprehensive as TXT
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('rtf')}>
+                          <FileDown className="w-4 h-4 mr-3" />
+                          Export Comprehensive as RTF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Quick Export Buttons */}
                     <Button
                       onClick={() => generateBatchReport('txt')}
                       disabled={generatingReport.batch}
