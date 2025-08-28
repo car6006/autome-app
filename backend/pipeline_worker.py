@@ -17,7 +17,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from models import TranscriptionJob, TranscriptionStage, TranscriptionStatus, TranscriptionAsset, PipelineConfig
 from enhanced_store import TranscriptionJobStore, TranscriptionAssetStore
 from providers import stt_transcribe
-from storage import get_file_path, store_file_content
+from storage import get_file_path, store_file_content_async
 import httpx
 
 logger = logging.getLogger(__name__)
