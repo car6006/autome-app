@@ -585,21 +585,37 @@ const LargeFileTranscriptionScreen = () => {
             ) : (
               <>
                 {/* Bulk Actions */}
-                {completedJobs.filter(job => job.status === 'failed').length > 0 && (
+                {(completedJobs.filter(job => job.status === 'failed').length > 0 || activeJobs.length > 0) && (
                   <Card className="mb-4">
                     <CardContent className="py-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
-                          {completedJobs.filter(job => job.status === 'failed').length} failed jobs
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteAllFailedJobs()}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Delete All Failed
-                        </Button>
+                        <div className="flex items-center space-x-4">
+                          {completedJobs.filter(job => job.status === 'failed').length > 0 && (
+                            <span className="text-sm text-gray-600">
+                              {completedJobs.filter(job => job.status === 'failed').length} failed jobs
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => cleanupStuckJobs()}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            Cleanup Stuck Jobs
+                          </Button>
+                          {completedJobs.filter(job => job.status === 'failed').length > 0 && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteAllFailedJobs()}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              Delete All Failed
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
