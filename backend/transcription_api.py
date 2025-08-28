@@ -415,3 +415,47 @@ async def get_job_logs(
     except Exception as e:
         logger.error(f"Failed to get job logs {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get job logs")
+
+@router.post("/cleanup")
+async def cleanup_stuck_jobs(current_user: Optional[dict] = Depends(get_current_user_optional)):
+    """Clean up stuck or inconsistent jobs"""
+    try:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        
+        # Find and fix stuck jobs for this user
+        from enhanced_store import TranscriptionJobStore
+        
+        # Get user's jobs
+        user_jobs = await TranscriptionJobStore.list_jobs(current_user["id"])
+        
+        fixed_count = 0
+        for job in user_jobs:
+            # Fix jobs stuck in processing for more than 1 hour
+            if (job.status == TranscriptionStatus.PROCESSING and 
+                job.updated_at and 
+                (datetime.now(timezone.utc) - job.updated_at).total_seconds() > 3600):
+                
+                await TranscriptionJobStore.set_job_results(job.id, {
+                    "status": TranscriptionStatus.FAILED.value,
+                    "error_message": "Job timed out after 1 hour"
+                })
+                fixed_count += 1
+                logger.info(f"Fixed stuck job: {job.id}")
+            
+            # Fix jobs stuck in pending
+            elif job.status == TranscriptionStatus.PENDING:
+                await TranscriptionJobStore.set_job_results(job.id, {
+                    "status": TranscriptionStatus.CREATED.value
+                })
+                fixed_count += 1
+                logger.info(f"Reset pending job: {job.id}")
+        
+        return {
+            "message": f"Cleaned up {fixed_count} stuck jobs",
+            "fixed_count": fixed_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to cleanup jobs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to cleanup jobs")
