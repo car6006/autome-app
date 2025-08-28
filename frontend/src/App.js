@@ -94,7 +94,7 @@ const TextNoteScreen = () => {
   };
 
   return (
-    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : theme.gradientBg}`}>
+    <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : theme.gradientBg}`}>
       <div className="max-w-2xl mx-auto">
         {/* User greeting */}
         {user && (
