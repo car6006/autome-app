@@ -724,7 +724,7 @@ class PipelineWorker:
             # Generate TXT format
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 20.0)
             txt_content = diarized_transcript
-            txt_key = await store_file_content(txt_content.encode('utf-8'), f"job_{job.id}_transcript.txt")
+            txt_key = await store_file_content_async(txt_content.encode('utf-8'), f"job_{job.id}_transcript.txt")
             
             txt_asset = TranscriptionAsset(
                 job_id=job.id,
