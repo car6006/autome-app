@@ -474,7 +474,7 @@ class PipelineWorker:
                     
                     for i, segment in enumerate(detection_segments):
                         try:
-                            segment_path = await get_file_path(segment["storage_key"])
+                            segment_path = get_file_path_sync(segment["storage_key"])
                             
                             with open(segment_path, "rb") as audio_file:
                                 files = {"file": audio_file}
