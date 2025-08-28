@@ -268,6 +268,17 @@ class TranscriptionAssetStore:
         if doc:
             return TranscriptionAsset(**doc)
         return None
+    
+    @staticmethod
+    async def list_assets_by_job(job_id: str) -> List[TranscriptionAsset]:
+        """List all assets for a job (alias for get_assets_for_job)"""
+        return await TranscriptionAssetStore.get_assets_for_job(job_id)
+    
+    @staticmethod
+    async def delete_assets_by_job(job_id: str) -> int:
+        """Delete all assets for a job"""
+        result = await TranscriptionAssetStore.collection.delete_many({"job_id": job_id})
+        return result.deleted_count
 
 # Utility functions for backward compatibility
 class EnhancedNotesStore:
