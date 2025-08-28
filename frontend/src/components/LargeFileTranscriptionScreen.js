@@ -175,6 +175,36 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
+  // Delete all failed jobs
+  const deleteAllFailedJobs = async () => {
+    const failedJobs = completedJobs.filter(job => job.status === 'failed');
+    
+    if (!window.confirm(`Are you sure you want to delete all ${failedJobs.length} failed jobs? This action cannot be undone.`)) {
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const job of failedJobs) {
+      try {
+        await axios.delete(`${API}/transcriptions/${job.job_id}`);
+        successCount++;
+      } catch (error) {
+        console.error(`Failed to delete job ${job.job_id}:`, error);
+        failCount++;
+      }
+    }
+
+    toast({
+      title: "Bulk Delete Complete",
+      description: `Deleted ${successCount} jobs${failCount > 0 ? `, ${failCount} failed` : ''}`,
+      variant: failCount > 0 ? "destructive" : "default"
+    });
+
+    loadJobs();
+  };
+
   // Download transcription
   const downloadTranscription = async (jobId, format = 'txt') => {
     try {
