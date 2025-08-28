@@ -2416,8 +2416,8 @@ const NotesScreen = () => {
         
         {/* Professional Report Modal */}
         {showReportModal && currentReport && (
-          <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-2 sm:p-4 pt-4 sm:pt-8">
-            <div className="bg-white rounded-lg w-full max-w-6xl max-h-[95vh] overflow-hidden">
+          <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-2 sm:p-4 pt-4">
+            <div className="bg-white rounded-lg w-full max-w-6xl max-h-[96vh] overflow-hidden">
               <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
@@ -2440,74 +2440,12 @@ const NotesScreen = () => {
                 </Button>
               </div>
               
-              <div className="overflow-y-auto max-h-[75vh]">
-                <div className="p-3 sm:p-6">
-                  <div className="prose max-w-none">
+              <div className="p-3 sm:p-6 overflow-y-auto max-h-[75vh]">
+                <div className="prose max-w-none">
                   <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg mb-6">
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-600">
                         Generated: {new Date(currentReport.data.generated_at).toLocaleString()}
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
-                        {/* Mobile: Stack vertically */}
-                        <div className="sm:hidden grid grid-cols-2 gap-1 w-full">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => downloadReportAs(currentReport, 'txt')}
-                            className="text-xs"
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            TXT
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => downloadReportAs(currentReport, 'rtf')}
-                            className="text-xs"
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            RTF
-                          </Button>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => downloadReport(
-                            currentReport.data.report, 
-                            currentReport.type === 'batch' 
-                              ? `Batch Report ${Date.now()}` 
-                              : `Report ${currentReport.noteId}`,
-                            currentReport.type === 'batch' 
-                              ? currentReport.data.title
-                              : currentReport.data.note_title
-                          )}
-                          className="w-full sm:w-auto"
-                        >
-                          <Download className="w-4 h-4 mr-1" />
-                          <span className="hidden sm:inline">Download Professional</span>
-                          <span className="sm:hidden">Professional</span>
-                        </Button>
-                        
-                        {/* Desktop: Show horizontally */}
-                        <div className="hidden sm:flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => downloadReportAs(currentReport, 'txt')}
-                          >
-                            <Download className="w-4 h-4 mr-1" />
-                            TXT
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => downloadReportAs(currentReport, 'rtf')}
-                          >
-                            <Download className="w-4 h-4 mr-1" />
-                            RTF
-                          </Button>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -2524,7 +2462,7 @@ const NotesScreen = () => {
                     }}
                   />
                   
-                  {currentReport.type === 'batch' && currentReport.data.source_notes && (
+                  {(currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch') && currentReport.data.source_notes && (
                     <div className="mt-8 p-4 bg-gray-50 rounded-lg">
                       <h4 className="font-semibold text-gray-800 mb-2">Source Notes:</h4>
                       <ul className="text-sm text-gray-600">
@@ -2535,12 +2473,10 @@ const NotesScreen = () => {
                     </div>
                   )}
                 </div>
-              </div>
-              
-              <div className="p-3 sm:p-6 border-t border-gray-200 bg-gray-50">
-                {/* Mobile: Stack vertically */}
-                <div className="flex flex-col sm:hidden gap-2">
-                  <div className="grid grid-cols-3 gap-1">
+                
+                {/* Mobile Action Buttons */}
+                <div className="sm:hidden mt-6 space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -2559,23 +2495,22 @@ const NotesScreen = () => {
                       <Download className="w-3 h-3 mr-1" />
                       RTF
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => downloadReport(
-                        currentReport.data.report, 
-                        currentReport.type === 'batch' 
-                          ? `Batch Report ${Date.now()}` 
-                          : `Report ${currentReport.noteId}`,
-                        currentReport.type === 'batch' 
-                          ? currentReport.data.title
-                          : currentReport.data.note_title
-                      )}
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      Pro
-                    </Button>
                   </div>
+                  <Button
+                    onClick={() => downloadReport(
+                      currentReport.data.report || currentReport.data.content,
+                      currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
+                        ? `${currentReport.data.title || 'Batch_Report'}.pdf`
+                        : `Report ${currentReport.noteId}`,
+                      currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
+                        ? currentReport.data.title
+                        : currentReport.data.note_title
+                    )}
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white w-full"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Professional
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => setShowReportModal(false)}
@@ -2585,8 +2520,8 @@ const NotesScreen = () => {
                   </Button>
                 </div>
                 
-                {/* Desktop: Show horizontally */}
-                <div className="hidden sm:flex justify-between items-center">
+                {/* Desktop Action Buttons */}
+                <div className="hidden sm:flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -2605,7 +2540,7 @@ const NotesScreen = () => {
                       Export RTF
                     </Button>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <Button
                       variant="outline"
                       onClick={() => setShowReportModal(false)}
@@ -2614,11 +2549,11 @@ const NotesScreen = () => {
                     </Button>
                     <Button
                       onClick={() => downloadReport(
-                        currentReport.data.report, 
-                        currentReport.type === 'batch' 
-                          ? `Batch Report ${Date.now()}` 
+                        currentReport.data.report || currentReport.data.content,
+                        currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
+                          ? `${currentReport.data.title || 'Batch_Report'}.pdf`
                           : `Report ${currentReport.noteId}`,
-                        currentReport.type === 'batch' 
+                        currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
                           ? currentReport.data.title
                           : currentReport.data.note_title
                       )}
