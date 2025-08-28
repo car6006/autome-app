@@ -239,7 +239,7 @@ class PipelineWorker:
         try:
             # Get original file path
             job_data = await TranscriptionJobStore.get_job(job.id)
-            original_path = get_file_path(job_data.storage_paths["original"])
+            original_path = await get_file_path(job_data.storage_paths["original"])
             
             # Create normalized audio file
             with TemporaryDirectory() as temp_dir:
