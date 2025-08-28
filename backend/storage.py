@@ -42,7 +42,7 @@ def store_file_content(content: bytes, filename: str) -> str:
     
     return file_key
 
-async def store_file_content(content: bytes, filename: str) -> str:
+async def store_file_content_async(content: bytes, filename: str) -> str:
     """Async version of store_file_content"""
     return store_file_content(content, filename)
 
