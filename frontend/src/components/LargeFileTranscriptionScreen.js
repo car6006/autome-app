@@ -175,6 +175,29 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
+  // Transfer completed job to main notes system
+  const transferToNotes = async (jobId) => {
+    try {
+      const response = await axios.post(`${API}/transcriptions/${jobId}/transfer-to-notes`);
+      
+      toast({
+        title: "Transfer Successful",
+        description: "Job has been transferred to your main notes. You can now use AI features and batch reports!"
+      });
+      
+      // Optional: Remove from large file list or update status
+      loadJobs();
+      
+    } catch (error) {
+      console.error('Transfer failed:', error);
+      toast({
+        title: "Transfer Failed",
+        description: error.response?.data?.detail || "Failed to transfer job to notes", 
+        variant: "destructive"
+      });
+    }
+  };
+
   // Delete all failed jobs
   const deleteAllFailedJobs = async () => {
     const failedJobs = completedJobs.filter(job => job.status === 'failed');
