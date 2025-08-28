@@ -1050,6 +1050,72 @@ class PipelineWorker:
         except Exception as e:
             await self.handle_job_error(job.id, "OUTPUT_GENERATION_FAILED", str(e))
     
+    async def _update_main_note_with_results(self, job: TranscriptionJob):
+        """Update the main notes system with transcription results from large file processing"""
+        try:
+            # Get the final transcription results
+            merge_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.MERGING)
+            diarization_checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.DIARIZING)
+            
+            if not merge_checkpoint:
+                logger.warning(f"No merge checkpoint found for job {job.id}, cannot update main note")
+                return
+            
+            final_transcript = merge_checkpoint.get("final_transcript", "")
+            diarized_transcript = diarization_checkpoint.get("diarized_transcript", final_transcript) if diarization_checkpoint else final_transcript
+            
+            # Use diarized transcript if available, otherwise use final transcript
+            transcript_content = diarized_transcript or final_transcript
+            
+            if not transcript_content:
+                logger.warning(f"No transcript content found for job {job.id}")
+                return
+            
+            # Find the corresponding main note by note_id (if available) or create artifacts
+            note_id = getattr(job, 'note_id', None)
+            if not note_id:
+                # Try to find note by matching title and user_id
+                from store import NotesStore
+                user_notes = await NotesStore.list_recent(limit=100, user_id=job.user_id)
+                matching_note = None
+                
+                for note in user_notes:
+                    if (note.get('title', '').strip() == job.filename.strip() and 
+                        note.get('status') in ['uploading', 'processing']):
+                        matching_note = note
+                        break
+                
+                if matching_note:
+                    note_id = matching_note['id']
+                    logger.info(f"Found matching note {note_id} for job {job.id}")
+                else:
+                    logger.warning(f"No matching main note found for job {job.id} (filename: {job.filename})")
+                    return
+            
+            # Update the main note with transcription results
+            from store import NotesStore
+            
+            # Prepare artifacts for main note system
+            artifacts = {
+                "transcript": transcript_content,
+                "language": job.detected_language or "en",
+                "duration": job.total_duration,
+                "word_count": merge_checkpoint.get("word_count", 0),
+                "processing_method": "large_file_pipeline",
+                "job_id": job.id,  # Reference to large file job
+                "formats_available": ["txt", "json", "srt", "vtt", "docx"]
+            }
+            
+            # Update note status and artifacts
+            await NotesStore.set_artifacts(note_id, artifacts)
+            await NotesStore.update_status(note_id, "ready")  # Mark as completed
+            
+            logger.info(f"✅ Successfully updated main note {note_id} with transcription results from job {job.id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to update main note for job {job.id}: {str(e)}")
+            # Don't raise the error as this is a secondary operation
+    
     def _generate_srt(self, segments):
         """Generate SRT subtitle format"""
         srt_lines = []
