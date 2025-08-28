@@ -77,6 +77,32 @@ db = client[os.environ['DB_NAME']]
 # Create the main app without a prefix
 app = FastAPI(title="AUTO-ME Productivity API", version="2.0.0", lifespan=worker_lifespan)
 
+# 🔒 SECURITY MIDDLEWARE
+# Trusted Host Middleware (prevent host header attacks)
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["*"],  # In production: set to specific domains only
+)
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    
+    # Security headers to prevent common attacks
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # Prevent directory traversal and URL manipulation
+    if "../" in str(request.url) or "..\\" in str(request.url):
+        raise HTTPException(status_code=400, detail="Invalid URL format")
+    
+    return response
+
 # Global exception handler for enhanced security
 @app.exception_handler(500)
 async def internal_server_error_handler(request, exc):
