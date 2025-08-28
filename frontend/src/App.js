@@ -2135,6 +2135,34 @@ const NotesScreen = () => {
                         )}
                       </Button>
                     </div>
+
+                    {/* Generate Action Items Button */}
+                    <div className="mb-2 sm:mb-3">
+                      <Button
+                        size="sm"
+                        onClick={() => generateActionItems(note)}
+                        disabled={generatingActionItems[note.id]}
+                        className={`w-full text-xs sm:text-sm ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white'
+                            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                        }`}
+                      >
+                        {generatingActionItems[note.id] ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            <span className="hidden sm:inline">Generating...</span>
+                            <span className="sm:hidden">Gen...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            <span className="hidden sm:inline">Generate Action Items</span>
+                            <span className="sm:hidden">Actions</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     
                     {/* Professional Report Generation */}
                     <div className="flex space-x-2">
