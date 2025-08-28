@@ -584,14 +584,19 @@ class PipelineWorker:
                 try:
                     segment_path = get_file_path_sync(segment["storage_key"])
                     
+                    # Validate chunk size before API call (20MB ceiling)
+                    chunk_size_mb = os.path.getsize(segment_path) / (1024 * 1024)
+                    if chunk_size_mb > 20:
+                        raise Exception(f"Chunk too large: {chunk_size_mb:.1f}MB > 20MB limit. Re-segment required.")
+                    
                     # Transcribe segment using OpenAI Whisper
                     with open(segment_path, "rb") as audio_file:
                         files = {"file": audio_file}
                         form = {
-                            "model": "whisper-1",
+                            "model": "gpt-4o-mini-transcribe",  # Updated to correct model
                             "language": job_data.detected_language or "en",
                             "response_format": "verbose_json",
-                            "temperature": 0.2
+                            "temperature": "0"
                         }
                         
                         # Use existing retry logic from providers.py
