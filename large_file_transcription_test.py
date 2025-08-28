@@ -60,8 +60,8 @@ class LargeFileTranscriptionTester:
         """Create a test user for authentication"""
         try:
             user_data = {
-                "email": f"test_large_file_{int(time.time())}@expeditors.com",
-                "username": f"testuser_{int(time.time())}",
+                "email": f"testlargefile{int(time.time())}@expeditors.com",
+                "username": f"testuser{int(time.time())}",
                 "password": "TestPassword123!",
                 "first_name": "Large File",
                 "last_name": "Test User"
