@@ -113,30 +113,28 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
   // Resume upload from last successful chunk
   const resumeUpload = async () => {
     if (!uploadSession || !currentFile) return;
+    await resumeUploadWithSession(uploadSession, currentFile);
+  };
+
+  // Resume upload with specific session and file (to avoid state race conditions)
+  const resumeUploadWithSession = async (session, file) => {
+    if (!session || !file) return;
     
     try {
       // Get current upload status
-      const statusResponse = await axios.get(`${API}/api/uploads/sessions/${uploadSession.upload_id}/status`);
+      const statusResponse = await axios.get(`${API}/api/uploads/sessions/${session.upload_id}/status`);
       const status = statusResponse.data;
       
-      const uploadedChunks = new Set(status.chunks_uploaded);
-      setChunksUploaded(uploadedChunks.size);
-      setTotalChunks(status.total_chunks);
-      
-      // Calculate overall progress
-      const overallProgress = (uploadedChunks.size / status.total_chunks) * 100;
-      setUploadProgress(overallProgress);
-      
-      // If already complete, finalize
-      if (uploadedChunks.size === status.total_chunks) {
-        await finalizeUpload();
-        return;
-      }
-      
       setUploadState('uploading');
+      
+      // Create abort controller for this upload session
       abortController.current = new AbortController();
       
-      // Upload remaining chunks
+      // Track uploaded chunks
+      const uploadedChunks = new Set(status.uploaded_chunks || []);
+      setChunksUploaded(uploadedChunks.size);
+      
+      // Resume from where we left off
       for (let chunkIndex = 0; chunkIndex < status.total_chunks; chunkIndex++) {
         if (uploadedChunks.has(chunkIndex)) {
           continue; // Skip already uploaded chunks
@@ -148,7 +146,7 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
         }
         
         try {
-          await uploadChunk(currentFile, uploadSession, chunkIndex);
+          await uploadChunk(file, session, chunkIndex);
           uploadedChunks.add(chunkIndex);
           setChunksUploaded(uploadedChunks.size);
           
@@ -171,7 +169,7 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
       }
       
       // All chunks uploaded, finalize
-      await finalizeUpload();
+      await finalizeUploadWithSession(session);
       
     } catch (error) {
       console.error('Failed to resume upload:', error);
