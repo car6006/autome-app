@@ -1721,6 +1721,219 @@ async def generate_professional_report(
         logger.error(f"Report generation error: {str(e)}")
         raise HTTPException(status_code=500, detail="Report generation temporarily unavailable")
 
+@api_router.post("/notes/comprehensive-batch-report")
+async def generate_comprehensive_batch_report(
+    request: BatchReportRequest,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Generate a comprehensive batch report including Meeting Minutes and Action Items"""
+    note_ids = request.note_ids
+    title = request.title
+    format = request.format
+    
+    if not note_ids:
+        raise HTTPException(status_code=400, detail="No notes provided")
+    
+    try:
+        # Collect all content from notes
+        all_transcripts = []
+        all_meeting_minutes = []
+        all_action_items = []
+        note_titles = []
+        report_date = datetime.now().strftime("%d %B %Y")
+        
+        for note_id in note_ids:
+            note = await NotesStore.get(note_id)
+            if not note:
+                continue
+                
+            # Check user permissions
+            if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+                continue
+                
+            artifacts = note.get("artifacts", {})
+            transcript = artifacts.get("transcript") or artifacts.get("text", "")
+            
+            if transcript:
+                note_titles.append(note["title"])
+                all_transcripts.append({
+                    "title": note["title"],
+                    "content": transcript,
+                    "created_at": note.get("created_at", "")
+                })
+        
+        if not all_transcripts:
+            raise HTTPException(status_code=400, detail="No valid content found in selected notes")
+        
+        # Generate Meeting Minutes for the entire batch
+        session_list = "\n\n".join([f"SESSION: {item['title']}\n{item['content']}" for item in all_transcripts])
+        combined_transcript = session_list
+        
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise HTTPException(status_code=503, detail="AI service configuration error")
+        
+        # Generate comprehensive meeting minutes for all sessions
+        session_bullets = "\n".join([f"• {item['title']}" for item in all_transcripts])
+        meeting_minutes_prompt = f"""
+        Based on the following multi-session meeting transcripts, create comprehensive meeting minutes following this EXACT professional format:
+
+        COMPREHENSIVE MEETING SUMMARY - MULTI-SESSION REPORT
+
+        Date Range: [Extract dates or use {report_date}]
+        Sessions Included: {len(all_transcripts)} sessions
+        Report Title: {title}
+
+        EXECUTIVE SUMMARY
+        Provide an overview of all sessions, key themes across multiple meetings, strategic outcomes, and overall objectives achieved.
+
+        SESSION OVERVIEW
+        List each session with brief description:
+        {session_bullets}
+
+        CONSOLIDATED KEY DISCUSSION TOPICS
+        Combine and organize all discussions into strategic themes:
+        - Strategic Planning and Decision Making
+        - Performance Review and Analysis  
+        - Operational Improvements and Processes
+        - Team Development and Communication
+        - Customer Engagement and Service Excellence
+        - Financial Performance and Resource Allocation
+        [Add other relevant consolidated themes]
+
+        CROSS-SESSION DECISIONS AND RESOLUTIONS
+        Summarize all major decisions made across all sessions and their collective impact.
+
+        CONSOLIDATED ACTION ITEMS AND NEXT STEPS
+        Combine all action items from all sessions into a prioritized list with clear ownership.
+
+        OVERALL CONCLUSIONS AND STRATEGIC OUTCOMES
+        Professional summary emphasizing collective achievements, strategic alignment, and forward-looking commitments.
+
+        TRANSCRIPTS:
+        {combined_transcript}
+        
+        Use professional business language. NO markdown formatting.
+        """
+        
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": meeting_minutes_prompt}],
+                    "max_tokens": 2500,
+                    "temperature": 0.2
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            meeting_minutes_result = response.json()["choices"][0]["message"]["content"]
+        
+        # Generate consolidated action items table
+        action_items_prompt = f"""
+        Based on these multi-session meeting transcripts, create a comprehensive action items table:
+
+        TRANSCRIPTS:
+        {combined_transcript}
+
+        Create a consolidated action items table with this format:
+
+        CONSOLIDATED ACTION ITEMS - MULTI-SESSION REPORT
+
+        No. | Action Item | Session Source | Start Date | End Date | Priority | Responsible Person
+        1   | [Detailed action description] | [Session name] | | | | |
+        2   | [Detailed action description] | [Session name] | | | | |
+        [etc.]
+
+        Extract ALL actionable items from ALL sessions. Include:
+        - Cross-session dependencies and connections
+        - Strategic priorities that span multiple sessions  
+        - Follow-up items from previous sessions
+        - New commitments and deliverables
+        - Resource allocation and planning items
+
+        Leave Date, Priority, and Responsible Person columns empty for manual completion.
+        Use professional language. NO markdown formatting.
+        """
+        
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": action_items_prompt}],
+                    "max_tokens": 2000,
+                    "temperature": 0.2
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            action_items_result = response.json()["choices"][0]["message"]["content"]
+        
+        # Combine everything into comprehensive report
+        if format == "ai":
+            # Full AI-enhanced format
+            session_appendix = "\n".join([f"\nSESSION: {item['title']}\n{'-' * 50}\n{item['content']}" for item in all_transcripts])
+            final_content = f"""COMPREHENSIVE MULTI-SESSION REPORT
+{title}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Sessions: {len(all_transcripts)}
+
+{meeting_minutes_result}
+
+---
+
+{action_items_result}
+
+---
+
+APPENDIX: SESSION TRANSCRIPTS
+{session_appendix}
+"""
+        
+        else:
+            # Clean format for TXT/RTF
+            clean_minutes = meeting_minutes_result.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
+            clean_actions = action_items_result.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
+            
+            final_content = f"""{title}
+Multi-Session Report - {report_date}
+Sessions: {len(all_transcripts)}
+
+{clean_minutes}
+
+{clean_actions}
+"""
+        
+        # Handle RTF format
+        if format == "rtf":
+            title_escaped = title.replace('&', '\\&')
+            content_escaped = final_content.replace('&', '\\&').replace('\n', '\\par ')
+            rtf_content = f"""{{\\rtf1\\ansi\\deff0 {{\\fonttbl {{\\f0 Times New Roman;}}}}
+\\f0\\fs24 
+\\b {title_escaped}\\b0\\par
+\\par
+{content_escaped}
+}}"""
+            final_content = rtf_content
+        
+        filename = f"{title.replace(' ', '_')}_Comprehensive_Report.{format if format != 'ai' else 'txt'}"
+        
+        return {
+            "content": final_content,
+            "filename": filename,
+            "note_count": len(all_transcripts),
+            "title": title,
+            "format": format,
+            "sessions": note_titles,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Comprehensive batch report generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Comprehensive report generation temporarily unavailable")
+
 @api_router.post("/notes/batch-report")
 async def generate_batch_report(
     request: BatchReportRequest,
