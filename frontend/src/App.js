@@ -1549,6 +1549,34 @@ const NotesScreen = () => {
     }
   };
 
+  const generateActionItems = async (note) => {
+    setGeneratingActionItems(prev => ({...prev, [note.id]: true}));
+    try {
+      const response = await axios.post(`${API}/notes/${note.id}/generate-action-items`);
+      
+      setCurrentActionItems({
+        data: response.data,
+        noteId: note.id,
+        note_title: note.title
+      });
+      setShowActionItemsModal(true);
+      
+      toast({ 
+        title: "📋 Action Items Generated", 
+        description: "Structured action items table is ready for review!" 
+      });
+      
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate action items. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingActionItems(prev => ({...prev, [note.id]: false}));
+    }
+  };
+
   const exportMeetingMinutes = async (format = 'pdf', noteId) => {
     try {
       const response = await axios.get(`${API}/notes/${noteId}/ai-conversations/export?format=${format}`, {
