@@ -2400,7 +2400,6 @@ const NotesScreen = () => {
                           Send Email
                         </Button>
                       </div>
-                    </div>
                     )}
                   </div>
                 </CardContent>
