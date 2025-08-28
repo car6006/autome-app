@@ -85,6 +85,12 @@ class UploadSessionStore:
         })
         if result.deleted_count > 0:
             logger.info(f"Cleaned up {result.deleted_count} expired upload sessions")
+    
+    @staticmethod
+    async def delete_session(upload_id: str) -> bool:
+        """Delete upload session"""
+        result = await UploadSessionStore.collection.delete_one({"id": upload_id})
+        return result.deleted_count > 0
 
 class TranscriptionJobStore:
     """Store for managing transcription jobs and pipeline state"""
