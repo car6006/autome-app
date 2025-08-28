@@ -32,8 +32,10 @@ class TranscriptionPipelineTest:
             test_email = f"test_transcription_{int(time.time())}@example.com"
             register_data = {
                 "email": test_email,
-                "password": "testpass123",
-                "name": "Transcription Test User"
+                "username": f"testuser{int(time.time())}",
+                "password": "TestPass123!",
+                "first_name": "Transcription",
+                "last_name": "Test"
             }
             
             response = await self.client.post(f"{API_BASE}/auth/register", json=register_data)
