@@ -2260,6 +2260,7 @@ const NotesScreen = () => {
                       </Button>
                     </div>
                     
+                  <div className="space-y-3">
                     {/* Grouped Action Buttons Dropdown */}
                     <div className="mb-2 sm:mb-3">
                       <DropdownMenu>
@@ -2402,8 +2403,9 @@ const NotesScreen = () => {
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </CardContent>
+            </Card>>
           ))}
         </div>
         
