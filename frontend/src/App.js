@@ -1383,6 +1383,70 @@ const NotesScreen = () => {
     }
   };
 
+  const generateComprehensiveBatchReport = async (format = 'ai') => {
+    if (selectedNotesForBatch.length === 0) {
+      toast({ 
+        title: "No notes selected", 
+        description: "Please select notes for comprehensive report with Meeting Minutes & Action Items", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setGeneratingReport(prev => ({ ...prev, batch: true }));
+    
+    try {
+      const response = await axios.post(`${API}/notes/comprehensive-batch-report`, {
+        note_ids: selectedNotesForBatch,
+        title: `Comprehensive Multi-Session Report - ${new Date().toLocaleDateString()}`,
+        format: format
+      });
+      
+      if (format === 'txt' || format === 'rtf') {
+        // Direct download for clean formats
+        const blob = new Blob([response.data.content], { 
+          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = response.data.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        setSelectedNotesForBatch([]);
+        
+        toast({ 
+          title: `📋 Comprehensive ${format.toUpperCase()} Report Complete`, 
+          description: `Report with Meeting Minutes & Action Items exported from ${response.data.note_count} sessions` 
+        });
+      } else {
+        // Show modal for AI format
+        setCurrentReport({
+          type: 'comprehensive-batch',
+          data: response.data,
+          selectedNotes: selectedNotesForBatch.slice()
+        });
+        setShowReportModal(true);
+        setSelectedNotesForBatch([]);
+        
+        toast({ 
+          title: "📋 Comprehensive Report Generated", 
+          description: `Complete report with Meeting Minutes & Action Items from ${response.data.note_count} sessions is ready` 
+        });
+      }
+      
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate comprehensive report. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setGeneratingReport(prev => ({ ...prev, batch: false }));
+    }
+  };
+
   const downloadReport = (report, filename, noteTitle = null) => {
     // Use note title if provided, otherwise use the provided filename
     let finalFilename = filename;
