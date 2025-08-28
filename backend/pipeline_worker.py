@@ -244,7 +244,7 @@ class PipelineWorker:
             if not session or not session.storage_key:
                 raise Exception("Upload session not found or file not available")
             
-            original_path = await get_file_path(session.storage_key)
+            original_path = get_file_path_sync(session.storage_key)
             
             # Create normalized audio file
             with TemporaryDirectory() as temp_dir:
