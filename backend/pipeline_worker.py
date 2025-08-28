@@ -375,7 +375,11 @@ class PipelineWorker:
                     if segment_file.exists() and segment_file.stat().st_size > 1000:  # Valid segment
                         # Store segment
                         with open(segment_file, "rb") as f:
-                            segment_key = await store_file_content_async(f.read(), f"job_{job.id}_segment_{segment_count:04d}.wav")
+                            segment_key = await storage_manager.store_file(
+                                f.read(),
+                                f"job_{job.id}_segment_{segment_count:04d}.wav",
+                                job_id=job.id
+                            )
                         
                         segments.append({
                             "index": segment_count,
