@@ -905,7 +905,11 @@ class PipelineWorker:
             # Generate SRT format
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 60.0)
             srt_content = self._generate_srt(segments)
-            srt_key = await store_file_content_async(srt_content.encode('utf-8'), f"job_{job.id}_transcript.srt")
+            srt_key = await storage_manager.store_file(
+                srt_content.encode('utf-8'),
+                f"job_{job.id}_transcript.srt",
+                job_id=job.id
+            )
             
             srt_asset = TranscriptionAsset(
                 job_id=job.id,
