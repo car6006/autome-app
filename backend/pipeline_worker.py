@@ -814,7 +814,7 @@ class PipelineWorker:
             # Store output results
             output_results = {
                 "assets_created": assets_created,
-                "output_formats": ["txt", "json", "srt", "vtt"]
+                "output_formats": ["txt", "json", "srt", "vtt", "docx"]
             }
             await TranscriptionJobStore.set_stage_checkpoint(job.id, stage, output_results)
             
