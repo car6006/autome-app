@@ -2,15 +2,13 @@
 Transcription job API endpoints
 Provides job status tracking, downloads, and management
 """
-import os
-from typing import Optional, Dict, Any
+from typing import Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import RedirectResponse
 
 from models import (
-    JobStatusResponse, RetryJobRequest, TranscriptionJob, 
-    TranscriptionStage, TranscriptionStatus
+    JobStatusResponse, RetryJobRequest, TranscriptionStage, TranscriptionStatus
 )
 from enhanced_store import TranscriptionJobStore, TranscriptionAssetStore
 from auth import get_current_user_optional
