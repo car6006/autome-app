@@ -2379,6 +2379,7 @@ const NotesScreen = () => {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
+                  </div>
 
                     {selectedNote === note.id && (
                       <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
