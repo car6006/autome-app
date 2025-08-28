@@ -175,6 +175,9 @@ class PipelineConfig(BaseModel):
     max_concurrent_jobs: int = 10
     max_concurrent_segments: int = 5
     
+    # Allowed file types
+    allowed_mime_types: List[str] = ["audio/mpeg", "audio/wav", "audio/mp4", "audio/webm", "audio/ogg", "audio/x-wav", "audio/wave"]
+    
     # Model configuration
     whisper_model: str = "whisper-large-v3"
     fallback_model: str = "whisper-base"
