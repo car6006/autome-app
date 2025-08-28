@@ -531,12 +531,12 @@ const LargeFileTranscriptionScreen = () => {
         </div>
 
         <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="upload">Upload</TabsTrigger>
-            <TabsTrigger value="active">
+          <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
+            <TabsTrigger value="upload" className="text-xs sm:text-sm">Upload</TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm">
               Active Jobs {activeJobs.length > 0 && `(${activeJobs.length})`}
             </TabsTrigger>
-            <TabsTrigger value="completed">
+            <TabsTrigger value="completed" className="text-xs sm:text-sm">
               Completed {completedJobs.length > 0 && `(${completedJobs.length})`}
             </TabsTrigger>
           </TabsList>
