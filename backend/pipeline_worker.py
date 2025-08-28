@@ -93,16 +93,14 @@ class PipelineWorker:
                 await self.stage_transcode(job)
             elif job.current_stage == TranscriptionStage.SEGMENTING:
                 await self.stage_segment(job)
-            elif job.current_stage == TranscriptionStage.SEGMENTING:
-                await self.stage_detect_language(job)
             elif job.current_stage == TranscriptionStage.DETECTING_LANGUAGE:
-                await self.stage_transcribe(job)
+                await self.stage_detect_language(job)
             elif job.current_stage == TranscriptionStage.TRANSCRIBING:
-                await self.stage_merge(job)
+                await self.stage_transcribe(job)
             elif job.current_stage == TranscriptionStage.MERGING:
-                await self.stage_diarize(job)
+                await self.stage_merge(job)
             elif job.current_stage == TranscriptionStage.DIARIZING:
-                await self.stage_generate_outputs(job)
+                await self.stage_diarize(job)
             elif job.current_stage == TranscriptionStage.GENERATING_OUTPUTS:
                 await self.stage_generate_outputs(job)
             elif job.current_stage == TranscriptionStage.COMPLETE:
