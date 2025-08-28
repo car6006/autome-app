@@ -255,6 +255,42 @@ async def cancel_job(
         logger.error(f"Failed to cancel job {job_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to cancel job")
 
+@router.post("/{job_id}/transfer-to-notes")
+async def transfer_completed_job_to_notes(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Manually transfer a completed transcription job to main notes system"""
+    job = await TranscriptionJobStore.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Verify user owns this job
+    if job.user_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Check if job is complete
+    if job.status != TranscriptionStatus.COMPLETE:
+        raise HTTPException(status_code=400, detail="Job is not complete yet")
+    
+    try:
+        # Import the pipeline worker to use the integration function
+        from pipeline_worker import PipelineWorker
+        worker = PipelineWorker()
+        
+        # Manually trigger the integration
+        await worker._update_main_note_with_results(job)
+        
+        return {
+            "message": "Successfully transferred job results to main notes system",
+            "job_id": job_id,
+            "note_id": job.note_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to transfer job {job_id} to notes: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Transfer failed: {str(e)}")
+
 @router.delete("/{job_id}")
 async def delete_job(
     job_id: str,
