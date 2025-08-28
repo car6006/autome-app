@@ -169,8 +169,8 @@ class PipelineAPITester:
         # Test 3: Simulate Chunk Upload (simplified for testing)
         self.log("📦 Testing chunk upload...")
         
-        # Create a small test chunk
-        chunk_data = b'FAKE_AUDIO_CHUNK_DATA' * 1000  # ~23KB test chunk
+        # Create a test chunk with the expected size
+        chunk_data = b'FAKE_AUDIO_CHUNK_DATA' * (chunk_size // 21)  # Create chunk of expected size
         
         with tempfile.NamedTemporaryFile(suffix='.chunk', delete=False) as tmp_file:
             tmp_file.write(chunk_data)
