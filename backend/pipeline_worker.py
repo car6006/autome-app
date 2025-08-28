@@ -162,7 +162,7 @@ class PipelineWorker:
             if not session or not session.storage_key:
                 raise Exception("Upload session not found or file not available")
             
-            file_path = get_file_path(session.storage_key)
+            file_path = await get_file_path(session.storage_key)
             if not Path(file_path).exists():
                 raise Exception(f"Uploaded file not found: {file_path}")
             
