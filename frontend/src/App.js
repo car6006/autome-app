@@ -2922,6 +2922,20 @@ const Navigation = () => {
             <span className={`text-xs ${theme.navItemClass}`}>Text</span>
           </Link>
           
+          {/* Large File Transcription - only show to authenticated users */}
+          {isAuthenticated && (
+            <Link to="/large-file" className="flex flex-col items-center space-y-1 p-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                theme.isExpeditors 
+                  ? 'bg-gradient-to-r from-orange-600 to-red-700' 
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600'
+              }`}>
+                <Upload className="w-5 h-5 text-white" />
+              </div>
+              <span className={`text-xs ${theme.navItemClass}`}>Large</span>
+            </Link>
+          )}
+          
           <Link to="/scan" className="flex flex-col items-center space-y-1 p-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
               theme.isExpeditors 
