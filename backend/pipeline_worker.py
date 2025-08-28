@@ -66,10 +66,26 @@ class PipelineWorker:
         logger.info("🛑 Pipeline worker stopped")
     
     async def process_job(self, job: TranscriptionJob):
-        """Process a transcription job through the pipeline"""
-        logger.info(f"📋 Processing job {job.id} at stage {job.current_stage}")
+        """Process a transcription job through the pipeline with Phase 4 enhancements"""
+        job_start_time = time.time()
         
         try:
+            # Phase 4: Check rate limits and acquire job slot
+            user_id = job.user_id
+            if user_id and not await acquire_job_slot(user_id):
+                logger.warning(f"Job {job.id} blocked by concurrent job limit for user {user_id}")
+                await TranscriptionJobStore.update_job_status(job.id, TranscriptionStatus.PENDING)
+                return
+            
+            logger.info(f"🎬 Processing job {job.id} in stage: {job.current_stage}")
+            
+            # Phase 4: Record job started
+            record_job_started(job.id)
+            
+            # Phase 4: Send job started webhook
+            if user_id:
+                await notify_job_progress(job.id, user_id, 0.0, job.current_stage.value)
+            
             # Determine next stage to process
             if job.current_stage == TranscriptionStage.CREATED:
                 await self.stage_validate(job)
@@ -91,11 +107,44 @@ class PipelineWorker:
                 await self.stage_generate_outputs(job)
             elif job.current_stage == TranscriptionStage.COMPLETE:
                 logger.info(f"Job {job.id} already complete")
+                
+                # Phase 4: Record completion and send notification
+                job_duration = time.time() - job_start_time
+                record_job_completed(job.id, job_duration)
+                
+                if user_id:
+                    job_data = await TranscriptionJobStore.get_job(job.id)
+                    await notify_job_completed(job.id, user_id, {
+                        "duration": job_duration,
+                        "total_duration": job_data.total_duration,
+                        "output_formats": job_data.output_formats if hasattr(job_data, 'output_formats') else ["txt", "json", "srt", "vtt", "docx"]
+                    })
+                
+                # Release job slot
+                if user_id:
+                    await release_job_slot(user_id)
+                
+                return
             else:
                 logger.warning(f"Job {job.id} in unknown stage: {job.current_stage}")
                 
         except Exception as e:
             logger.error(f"Stage processing failed for job {job.id}: {str(e)}")
+            
+            # Phase 4: Record failure and send notification
+            job_duration = time.time() - job_start_time
+            record_job_failed(job.id, job_duration)
+            
+            if 'user_id' in locals() and user_id:
+                await notify_job_failed(job.id, user_id, {
+                    "error": str(e),
+                    "duration": job_duration,
+                    "stage": job.current_stage.value if 'job' in locals() else "unknown"
+                })
+                
+                # Release job slot on error
+                await release_job_slot(user_id)
+            
             await self.handle_job_error(job.id, "STAGE_ERROR", str(e))
     
     async def stage_validate(self, job: TranscriptionJob):
