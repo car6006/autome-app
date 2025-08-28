@@ -321,9 +321,14 @@ class PipelineWorker:
         await TranscriptionJobStore.update_job_stage(job.id, stage, 10.0)
         
         try:
-            # Get normalized audio file
+            # Get normalized audio file from job results
             job_data = await TranscriptionJobStore.get_job(job.id)
-            normalized_path = await get_file_path(job_data.storage_paths["normalized"])
+            storage_paths = getattr(job_data, 'storage_paths', {}) or {}
+            
+            if "normalized" not in storage_paths:
+                raise Exception("Normalized audio file not found - transcoding may have failed")
+            
+            normalized_path = await get_file_path(storage_paths["normalized"])
             
             # Calculate segment parameters
             segment_duration = self.config.segment_duration  # 60 seconds default
