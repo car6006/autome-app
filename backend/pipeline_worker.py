@@ -649,6 +649,47 @@ class PipelineWorker:
                                     logger.warning(f"Rate limited, waiting {wait_time}s before retry {attempt + 1}")
                                     await asyncio.sleep(wait_time)
                                     continue
+                                elif e.response.status_code == 400 and attempt == 0:
+                                    # 400 error on first attempt - try WAV fallback
+                                    logger.warning(f"400 error, attempting WAV re-encode fallback: {error_details}")
+                                    
+                                    # Re-encode to clean WAV
+                                    wav_path = segment_path.replace(".wav", "_clean.wav")
+                                    cmd = [
+                                        "ffmpeg", "-i", segment_path, 
+                                        "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", 
+                                        wav_path, "-y"
+                                    ]
+                                    
+                                    try:
+                                        result = subprocess.run(cmd, capture_output=True, text=True)
+                                        if result.returncode == 0:
+                                            # Retry with clean WAV
+                                            with open(wav_path, "rb") as clean_audio_file:
+                                                files = {"file": (f"segment_{i:04d}_clean.wav", clean_audio_file, "audio/wav")}
+                                                
+                                                async with httpx.AsyncClient(timeout=60) as client:
+                                                    response = await client.post(
+                                                        "https://api.openai.com/v1/audio/transcriptions",
+                                                        data=form,
+                                                        files=files,
+                                                        headers={"Authorization": f"Bearer {api_key}"}
+                                                    )
+                                                    response.raise_for_status()
+                                                    
+                                                    result = response.json()
+                                                    transcript_text = result.get("text", "")
+                                            
+                                            # Clean up temp WAV
+                                            os.unlink(wav_path)
+                                            logger.info(f"WAV fallback successful for segment {i+1}")
+                                            break
+                                        else:
+                                            logger.error(f"WAV re-encode failed: {result.stderr}")
+                                            raise Exception(f"Transcription API error: {e.response.status_code} - {error_details}")
+                                    except Exception as wav_error:
+                                        logger.error(f"WAV fallback failed: {wav_error}")
+                                        raise Exception(f"Transcription API error: {e.response.status_code} - {error_details}")
                                 else:
                                     logger.error(f"OpenAI API Error {e.response.status_code}: {error_details}")
                                     raise Exception(f"Transcription API error: {e.response.status_code} - {error_details}")
