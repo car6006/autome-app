@@ -13,7 +13,7 @@ import tempfile
 import os
 
 class ComprehensiveRTFTester:
-    def __init__(self, base_url="https://audio-pipeline-2.preview.emergentagent.com"):
+    def __init__(self, base_url="https://whisper-async-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0

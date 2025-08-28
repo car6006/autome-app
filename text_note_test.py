@@ -7,7 +7,7 @@ import asyncio
 import httpx
 import json
 
-BASE_URL = "https://audio-pipeline-2.preview.emergentagent.com/api"
+BASE_URL = "https://whisper-async-fix.preview.emergentagent.com/api"
 
 async def test_text_note_creation():
     """Test creating a text note"""
