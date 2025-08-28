@@ -628,6 +628,18 @@ frontend:
         agent: "user"
         comment: "Frontend cache needs to be cleared and optimized for faster loading"
 
+  - task: "Large-file transcription pipeline - Frontend Integration"
+    implemented: true
+    working: false
+    file: "App.js, LargeFileTranscriptionScreen.js, ResumableUpload.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Integrated ResumableUpload component and created LargeFileTranscriptionScreen. Added navigation route '/large-file' and navigation button in main app. Component supports file upload with progress tracking, job status monitoring, and download functionality."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
