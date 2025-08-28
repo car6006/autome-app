@@ -439,4 +439,4 @@ def get_file_path_sync(storage_key: str) -> str:
             if path.exists():
                 return str(path.absolute())
         
-        raise FileNotFoundError(f"File not found: {storage_key}"))
+        raise FileNotFoundError(f"File not found: {storage_key}")
