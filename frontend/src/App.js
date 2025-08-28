@@ -1831,9 +1831,10 @@ const NotesScreen = () => {
               {/* Batch Report Buttons - Multiple Export Options */}
               {selectedNotesForBatch.length > 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  {/* Mobile: Show expanded options or compact dropdown */}
-                  <div className="sm:hidden w-full">
-                    <div className="grid grid-cols-1 gap-2 w-full">
+                  {/* Mobile: Show stacked layout with dropdown */}
+                  <div className="sm:hidden">
+                    <div className="space-y-2">
+                      {/* Standard Batch Report */}
                       <Button
                         onClick={() => generateBatchReport('professional')}
                         disabled={generatingReport.batch}
@@ -1855,6 +1856,42 @@ const NotesScreen = () => {
                           </>
                         )}
                       </Button>
+
+                      {/* Comprehensive Report Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            disabled={generatingReport.batch}
+                            variant="outline"
+                            className={`w-full text-xs ${
+                              theme.isExpeditors 
+                                ? 'border-orange-600 text-orange-700 hover:bg-orange-50'
+                                : 'border-green-600 text-green-700 hover:bg-green-50'
+                            }`}
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Minutes & Actions ({selectedNotesForBatch.length})
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('ai')}>
+                            <FileBarChart className="w-4 h-4 mr-2" />
+                            Full Report (AI Format)
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('txt')}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as TXT
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('rtf')}>
+                            <FileDown className="w-4 h-4 mr-2" />
+                            Export as RTF
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      {/* Quick Export Buttons */}
                       <div className="grid grid-cols-2 gap-1 w-full">
                         <Button
                           onClick={() => generateBatchReport('txt')}
