@@ -74,7 +74,7 @@ class PipelineWorker:
             user_id = job.user_id
             if user_id and not await acquire_job_slot(user_id):
                 logger.warning(f"Job {job.id} blocked by concurrent job limit for user {user_id}")
-                await TranscriptionJobStore.update_job_status(job.id, TranscriptionStatus.PENDING)
+                await TranscriptionJobStore.set_job_results(job.id, {"status": TranscriptionStatus.PENDING.value})
                 return
             
             logger.info(f"🎬 Processing job {job.id} in stage: {job.current_stage}")
