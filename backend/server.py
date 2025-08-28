@@ -62,7 +62,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="AUTO-ME Productivity API", version="2.0.0")
+app = FastAPI(title="AUTO-ME Productivity API", version="2.0.0", lifespan=worker_lifespan)
 
 # Global exception handler for enhanced security
 @app.exception_handler(500)
