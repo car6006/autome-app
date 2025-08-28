@@ -1955,8 +1955,10 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    """Shutdown database and pipeline worker"""
+    """Shutdown database, pipeline worker, and Phase 4 services"""
     from worker_manager import stop_pipeline_worker
+    
+    # Stop pipeline worker
     logger.info("🛑 Stopping pipeline worker...")
     try:
         await stop_pipeline_worker()
@@ -1964,7 +1966,25 @@ async def shutdown_db_client():
     except Exception as e:
         logger.error(f"❌ Error stopping pipeline worker: {e}")
     
+    # Phase 4: Stop production services
+    logger.info("🛑 Stopping Phase 4 production services...")
+    
+    # Stop webhook manager
+    try:
+        await webhook_manager.stop()
+        logger.info("✅ Webhook manager stopped")
+    except Exception as e:
+        logger.error(f"❌ Error stopping webhook manager: {e}")
+    
+    # Stop monitoring service
+    try:
+        await monitoring_service.stop_monitoring()
+        logger.info("✅ Monitoring service stopped")
+    except Exception as e:
+        logger.error(f"❌ Error stopping monitoring service: {e}")
+    
     client.close()
+    logger.info("🎉 All services stopped successfully")
 
 if __name__ == "__main__":
     import uvicorn
