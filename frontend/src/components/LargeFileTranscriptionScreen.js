@@ -6,7 +6,7 @@ import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { 
   FileAudio, Clock, Download, Eye, RefreshCw, AlertCircle, 
-  CheckCircle, Settings, FileText, FileJson
+  CheckCircle, Settings, FileText, FileJson, ArrowRight
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
