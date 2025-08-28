@@ -1862,7 +1862,7 @@ async def get_metrics(
     }
 
 # Include the router in the main app
-app.include_router(api_router)
+app.include_router(api_router, prefix="/api")
 app.include_router(upload_router, prefix="/api")  # New resumable upload API
 
 app.add_middleware(
