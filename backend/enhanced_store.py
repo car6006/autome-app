@@ -217,6 +217,19 @@ class TranscriptionJobStore:
         )
     
     @staticmethod
+    async def update_job_status(job_id: str, status: TranscriptionStatus):
+        """Update job status"""
+        await TranscriptionJobStore.collection.update_one(
+            {"id": job_id},
+            {
+                "$set": {
+                    "status": status.value,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+    
+    @staticmethod
     async def list_jobs_for_user(user_id: str, limit: int = 50) -> List[TranscriptionJob]:
         """List jobs for user"""
         cursor = TranscriptionJobStore.collection.find({"user_id": user_id}).sort("created_at", -1).limit(limit)
