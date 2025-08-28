@@ -1923,14 +1923,35 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
-    """Start pipeline worker on server startup"""
+    """Start pipeline worker and Phase 4 services on server startup"""
     from worker_manager import start_pipeline_worker
+    
+    # Start pipeline worker
     logger.info("🚀 Starting pipeline worker...")
     try:
         await start_pipeline_worker()
         logger.info("✅ Pipeline worker started successfully")
     except Exception as e:
         logger.error(f"❌ Failed to start pipeline worker: {e}")
+    
+    # Phase 4: Start production services
+    logger.info("🚀 Starting Phase 4 production services...")
+    
+    # Start monitoring service
+    try:
+        await monitoring_service.start_monitoring()
+        logger.info("✅ Monitoring service started")
+    except Exception as e:
+        logger.error(f"❌ Failed to start monitoring service: {e}")
+    
+    # Start webhook manager
+    try:
+        await webhook_manager.start()
+        logger.info("✅ Webhook manager started")
+    except Exception as e:
+        logger.error(f"❌ Failed to start webhook manager: {e}")
+    
+    logger.info("🎉 All Phase 4 services started successfully")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
