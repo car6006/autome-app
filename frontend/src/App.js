@@ -2513,7 +2513,14 @@ const NotesScreen = () => {
                   
                   <div 
                     className="text-gray-800 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: formatReportText(currentReport.data.report) }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: formatReportText(
+                        currentReport.data.report || 
+                        currentReport.data.content || 
+                        currentReport.data.ai_analysis ||
+                        "No content available"
+                      ) 
+                    }}
                   />
                   
                   {currentReport.type === 'batch' && currentReport.data.source_notes && (
