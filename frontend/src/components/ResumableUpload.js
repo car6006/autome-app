@@ -169,7 +169,7 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
       }
       
       // All chunks uploaded, finalize
-      await finalizeUploadWithSession(session);
+      await finalizeUploadWithSession(session, file);
       
     } catch (error) {
       console.error('Failed to resume upload:', error);
