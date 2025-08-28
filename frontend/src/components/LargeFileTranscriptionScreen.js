@@ -439,6 +439,15 @@ const LargeFileTranscriptionScreen = () => {
               <div className="flex items-center space-x-1">
                 <Button
                   size="sm"
+                  variant="default"
+                  onClick={() => transferToNotes(job.job_id)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Transfer to Notes
+                </Button>
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => downloadTranscription(job.job_id, 'txt')}
                 >
