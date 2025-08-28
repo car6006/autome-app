@@ -1899,8 +1899,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def startup_event():
+    """Start pipeline worker on server startup"""
+    from worker_manager import start_pipeline_worker
+    logger.info("🚀 Starting pipeline worker...")
+    try:
+        await start_pipeline_worker()
+        logger.info("✅ Pipeline worker started successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to start pipeline worker: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """Shutdown database and pipeline worker"""
+    from worker_manager import stop_pipeline_worker
+    logger.info("🛑 Stopping pipeline worker...")
+    try:
+        await stop_pipeline_worker()
+        logger.info("✅ Pipeline worker stopped successfully")
+    except Exception as e:
+        logger.error(f"❌ Error stopping pipeline worker: {e}")
+    
     client.close()
 
 if __name__ == "__main__":
