@@ -2736,7 +2736,7 @@ const MetricsScreen = () => {
   }
 
   return (
-    <div className={`min-h-screen p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
+    <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
       <div className="max-w-4xl mx-auto">
 
         {/* Expeditors Logo for metrics page */}
