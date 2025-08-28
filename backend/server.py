@@ -23,6 +23,7 @@ from auth import (
 # Import new APIs
 from upload_api import router as upload_router
 from transcription_api import router as transcription_router
+from transcription_api import router as transcription_router
 from worker_manager import worker_lifespan, get_pipeline_status
 
 ROOT_DIR = Path(__file__).parent
