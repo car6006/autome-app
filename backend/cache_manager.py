@@ -283,9 +283,10 @@ class CacheManager:
     
     def _initialize_backend(self) -> CacheBackend:
         """Initialize cache backend"""
-        cache_type = os.getenv("CACHE_TYPE", "redis" if REDIS_AVAILABLE else "memory").lower()
+        cache_type = os.getenv("CACHE_TYPE", "memory").lower()
+        redis_available = os.getenv("REDIS_AVAILABLE", "false").lower() == "true"
         
-        if cache_type == "redis" and REDIS_AVAILABLE:
+        if cache_type == "redis" and REDIS_AVAILABLE and redis_available:
             try:
                 return RedisCacheBackend()
             except Exception as e:
@@ -293,6 +294,7 @@ class CacheManager:
                 return InMemoryCacheBackend()
         else:
             max_size = int(os.getenv("CACHE_MAX_SIZE", "1000"))
+            logger.info(f"Using in-memory cache with max size: {max_size}")
             return InMemoryCacheBackend(max_size=max_size)
     
     def _generate_key(self, namespace: str, identifier: str, **kwargs) -> str:
