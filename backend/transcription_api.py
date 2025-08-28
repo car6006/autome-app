@@ -277,7 +277,7 @@ async def delete_job(
         # Cancel job first if it's still processing
         if job.status in [TranscriptionStatus.CREATED, TranscriptionStatus.PROCESSING]:
             logger.info(f"🛑 Cancelling job {job_id} before deletion")
-            await TranscriptionJobStore.update_job_status(job_id, TranscriptionStatus.CANCELLED)
+            await TranscriptionJobStore.set_job_results(job_id, {"status": TranscriptionStatus.CANCELLED.value})
         
         # Delete associated files from storage
         try:
