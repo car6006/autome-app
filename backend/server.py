@@ -526,7 +526,7 @@ async def health_check():
             }
         )
 
-@api_router.get("/metrics")
+@api_router.get("/system-metrics")
 @monitor_endpoint("system_metrics")
 async def get_system_metrics(current_user: Optional[dict] = Depends(get_current_user_optional)):
     """Get comprehensive system metrics (Phase 4)"""
