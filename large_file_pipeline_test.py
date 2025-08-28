@@ -240,6 +240,7 @@ class LargeFileTranscriptionTester:
         self.log("🔗 Step 4: Finalizing upload...")
         
         finalize_data = {
+            "upload_id": self.upload_id,
             "sha256": self.file_sha256
         }
         
