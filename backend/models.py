@@ -62,6 +62,12 @@ class TranscriptionJob(BaseModel):
     enable_diarization: bool = True
     model: str = "whisper-large-v3"
     
+    # Phase 3: Advanced processing options
+    enable_ai_diarization: bool = True  # Use AI for better speaker detection
+    enable_multi_language: bool = False  # Multi-language detection
+    output_formats: List[str] = Field(default_factory=lambda: ["txt", "json", "srt", "vtt", "docx"])
+    processing_priority: str = "normal"  # normal, high, low
+    
     # Pipeline state
     status: TranscriptionStatus = TranscriptionStatus.CREATED
     current_stage: TranscriptionStage = TranscriptionStage.CREATED
