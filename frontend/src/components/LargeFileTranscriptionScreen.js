@@ -359,7 +359,7 @@ const LargeFileTranscriptionScreen = () => {
                     <div>
                       <h4 className="font-medium">Multiple Formats</h4>
                       <p className="text-sm text-gray-600">
-                        Download as TXT, JSON, SRT, VTT, or DOCX for different use cases
+                        Download as TXT, JSON, SRT, VTT, or DOCX with enhanced speaker diarization
                       </p>
                     </div>
                   </div>
