@@ -438,13 +438,26 @@ async def health_check():
         # Check database connection
         await db["users"].find_one({})
         
+        # Check pipeline status
+        try:
+            from worker_manager import get_pipeline_status
+            pipeline_status = await get_pipeline_status()
+            pipeline_health = "healthy" if pipeline_status["worker"]["running"] else "degraded"
+        except Exception as e:
+            pipeline_health = "unknown"
+            pipeline_status = {"error": str(e)}
+        
+        overall_status = "healthy" if pipeline_health in ["healthy", "degraded"] else "unhealthy"
+        
         return {
-            "status": "healthy",
+            "status": overall_status,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "services": {
                 "database": "connected",
-                "api": "running"
-            }
+                "api": "running",
+                "pipeline": pipeline_health
+            },
+            "pipeline": pipeline_status
         }
     except Exception as e:
         raise HTTPException(
