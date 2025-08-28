@@ -264,6 +264,14 @@ const LargeFileTranscriptionScreen = () => {
                   <FileJson className="w-4 h-4 mr-2" />
                   JSON
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => downloadTranscription(job.job_id, 'docx')}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  DOCX
+                </Button>
               </div>
             )}
           </div>
