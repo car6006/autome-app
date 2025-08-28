@@ -2416,8 +2416,8 @@ const NotesScreen = () => {
         
         {/* Professional Report Modal */}
         {showReportModal && currentReport && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden mb-16 sm:mb-0">
+          <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-2 sm:p-4 pt-4 sm:pt-8">
+            <div className="bg-white rounded-lg w-full max-w-6xl max-h-[95vh] overflow-hidden">
               <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
@@ -2425,8 +2425,8 @@ const NotesScreen = () => {
                     <span className="truncate">Professional Business Report</span>
                   </h2>
                   <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
-                    {currentReport.type === 'batch' 
-                      ? `Combined analysis from ${currentReport.data.note_count} notes`
+                    {currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
+                      ? `Combined analysis from ${currentReport.data.note_count || currentReport.data.sessions?.length || 'multiple'} notes`
                       : `Analysis for: ${currentReport.data.note_title}`
                     }
                   </p>
@@ -2434,14 +2434,15 @@ const NotesScreen = () => {
                 <Button
                   variant="ghost"
                   onClick={() => setShowReportModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 flex-shrink-0"
                 >
                   ✕
                 </Button>
               </div>
               
-              <div className="p-3 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[70vh]">
-                <div className="prose max-w-none">
+              <div className="overflow-y-auto" style={{maxHeight: 'calc(95vh - 120px)'}}>
+                <div className="p-3 sm:p-6">
+                  <div className="prose max-w-none">
                   <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg mb-6">
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-600">
