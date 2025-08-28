@@ -1,0 +1,30 @@
+{
+  "test_name": "Large-File Audio Transcription Pipeline Test",
+  "backend_url": "https://whisper-async-fix.preview.emergentagent.com",
+  "test_file": "/tmp/test_pipeline_30s.wav",
+  "total_tests": 8,
+  "passed_tests": 1,
+  "success_rate": 12.5,
+  "job_id": null,
+  "upload_id": null,
+  "all_tests_passed": false,
+  "detailed_results": [
+    {
+      "test": "Test File Check",
+      "success": true,
+      "message": "Test file found: 2646078 bytes",
+      "details": {
+        "file_path": "/tmp/test_pipeline_30s.wav",
+        "size_bytes": 2646078
+      },
+      "timestamp": 1756380400.8173788
+    },
+    {
+      "test": "User Registration",
+      "success": false,
+      "message": "Registration failed: 422",
+      "details": {},
+      "timestamp": 1756380400.974272
+    }
+  ]
+}
