@@ -237,9 +237,14 @@ class PipelineWorker:
         await TranscriptionJobStore.update_job_stage(job.id, stage, 10.0)
         
         try:
-            # Get original file path
+            # Get original file path from upload session
             job_data = await TranscriptionJobStore.get_job(job.id)
-            original_path = await get_file_path(job_data.storage_paths["original"])
+            from enhanced_store import UploadSessionStore
+            session = await UploadSessionStore.get_session(job_data.upload_id)
+            if not session or not session.storage_key:
+                raise Exception("Upload session not found or file not available")
+            
+            original_path = await get_file_path(session.storage_key)
             
             # Create normalized audio file
             with TemporaryDirectory() as temp_dir:
