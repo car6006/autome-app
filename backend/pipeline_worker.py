@@ -231,7 +231,7 @@ class PipelineWorker:
                 
                 # Store normalized file
                 with open(normalized_path, "rb") as f:
-                    normalized_key = await store_file_content(f.read(), f"job_{job.id}_normalized.wav")
+                    normalized_key = await store_file_content_async(f.read(), f"job_{job.id}_normalized.wav")
                 
                 # Update job with normalized file path
                 storage_paths = job_data.storage_paths.copy()
