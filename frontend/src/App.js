@@ -2545,6 +2545,70 @@ const NotesScreen = () => {
           </div>
         )}
         
+        {/* Action Items Modal */}
+        {showActionItemsModal && currentActionItems && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden mb-16 sm:mb-0">
+              <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-orange-600" />
+                    <span className="truncate">Action Items Table</span>
+                  </h2>
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
+                    Structured action items for: {currentActionItems.note_title}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowActionItemsModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="p-3 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[70vh]">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-6">
+                  <div className="whitespace-pre-wrap text-gray-800 font-mono text-xs sm:text-sm leading-relaxed break-words">
+                    {currentActionItems.data.action_items}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 sm:p-6 border-t border-gray-200 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-gray-600">
+                    Ready to copy and customize your action items table
+                  </p>
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowActionItemsModal(false)}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(currentActionItems.data.action_items);
+                        toast({ title: "📋 Copied!", description: "Action items copied to clipboard" });
+                      }}
+                      className={`${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white'
+                          : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                      }`}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Copy to Clipboard
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* AI Chat Modal */}
         {showAiChatModal && aiChatNote && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
