@@ -924,7 +924,11 @@ class PipelineWorker:
             # Generate VTT format
             await TranscriptionJobStore.update_stage_progress(job.id, stage, 80.0)
             vtt_content = self._generate_vtt(segments)
-            vtt_key = await store_file_content_async(vtt_content.encode('utf-8'), f"job_{job.id}_transcript.vtt")
+            vtt_key = await storage_manager.store_file(
+                vtt_content.encode('utf-8'),
+                f"job_{job.id}_transcript.vtt",
+                job_id=job.id
+            )
             
             vtt_asset = TranscriptionAsset(
                 job_id=job.id,
