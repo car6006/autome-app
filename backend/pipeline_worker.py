@@ -86,11 +86,9 @@ class PipelineWorker:
             if user_id:
                 await notify_job_progress(job.id, user_id, 0.0, job.current_stage.value)
             
-            # Determine next stage to process
+            # Process based on current stage
             if job.current_stage == TranscriptionStage.CREATED:
                 await self.stage_validate(job)
-            elif job.current_stage == TranscriptionStage.VALIDATING:
-                await self.stage_validate(job)  # Continue processing validation
             elif job.current_stage == TranscriptionStage.TRANSCODING:
                 await self.stage_transcode(job)
             elif job.current_stage == TranscriptionStage.SEGMENTING:
