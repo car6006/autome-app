@@ -663,8 +663,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Large-file audio transcription pipeline - Phase 2: Job Pipeline Architecture"
-    - "Large-file transcription pipeline - Frontend Integration"
+    - "Large-file audio transcription pipeline - Phase 3: Advanced Processing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
