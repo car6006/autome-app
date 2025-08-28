@@ -3037,6 +3037,7 @@ function AppContent() {
             <Route path="/profile" element={<ProfileScreen />} />
 
             <Route path="/iisb" element={<IISBAnalysisScreen />} />
+            <Route path="/large-file" element={<LargeFileTranscriptionScreen />} />
             <Route path="/help" element={<HelpGuide />} />
           </Routes>
         </div>
