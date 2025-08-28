@@ -696,7 +696,19 @@ class PipelineWorker:
         
         try:
             # Get transcription results
+            logger.info(f"🔍 Job {job.id}: Looking for transcription checkpoint...")
             checkpoint = await TranscriptionJobStore.get_stage_checkpoint(job.id, TranscriptionStage.TRANSCRIBING)
+            
+            if checkpoint:
+                logger.info(f"✅ Job {job.id}: Found checkpoint with keys: {list(checkpoint.keys())}")
+                transcripts = checkpoint.get("transcripts")
+                if transcripts:
+                    logger.info(f"✅ Job {job.id}: Found {len(transcripts)} transcripts in checkpoint")
+                else:
+                    logger.error(f"❌ Job {job.id}: Checkpoint exists but no transcripts found")
+            else:
+                logger.error(f"❌ Job {job.id}: No checkpoint found for TRANSCRIBING stage")
+            
             if not checkpoint or not checkpoint.get("transcripts"):
                 raise Exception("Transcription data not found")
             
