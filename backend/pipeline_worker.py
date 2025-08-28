@@ -600,7 +600,7 @@ class PipelineWorker:
                         form = {
                             "model": "gpt-4o-mini-transcribe",  # Updated to correct model
                             "language": job_data.detected_language or "en",
-                            "response_format": "verbose_json",
+                            "response_format": "json",  # Changed from verbose_json to json
                             "temperature": "0"
                         }
                         
