@@ -1773,47 +1773,56 @@ async def generate_comprehensive_batch_report(
         if not api_key:
             raise HTTPException(status_code=503, detail="AI service configuration error")
         
-        # Generate comprehensive meeting minutes for all sessions
-        session_bullets = "\n".join([f"• {item['title']}" for item in all_transcripts])
+        # Generate comprehensive meeting minutes matching user's preferred format
         meeting_minutes_prompt = f"""
-        Based on the following multi-session meeting transcripts, create comprehensive meeting minutes following this EXACT professional format:
+        Based on the following multi-session meeting transcripts, create meeting minutes following this EXACT format structure (NO markdown, NO bold formatting):
 
-        COMPREHENSIVE MEETING SUMMARY - MULTI-SESSION REPORT
+        MEETING SUMMARY
 
-        Date Range: [Extract dates or use {report_date}]
-        Sessions Included: {len(all_transcripts)} sessions
-        Report Title: {title}
+        Date: {report_date}
+        Meeting Type: Multi-Session Team Meeting Summary
 
         EXECUTIVE SUMMARY
-        Provide an overview of all sessions, key themes across multiple meetings, strategic outcomes, and overall objectives achieved.
 
-        SESSION OVERVIEW
-        List each session with brief description:
-        {session_bullets}
+        This comprehensive meeting summary covers {len(all_transcripts)} sessions focused on reviewing performance, addressing operational challenges, and planning strategic initiatives. The meetings emphasized open communication, collaborative problem-solving, and clear action planning to achieve organizational objectives.
 
-        CONSOLIDATED KEY DISCUSSION TOPICS
-        Combine and organize all discussions into strategic themes:
-        - Strategic Planning and Decision Making
-        - Performance Review and Analysis  
-        - Operational Improvements and Processes
-        - Team Development and Communication
-        - Customer Engagement and Service Excellence
-        - Financial Performance and Resource Allocation
-        [Add other relevant consolidated themes]
+        OPENING REMARKS AND OBJECTIVES
 
-        CROSS-SESSION DECISIONS AND RESOLUTIONS
-        Summarize all major decisions made across all sessions and their collective impact.
+        The sessions commenced with welcoming remarks from the chairperson, setting clear agendas and expectations for productive discussions. The primary objectives included reviewing current performance metrics, identifying areas for improvement, and establishing clear action plans for upcoming initiatives.
 
-        CONSOLIDATED ACTION ITEMS AND NEXT STEPS
-        Combine all action items from all sessions into a prioritized list with clear ownership.
+        KEY DISCUSSION TOPICS
 
-        OVERALL CONCLUSIONS AND STRATEGIC OUTCOMES
-        Professional summary emphasizing collective achievements, strategic alignment, and forward-looking commitments.
+        Performance Review and Analysis
+        [Extract and summarize performance-related discussions from all sessions]
+
+        Strategic Planning and Resource Allocation
+        [Extract and summarize strategic planning discussions from all sessions]
+
+        Customer Engagement and Service Delivery
+        [Extract and summarize customer-related discussions from all sessions]
+
+        Operational Efficiency and Process Improvement
+        [Extract and summarize operational discussions from all sessions]
+
+        Team Development and Communication
+        [Extract and summarize team development discussions from all sessions]
+
+        DECISIONS AND RESOLUTIONS
+
+        [Extract key decisions made across all sessions and their collective impact]
+
+        ACTION ITEMS AND NEXT STEPS
+
+        [Extract action items from all sessions in narrative form, mentioning which session they came from]
+
+        CONCLUSION
+
+        The sessions successfully addressed key operational and strategic topics, resulting in clear action plans and renewed commitment to organizational objectives. All participants agreed to maintain open communication and collaborative approach to achieving established goals.
 
         TRANSCRIPTS:
         {combined_transcript}
         
-        Use professional business language. NO markdown formatting.
+        Use professional business language. Structure content logically with clear section divisions. Write in narrative form with detailed explanations. NO bullet points in main content. Focus on business outcomes and strategic initiatives.
         """
         
         async with httpx.AsyncClient(timeout=120) as client:
