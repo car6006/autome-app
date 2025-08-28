@@ -1785,6 +1785,12 @@ Next Steps:
         # Test authenticated metrics
         self.test_metrics_endpoint(authenticated=True)
         
+        # === LARGE-FILE TRANSCRIPTION PIPELINE TESTS ===
+        self.log("\n🎵 LARGE-FILE TRANSCRIPTION PIPELINE TESTS")
+        
+        # Test the Phase 2 implementation
+        self.test_large_file_transcription_pipeline()
+        
         # === ANONYMOUS TESTS ===
         self.log("\n👤 ANONYMOUS USER TESTS")
         
