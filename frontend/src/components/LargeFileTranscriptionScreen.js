@@ -202,10 +202,34 @@ const LargeFileTranscriptionScreen = () => {
         {showProgress && job.status === 'processing' && (
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span>Stage: {job.current_stage?.replace(/_/g, ' ')}</span>
-              <span>{job.progress?.toFixed(1) || 0}%</span>
+              <span className="font-medium">
+                Stage: {formatStageName(job.current_stage)}
+              </span>
+              <span className="text-blue-600 font-medium">
+                {job.progress?.toFixed(1) || 0}%
+              </span>
             </div>
-            <Progress value={job.progress || 0} className="w-full" />
+            <Progress value={job.progress || 0} className="w-full mb-2" />
+            
+            {/* Enhanced progress details */}
+            <div className="text-xs text-gray-500 space-y-1">
+              <div className="flex justify-between">
+                <span>Current Stage: {job.current_stage}</span>
+                <span>
+                  {job.start_time && (
+                    `Started: ${new Date(job.start_time).toLocaleTimeString()}`
+                  )}
+                </span>
+              </div>
+              {job.estimated_completion && (
+                <div className="flex justify-between">
+                  <span>Estimated completion:</span>
+                  <span className="text-blue-600">
+                    {new Date(job.estimated_completion).toLocaleTimeString()}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
         
