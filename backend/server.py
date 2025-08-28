@@ -23,6 +23,14 @@ from auth import (
 # Import new APIs
 from upload_api import router as upload_router
 from transcription_api import router as transcription_router
+from webhooks import webhook_router
+
+# Phase 4: Production imports
+from cloud_storage import storage_manager
+from cache_manager import cache_manager
+from monitoring import monitoring_service, monitor_endpoint
+from rate_limiting import rate_limiter, quota_manager, check_rate_limit, check_user_quota
+from webhooks import webhook_manager
 from transcription_api import router as transcription_router
 from worker_manager import worker_lifespan, get_pipeline_status
 
