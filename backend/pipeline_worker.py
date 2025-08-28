@@ -1044,6 +1044,9 @@ class PipelineWorker:
             await TranscriptionJobStore.update_job_stage(job.id, TranscriptionStage.COMPLETE, 0.0)
             logger.info(f"✅ Job {job.id}: Output generation complete ({len(assets_created)} formats)")
             
+            # 🔥 CRITICAL: Update main notes system with transcription results
+            await self._update_main_note_with_results(job)
+            
         except Exception as e:
             await self.handle_job_error(job.id, "OUTPUT_GENERATION_FAILED", str(e))
     
