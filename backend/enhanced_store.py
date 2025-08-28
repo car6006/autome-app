@@ -134,12 +134,13 @@ class TranscriptionJobStore:
     
     @staticmethod
     async def update_stage_progress(job_id: str, stage: TranscriptionStage, progress: float):
-        """Update progress for specific stage"""
+        """Update progress for specific stage and overall job progress"""
         await TranscriptionJobStore.collection.update_one(
             {"id": job_id},
             {
                 "$set": {
                     f"stage_progress.{stage.value}": progress,
+                    "progress": progress,  # Also update overall progress
                     "updated_at": datetime.now(timezone.utc)
                 }
             }
