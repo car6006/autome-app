@@ -21,10 +21,16 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 database = client[os.environ['DB_NAME']]
 
-# JWT Configuration
+# Enhanced JWT Configuration with security
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60  # 24 hours
+
+# Security: Validate JWT secret key strength
+if SECRET_KEY == "your-secret-key-change-in-production" or len(SECRET_KEY) < 32:
+    import secrets
+    generated_key = secrets.token_urlsafe(64)
+    print(f"🚨 WARNING: Weak JWT secret key detected. Consider using: {generated_key}")
 
 security = HTTPBearer()
 
