@@ -20,6 +20,9 @@ from auth import (
     Token, get_current_user, get_current_user_optional
 )
 
+# Import new upload API
+from upload_api import router as upload_router
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
