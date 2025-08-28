@@ -301,6 +301,10 @@ async def finalize_upload(
         # Create backward-compatible Note record
         note_id = await EnhancedNotesStore.create_from_transcription_job(job)
         
+        # 🔥 CRITICAL: Link the job to the main note for result transfer
+        job.note_id = note_id
+        await TranscriptionJobStore.update_job(job)
+        
         # Clean up chunk files
         try:
             import shutil
