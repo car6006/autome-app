@@ -752,7 +752,7 @@ class PipelineWorker:
             
             import json
             json_content = json.dumps(json_data, indent=2, ensure_ascii=False)
-            json_key = await store_file_content(json_content.encode('utf-8'), f"job_{job.id}_transcript.json")
+            json_key = await store_file_content_async(json_content.encode('utf-8'), f"job_{job.id}_transcript.json")
             
             json_asset = TranscriptionAsset(
                 job_id=job.id,
