@@ -1884,15 +1884,7 @@ const NotesScreen = () => {
                             <FileBarChart className="w-4 h-4 mr-2" />
                             Full Report (AI Format)
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('txt')}>
-                            <FileText className="w-4 h-4 mr-2" />
-                            Export as TXT
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => generateComprehensiveBatchReport('rtf')}>
-                            <FileDown className="w-4 h-4 mr-2" />
-                            Export as RTF
-                          </DropdownMenuItem>
+
                         </DropdownMenuContent>
                       </DropdownMenu>
 
