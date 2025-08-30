@@ -2328,10 +2328,6 @@ const NotesScreen = () => {
 
                           <DropdownMenuSeparator />
 
-                          {/* Export Options */}
-
-                          <DropdownMenuSeparator />
-
                           {/* Batch Selection */}
                           <DropdownMenuItem onClick={() => toggleNoteSelection(note.id)}>
                             {selectedNotesForBatch.includes(note.id) ? (
