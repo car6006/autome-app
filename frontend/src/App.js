@@ -2403,7 +2403,7 @@ const NotesScreen = () => {
                       </div>
                     )}
                   </div>
-            </CardContent>
+              </CardContent>
             </Card>
           ))}
         </div>
