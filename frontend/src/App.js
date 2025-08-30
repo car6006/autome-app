@@ -2077,7 +2077,6 @@ const NotesScreen = () => {
                           <p className="text-sm text-gray-600 line-clamp-3 break-words">{note.artifacts.transcript}</p>
                         )}
                       </div>
-                    )}
                     {note.artifacts.text && !note.artifacts.transcript && (
                       <div>
                         <div className="flex items-center justify-between">
