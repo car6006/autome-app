@@ -42,7 +42,7 @@ def create_test_audio_file():
 
 def test_transcription():
     """Test transcription with rate limit handling"""
-    base_url = "https://whisper-async-fix.preview.emergentagent.com"
+    base_url = "https://voice-capture-9.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     log("🚀 Testing OpenAI Whisper Rate Limit Fix")

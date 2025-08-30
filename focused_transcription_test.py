@@ -13,7 +13,7 @@ from datetime import datetime
 
 class FocusedTranscriptionTester:
     def __init__(self):
-        self.base_url = "https://whisper-async-fix.preview.emergentagent.com"
+        self.base_url = "https://voice-capture-9.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.tests_run = 0
         self.tests_passed = 0

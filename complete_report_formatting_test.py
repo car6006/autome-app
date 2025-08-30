@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 
 class CompleteReportFormattingTester:
-    def __init__(self, base_url="https://whisper-async-fix.preview.emergentagent.com"):
+    def __init__(self, base_url="https://voice-capture-9.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0

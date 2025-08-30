@@ -1,6 +1,6 @@
 {
   "test_name": "Large-File Audio Transcription Pipeline Test",
-  "backend_url": "https://whisper-async-fix.preview.emergentagent.com",
+  "backend_url": "https://voice-capture-9.preview.emergentagent.com",
   "test_file": "/tmp/test_pipeline_30s.wav",
   "total_tests": 8,
   "passed_tests": 0,

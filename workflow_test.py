@@ -9,7 +9,7 @@ import os
 import time
 
 def test_complete_workflow():
-    api_url = 'https://whisper-async-fix.preview.emergentagent.com/api'
+    api_url = 'https://voice-capture-9.preview.emergentagent.com/api'
     
     print('🎵 Testing Complete Audio Upload Workflow...')
     
