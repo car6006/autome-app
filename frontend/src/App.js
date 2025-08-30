@@ -2329,14 +2329,6 @@ const NotesScreen = () => {
                           <DropdownMenuSeparator />
 
                           {/* Export Options */}
-                          <DropdownMenuItem onClick={() => exportNote(note, 'txt')}>
-                            <FileText className="w-4 h-4 mr-3" />
-                            Export as TXT
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => exportNote(note, 'rtf')}>
-                            <FileDown className="w-4 h-4 mr-3" />
-                            Export as RTF
-                          </DropdownMenuItem>
 
                           <DropdownMenuSeparator />
 
