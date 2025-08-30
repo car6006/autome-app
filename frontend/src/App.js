@@ -2127,6 +2127,7 @@ const NotesScreen = () => {
                       </div>
                     )}
                   </div>
+                )}
                 
                 {(note.status === 'processing' || note.status === 'uploading') && (
                   <div className="space-y-3">
