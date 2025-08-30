@@ -2381,7 +2381,6 @@ const NotesScreen = () => {
                       </DropdownMenu>
                     </div>
 
-                    {/* Temporary comment out email functionality to fix JSX
                     {selectedNote === note.id && (
                       <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
                         <Input
@@ -2403,7 +2402,6 @@ const NotesScreen = () => {
                         </Button>
                       </div>
                     )}
-                    */}
                   </div>
               </CardContent>
             </Card>
