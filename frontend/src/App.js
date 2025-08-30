@@ -27,9 +27,9 @@ import {
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import AuthModal from "./components/AuthModal";
-import ProfileScreen from "./components/ProfileScreen";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.js";
+import AuthModal from "./components/AuthModal.js";
+import ProfileScreen from "./components/ProfileScreen.js";
 
 import IISBAnalysisScreen from "./components/IISBAnalysisScreen";
 import HelpGuide from "./components/HelpGuide";
