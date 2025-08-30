@@ -520,6 +520,18 @@ backend:
         comment: "TRANSFER-TO-NOTES FUNCTIONALITY COMPREHENSIVE VERIFICATION COMPLETED: The review request to fix the user's existing completed transcription job by transferring it properly to the main notes system has been successfully implemented and tested! ✅ ENDPOINT IMPLEMENTATION: The /api/transcriptions/{job_id}/transfer-to-notes POST endpoint is fully functional with proper authentication, job ownership validation, completion status checking, and integration with pipeline worker's _update_main_note_with_results() function. ✅ ERROR HANDLING EXCELLENCE: Comprehensive error handling implemented - 404 for non-existent jobs, 403 for unauthorized access, 400 for incomplete jobs, and 500 with detailed error messages for transfer failures. All security and validation checks working perfectly. ✅ INTEGRATION WORKFLOW: Successfully integrates completed transcription jobs with main notes system, updating note status from 'uploading' to 'ready', transferring transcript content to note artifacts, and enabling AI features on completed notes. ✅ CLEANUP FUNCTIONALITY: Cleanup endpoint (/api/transcriptions/cleanup) operational for handling stuck jobs and preventing duplication issues. System maintains clean state with proper asset management during transfer process. ✅ TESTING VERIFICATION: 100% success rate (4/4 tests passed) including endpoint functionality, error handling, authentication requirements, and cleanup operations. All scenarios tested including non-existent jobs, authentication validation, and proper response handling. ✅ PRODUCTION READINESS: Feature is production ready and addresses the specific user issue - allows manual triggering of integration for the 'Regional Meeting 20 August 2025.mp3' transcription job, resolves duplication issues, ensures large file assets are properly managed, and enables AI features on completed notes without memory waste. The transfer-to-notes functionality successfully resolves the user's 3-hour meeting transcription accessibility issue and is ready for immediate deployment!"
 
 frontend:
+  - task: "Remove TXT and RTF Export Options from Actions Dropdown Menus"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "TXT AND RTF EXPORT REMOVAL VERIFICATION FAILED: Comprehensive testing of the AUTO-ME PWA revealed that TXT and RTF export options have NOT been successfully removed as requested. ❌ CRITICAL FINDINGS: Found 30 'Export TXT' and 30 'Export RTF' standalone buttons still present on the Notes page (lines 2214-2236 in App.js). These are the 'Clean Export buttons - TXT and RTF' that should be removed. ✅ ACTIONS DROPDOWN VERIFICATION: The Actions dropdown menus are working correctly and do NOT contain TXT or RTF export options. The dropdown properly contains expected options: Generate Meeting Minutes, Generate Action Items, Professional Report, Add to Batch, Archive Note, Delete Note. ❌ IMPLEMENTATION STATUS: The review request to remove TXT and RTF export options has NOT been implemented. The standalone export buttons are still visible and functional on each note card. 🔧 ACTION REQUIRED: Remove the standalone 'Export TXT' and 'Export RTF' buttons from the notes interface (App.js lines 2214-2236). The Actions dropdown is clean, but the standalone buttons need to be removed to complete the cleanup requested in the review."
+
   - task: "Fix authentication - hide NOTES from unauthenticated users"
     implemented: true
     working: true
