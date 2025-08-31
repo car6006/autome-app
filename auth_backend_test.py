@@ -30,7 +30,7 @@ class AuthenticationTester:
             "last_name": "Tester",
             "profession": "Software Engineer",
             "industry": "Technology",
-            "interests": ["API Testing", "Authentication", "Security"]
+            "interests": "API Testing, Authentication, Security"
         }
         
         # Test user for forgot password flow
