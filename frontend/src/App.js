@@ -2365,8 +2365,16 @@ const NotesScreen = () => {
                           <DropdownMenuSeparator />
 
                           {/* Batch Selection */}
-                          <DropdownMenuItem onClick={() => toggleNoteSelection(note.id)}>
-                            {selectedNotesForBatch.includes(note.id) ? (
+                          <DropdownMenuItem 
+                            onClick={() => toggleNoteSelection(note.id)}
+                            disabled={addingToBatch[note.id]}
+                          >
+                            {addingToBatch[note.id] ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                                Processing...
+                              </>
+                            ) : selectedNotesForBatch.includes(note.id) ? (
                               <>
                                 <CheckCircle className="w-4 h-4 mr-3 text-green-600" />
                                 Remove from Batch
