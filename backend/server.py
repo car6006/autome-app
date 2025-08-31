@@ -2402,15 +2402,13 @@ async def sync_note_to_git(
 @api_router.get("/metrics")
 async def get_metrics(
     days: int = Query(7, ge=1, le=90),
-    current_user: Optional[dict] = Depends(get_current_user_optional)
+    current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """Get productivity metrics (user-specific if authenticated)"""
+    """Get productivity metrics for authenticated user only"""
     since = datetime.now(timezone.utc) - timedelta(days=days)
     
-    # Build query based on authentication
-    query = {"created_at": {"$gte": since}}
-    if current_user:
-        query["user_id"] = current_user["id"]
+    # Only show metrics for the authenticated user
+    query = {"created_at": {"$gte": since}, "user_id": current_user["id"]}
     
     # Get notes from the specified time window
     cursor = db["notes"].find(query)
