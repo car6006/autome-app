@@ -519,6 +519,142 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </CardContent>
         </Card>
       </DialogContent>
+      
+      {/* Forgot Password Modal Overlay */}
+      {showForgotPassword && (
+        <DialogContent className="w-[95vw] max-w-[450px] max-h-[90vh] p-0 border-0 bg-transparent shadow-none overflow-y-auto">
+          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl mx-auto">
+            <CardHeader className="text-center pb-4 px-4 sm:px-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                Reset Password
+              </CardTitle>
+              <CardDescription className="text-gray-600 text-sm sm:text-base">
+                {forgotPasswordStep === 'verify' ? 'Enter your email to verify your account' : 'Create a new password'}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="px-4 sm:px-6 pb-6">
+              {forgotPasswordStep === 'verify' ? (
+                // Step 1: Verify Email
+                <form onSubmit={handleForgotPasswordVerify} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email" className="text-sm font-medium text-gray-700">
+                      Email Address
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={forgotPasswordData.email}
+                        onChange={handleForgotPasswordChange('email')}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2 pt-2">
+                    <Button
+                      type="button"
+                      onClick={resetForgotPassword}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={loading}
+                      className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify Email'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                // Step 2: Reset Password
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+                      New Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="new-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={forgotPasswordData.newPassword}
+                        onChange={handleForgotPasswordChange('newPassword')}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Must be 8+ characters with uppercase, lowercase, and number
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-new-password" className="text-sm font-medium text-gray-700">
+                      Confirm New Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirm-new-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={forgotPasswordData.confirmPassword}
+                        onChange={handleForgotPasswordChange('confirmPassword')}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2 pt-2">
+                    <Button
+                      type="button"
+                      onClick={resetForgotPassword}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={loading}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Password'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </DialogContent>
+      )}
     </Dialog>
   );
 };
