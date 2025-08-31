@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Focused test for Professional Report Generation features
-Tests report generation with notes that have actual content
+Professional Report Generation Testing - Critical User Issue
+Tests the report generation functionality that users are reporting as failing
 """
 
 import requests
@@ -9,6 +9,8 @@ import sys
 import json
 import time
 from datetime import datetime
+import tempfile
+import os
 
 class ReportGenerationTester:
     def __init__(self, base_url="https://typescript-auth.preview.emergentagent.com"):
@@ -18,30 +20,86 @@ class ReportGenerationTester:
         self.tests_passed = 0
         self.auth_token = None
         self.created_notes = []
+        self.test_user_data = {
+            "email": f"report_test_user_{int(time.time())}@example.com",
+            "username": f"reportuser{int(time.time())}",  # No underscore for validation
+            "password": "ReportTest123!",
+            "first_name": "Report",
+            "last_name": "Tester"
+        }
 
     def log(self, message):
         """Log test messages with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] {message}")
 
-    def setup_auth(self):
-        """Setup authentication"""
-        user_data = {
-            "email": f"report_test_{int(time.time())}@example.com",
-            "username": f"reportuser_{int(time.time())}",
-            "password": "ReportTest123!",
-            "first_name": "Report",
-            "last_name": "Tester"
-        }
+    def run_test(self, name, method, endpoint, expected_status, data=None, files=None, timeout=60, auth_required=False):
+        """Run a single API test"""
+        url = f"{self.api_url}/{endpoint}" if endpoint else f"{self.api_url}/"
+        headers = {'Content-Type': 'application/json'} if not files else {}
         
-        response = requests.post(f"{self.api_url}/auth/register", json=user_data)
-        if response.status_code == 200:
-            data = response.json()
-            self.auth_token = data.get('access_token')
-            self.log(f"✅ Authentication setup successful")
+        # Add authentication header if required and available
+        if auth_required and self.auth_token:
+            headers['Authorization'] = f'Bearer {self.auth_token}'
+
+        self.tests_run += 1
+        self.log(f"🔍 Testing {name}...")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=timeout)
+            elif method == 'POST':
+                if files:
+                    # Remove Content-Type for file uploads
+                    if 'Content-Type' in headers:
+                        del headers['Content-Type']
+                    response = requests.post(url, data=data, files=files, headers=headers, timeout=timeout)
+                else:
+                    response = requests.post(url, json=data, headers=headers, timeout=timeout)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=timeout)
+
+            success = response.status_code == expected_status
+            if success:
+                self.tests_passed += 1
+                self.log(f"✅ {name} - Status: {response.status_code}")
+                try:
+                    return True, response.json()
+                except:
+                    return True, {"message": "Success but no JSON response"}
+            else:
+                self.log(f"❌ {name} - Expected {expected_status}, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error details: {error_data}")
+                except:
+                    self.log(f"   Response text: {response.text[:200]}")
+                return False, {}
+
+        except Exception as e:
+            self.log(f"❌ {name} - Error: {str(e)}")
+            return False, {}
+
+    def setup_auth(self):
+        """Setup authentication with proper error handling"""
+        self.log("🔐 Setting up authentication...")
+        
+        success, response = self.run_test(
+            "User Registration",
+            "POST",
+            "auth/register",
+            200,
+            data=self.test_user_data
+        )
+        
+        if success:
+            self.auth_token = response.get('access_token')
+            user_data = response.get('user', {})
+            self.log(f"   Registered user ID: {user_data.get('id')}")
+            self.log(f"   Token received: {'Yes' if self.auth_token else 'No'}")
             return True
         else:
-            self.log(f"❌ Authentication setup failed: {response.status_code}")
+            self.log("❌ Authentication setup failed - cannot proceed with tests")
             return False
 
     def create_note_with_content_via_db(self, title, content):
