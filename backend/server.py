@@ -849,7 +849,7 @@ async def generate_meeting_minutes(
     
     artifacts = note.get("artifacts", {})
     conversations = artifacts.get("ai_conversations", [])
-    transcript = artifacts.get("transcript", "")
+    transcript = artifacts.get("transcript") or artifacts.get("text", "")
     
     if not conversations and not transcript:
         raise HTTPException(status_code=400, detail="No content available for meeting minutes generation")
