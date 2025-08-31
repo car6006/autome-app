@@ -1103,6 +1103,9 @@ const NotesScreen = () => {
   const [meetingMinutes, setMeetingMinutes] = useState("");
   const [generatingMinutes, setGeneratingMinutes] = useState({});
   const [generatingActionItems, setGeneratingActionItems] = useState({});
+  const [archivingNote, setArchivingNote] = useState({});
+  const [deletingNote, setDeletingNote] = useState({});
+  const [addingToBatch, setAddingToBatch] = useState({});
   const [showActionItemsModal, setShowActionItemsModal] = useState(false);
   const [currentActionItems, setCurrentActionItems] = useState(null);
   const [currentNoteForMinutes, setCurrentNoteForMinutes] = useState(null);
