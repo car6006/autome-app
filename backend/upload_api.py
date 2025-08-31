@@ -205,6 +205,7 @@ async def get_upload_status(
 async def finalize_upload(
     upload_id: str,
     request: FinalizeUploadRequest,
+    background_tasks: BackgroundTasks,
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """
