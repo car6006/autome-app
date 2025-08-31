@@ -2997,15 +2997,20 @@ const NotesScreen = () => {
 const MetricsScreen = () => {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const theme = getThemeClasses(user);
   const branding = getBrandingElements(user);
 
   useEffect(() => {
-    fetchMetrics();
-    const interval = setInterval(fetchMetrics, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
+    // Only fetch metrics if user is authenticated
+    if (isAuthenticated) {
+      fetchMetrics();
+      const interval = setInterval(fetchMetrics, 30000); // Update every 30 seconds
+      return () => clearInterval(interval);
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const fetchMetrics = async () => {
     try {
@@ -3017,6 +3022,32 @@ const MetricsScreen = () => {
       setLoading(false);
     }
   };
+
+  // Show authentication required message for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="pt-6 text-center">
+            <BarChart3 className={`w-16 h-16 mx-auto mb-4 ${theme.isExpeditors ? 'text-red-600' : 'text-purple-600'}`} />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Authentication Required</h2>
+            <p className="text-gray-600 mb-4">Please sign in to view your productivity analytics and statistics.</p>
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className={`${
+                theme.isExpeditors 
+                  ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' 
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+              } text-white`}
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
