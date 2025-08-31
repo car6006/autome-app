@@ -253,3 +253,26 @@ async def enqueue_git_sync(note_id: str):
     msg = f"feat(note): {note['title']} [{note_id}]"
     subprocess.run(["git","-C",str(work),"commit","-m",msg], check=False)
     subprocess.run(["git","-C",str(work),"push"], check=True)
+
+async def enqueue_pipeline_job(job_id: str):
+    """Enqueue a transcription job for pipeline processing"""
+    try:
+        from enhanced_store import TranscriptionJobStore
+        
+        # Verify job exists and is in correct state
+        job = await TranscriptionJobStore.get_job(job_id)
+        if not job:
+            logger.error(f"Pipeline job not found: {job_id}")
+            return
+        
+        # Import pipeline_worker to trigger processing
+        from pipeline_worker import process_single_job
+        
+        logger.info(f"🚀 Enqueuing pipeline job {job_id} for processing")
+        
+        # Process the job asynchronously
+        await process_single_job(job_id)
+        
+    except Exception as e:
+        logger.error(f"Failed to enqueue pipeline job {job_id}: {str(e)}")
+        # Don't raise - background task failures should not affect main API responses
