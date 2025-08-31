@@ -64,6 +64,7 @@ class BackendTester:
             response = await self.client.post(f"{API_BASE}/auth/register", json={
                 "email": self.test_user_email,
                 "password": self.test_user_password,
+                "username": "testuploaduser",
                 "name": "Test Upload User"
             })
             
