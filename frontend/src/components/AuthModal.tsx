@@ -9,6 +9,10 @@ import { Separator } from './ui/separator';
 import { UserPlus, LogIn, Mail, Lock, User, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 // Type definitions
 interface AuthModalProps {
