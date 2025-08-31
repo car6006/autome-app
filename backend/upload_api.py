@@ -5,7 +5,7 @@ import os
 import hashlib
 from pathlib import Path
 from typing import Optional, Dict, Any
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, status
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 
 from models import (
