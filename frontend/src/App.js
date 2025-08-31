@@ -2809,7 +2809,7 @@ const NotesScreen = () => {
                           Professional PDF
                         </Button>
                         
-                        <div className="grid grid-cols-3 gap-1">
+                        <div className="grid grid-cols-1 gap-1">
                           <Button
                             onClick={() => exportAiAnalysis('docx')}
                             variant="outline"
@@ -2818,24 +2818,6 @@ const NotesScreen = () => {
                           >
                             <FileText className="w-3 h-3 mr-1" />
                             Word
-                          </Button>
-                          <Button
-                            onClick={() => exportAiAnalysis('txt')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            TXT
-                          </Button>
-                          <Button
-                            onClick={() => exportAiAnalysis('rtf')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            RTF
                           </Button>
                         </div>
                       </div>
