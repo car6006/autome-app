@@ -236,6 +236,16 @@ class AuthService:
             )
             return result.modified_count > 0
         return False
+    
+    @staticmethod
+    async def update_user_password(user_id: str, new_password: str) -> bool:
+        """Update user password"""
+        hashed_password = AuthService.hash_password(new_password)
+        result = await db()["users"].update_one(
+            {"id": user_id},
+            {"$set": {"hashed_password": hashed_password}}
+        )
+        return result.modified_count > 0
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """Get current authenticated user"""
