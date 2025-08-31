@@ -1273,16 +1273,22 @@ const NotesScreen = () => {
   };
 
   const deleteNote = async (noteId) => {
+    setDeletingNote(prev => ({...prev, [noteId]: true}));
+    
     try {
       await axios.delete(`${API}/notes/${noteId}`);
       toast({ title: "🗑️ Note deleted", description: "Note removed successfully" });
       fetchNotes(); // Refresh the list
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete note", variant: "destructive" });
+    } finally {
+      setDeletingNote(prev => ({...prev, [noteId]: false}));
     }
   };
 
   const archiveNote = async (noteId) => {
+    setArchivingNote(prev => ({...prev, [noteId]: true}));
+    
     try {
       // For now, we'll just mark it as archived (you may need to implement this in backend)
       toast({ title: "📦 Note archived", description: "Note moved to archive" });
@@ -1290,6 +1296,8 @@ const NotesScreen = () => {
       setNotes(prev => prev.filter(note => note.id !== noteId));
     } catch (error) {
       toast({ title: "Error", description: "Failed to archive note", variant: "destructive" });
+    } finally {
+      setArchivingNote(prev => ({...prev, [noteId]: false}));
     }
   };
 
