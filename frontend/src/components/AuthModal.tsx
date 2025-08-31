@@ -33,11 +33,24 @@ interface RegisterData {
   interests: string;
 }
 
+interface ForgotPasswordData {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<'verify' | 'reset'>('verify');
   const [loginData, setLoginData] = useState<LoginData>({ 
     email: '', 
     password: '' 
+  });
+  const [forgotPasswordData, setForgotPasswordData] = useState<ForgotPasswordData>({
+    email: '',
+    newPassword: '',
+    confirmPassword: ''
   });
   const [registerData, setRegisterData] = useState<RegisterData>({
     email: '',
