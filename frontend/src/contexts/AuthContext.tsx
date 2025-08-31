@@ -174,9 +174,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(response.data);
       return { success: true };
     } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 'Profile update failed';
+      const errorText = typeof errorMessage === 'string' 
+        ? errorMessage 
+        : Array.isArray(errorMessage) 
+          ? errorMessage.map((err: any) => err.msg || 'Validation error').join(', ')
+          : 'Profile update failed';
+      
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Profile update failed' 
+        error: errorText
       };
     }
   };
