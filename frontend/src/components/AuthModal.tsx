@@ -67,6 +67,99 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const { login, register } = useAuth();
   const { toast } = useToast();
 
+  const handleForgotPasswordVerify = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Verify if user exists
+      const response = await axios.post(`${API}/auth/verify-user`, {
+        email: forgotPasswordData.email
+      });
+      
+      if (response.data.exists) {
+        setForgotPasswordStep('reset');
+        toast({ 
+          title: "✅ User verified", 
+          description: "Please set your new password" 
+        });
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "User not found", 
+        description: "No account found with this email address", 
+        variant: "destructive" 
+      });
+    }
+    
+    setLoading(false);
+  };
+
+  const handlePasswordReset = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (forgotPasswordData.newPassword !== forgotPasswordData.confirmPassword) {
+      toast({ 
+        title: "Passwords don't match", 
+        description: "Please make sure both passwords are identical", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
+    if (forgotPasswordData.newPassword.length < 8) {
+      toast({ 
+        title: "Password too short", 
+        description: "Password must be at least 8 characters long", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      await axios.post(`${API}/auth/reset-password`, {
+        email: forgotPasswordData.email,
+        newPassword: forgotPasswordData.newPassword
+      });
+      
+      toast({ 
+        title: "🔒 Password updated!", 
+        description: "Your password has been successfully changed. Please sign in." 
+      });
+      
+      // Reset states and go back to login
+      setShowForgotPassword(false);
+      setForgotPasswordStep('verify');
+      setForgotPasswordData({ email: '', newPassword: '', confirmPassword: '' });
+      
+    } catch (error: any) {
+      toast({ 
+        title: "Reset failed", 
+        description: error.response?.data?.detail || "Failed to reset password", 
+        variant: "destructive" 
+      });
+    }
+    
+    setLoading(false);
+  };
+
+  const handleForgotPasswordChange = (field: keyof ForgotPasswordData) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setForgotPasswordData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
+  const resetForgotPassword = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordStep('verify');
+    setForgotPasswordData({ email: '', newPassword: '', confirmPassword: '' });
+  };
+
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
