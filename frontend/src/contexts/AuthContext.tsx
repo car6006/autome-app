@@ -147,9 +147,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return { success: true };
     } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 'Registration failed';
+      const errorText = typeof errorMessage === 'string' 
+        ? errorMessage 
+        : Array.isArray(errorMessage) 
+          ? errorMessage.map((err: any) => err.msg || 'Validation error').join(', ')
+          : 'Registration failed';
+      
       return { 
         success: false, 
-        error: error.response?.data?.detail || 'Registration failed' 
+        error: errorText
       };
     }
   };
