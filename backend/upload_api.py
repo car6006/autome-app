@@ -314,8 +314,10 @@ async def finalize_upload(
         except Exception as e:
             logger.warning(f"Failed to clean up chunks for {upload_id}: {e}")
         
-        # TODO: Enqueue job for processing (will be implemented in Phase 2)
-        logger.info(f"Created transcription job {job.id} for upload {upload_id}")
+        # Enqueue job for pipeline processing
+        from tasks import enqueue_pipeline_job
+        background_tasks.add_task(enqueue_pipeline_job, job.id)
+        logger.info(f"Enqueued transcription job {job.id} for pipeline processing")
         
         return FinalizeUploadResponse(
             job_id=job.id,
