@@ -1687,21 +1687,34 @@ const NotesScreen = () => {
   };
 
   const exportAiAnalysis = async (format = 'pdf') => {
+    console.log('Export triggered:', format);
+    console.log('AI Chat Note:', aiChatNote);
+    console.log('AI Conversations:', aiConversations);
+    
     if (!aiChatNote || aiConversations.length === 0) {
-      toast({ title: "No conversations", description: "No AI conversations to export", variant: "destructive" });
+      toast({ 
+        title: "No conversations", 
+        description: "Please have AI conversations with your note before exporting", 
+        variant: "destructive" 
+      });
       return;
     }
 
     try {
+      console.log('Making export request...');
       const response = await axios.get(`${API}/notes/${aiChatNote.id}/ai-conversations/export?format=${format}`, {
         responseType: 'blob'
       });
+      
+      console.log('Export response received:', response);
       
       const url = URL.createObjectURL(response.data);
       const a = document.createElement('a');
       a.href = url;
       a.download = `Analysis_${aiChatNote.title.substring(0, 30)}.${format}`;
+      document.body.appendChild(a); // Add to DOM for better browser compatibility
       a.click();
+      document.body.removeChild(a); // Clean up
       URL.revokeObjectURL(url);
       
       toast({ 
@@ -1710,9 +1723,21 @@ const NotesScreen = () => {
       });
       
     } catch (error) {
+      console.error('Export error:', error);
+      console.error('Error response:', error.response);
+      
+      let errorMessage = "Failed to export analysis";
+      if (error.response?.status === 400) {
+        errorMessage = "No AI conversations found. Please ask AI some questions first.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Note not found";
+      } else if (error.response?.status === 403) {
+        errorMessage = "Not authorized to export this note";
+      }
+      
       toast({ 
-        title: "Error", 
-        description: "Failed to export analysis", 
+        title: "Export Error", 
+        description: errorMessage, 
         variant: "destructive" 
       });
     }
