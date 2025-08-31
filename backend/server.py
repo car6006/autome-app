@@ -518,9 +518,9 @@ async def send_note_email(
 @api_router.delete("/notes/{note_id}")
 async def delete_note(
     note_id: str,
-    current_user: Optional[dict] = Depends(get_current_user_optional)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Delete a specific note"""
+    """Delete a specific note (authentication required)"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
