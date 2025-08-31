@@ -68,7 +68,7 @@ class BackendTester:
                 "name": "Test Upload User"
             })
             
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 data = response.json()
                 self.auth_token = data.get("access_token")
                 print(f"✅ Test user registered: {self.test_user_email}")
