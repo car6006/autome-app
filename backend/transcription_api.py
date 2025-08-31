@@ -69,7 +69,7 @@ async def get_job_status(
             durations=job.stage_durations,
             error_code=job.error_code,
             error_message=job.error_message,
-            estimated_completion=None,  # TODO: Implement estimation
+            estimated_completion=estimated_completion,
             detected_language=job.detected_language,
             confidence_score=job.confidence_score,
             total_duration=job.total_duration,
