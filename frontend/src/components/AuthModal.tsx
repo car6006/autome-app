@@ -146,9 +146,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       setForgotPasswordData({ email: '', newPassword: '', confirmPassword: '' });
       
     } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || "Failed to reset password";
+      const description = typeof errorMessage === 'string' 
+        ? errorMessage 
+        : Array.isArray(errorMessage) 
+          ? errorMessage.map((err: any) => err.msg || 'Validation error').join(', ')
+          : "Failed to reset password";
+      
       toast({ 
         title: "Reset failed", 
-        description: error.response?.data?.detail || "Failed to reset password", 
+        description, 
         variant: "destructive" 
       });
     }
