@@ -2798,11 +2798,12 @@ const NotesScreen = () => {
                       <div className="sm:hidden space-y-2">
                         <Button
                           onClick={() => exportAiAnalysis('pdf')}
-                          className={`w-full ${
+                          className={`w-full relative z-10 ${
                             theme.isExpeditors 
                               ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                               : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
                           }`}
+                          style={{ pointerEvents: 'auto' }}
                         >
                           <FileDown className="w-4 h-4 mr-2" />
                           Professional PDF
@@ -2812,7 +2813,8 @@ const NotesScreen = () => {
                           <Button
                             onClick={() => exportAiAnalysis('docx')}
                             variant="outline"
-                            className="text-xs"
+                            className="text-xs relative z-10"
+                            style={{ pointerEvents: 'auto' }}
                           >
                             <FileText className="w-3 h-3 mr-1" />
                             Word
@@ -2820,7 +2822,8 @@ const NotesScreen = () => {
                           <Button
                             onClick={() => exportAiAnalysis('txt')}
                             variant="outline"
-                            className="text-xs"
+                            className="text-xs relative z-10"
+                            style={{ pointerEvents: 'auto' }}
                           >
                             <Download className="w-3 h-3 mr-1" />
                             TXT
@@ -2828,7 +2831,8 @@ const NotesScreen = () => {
                           <Button
                             onClick={() => exportAiAnalysis('rtf')}
                             variant="outline"
-                            className="text-xs"
+                            className="text-xs relative z-10"
+                            style={{ pointerEvents: 'auto' }}
                           >
                             <Download className="w-3 h-3 mr-1" />
                             RTF
@@ -2840,11 +2844,12 @@ const NotesScreen = () => {
                       <div className="hidden sm:grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => exportAiAnalysis('pdf')}
-                          className={`col-span-2 ${
+                          className={`col-span-2 relative z-10 ${
                             theme.isExpeditors 
                               ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
                               : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
                           }`}
+                          style={{ pointerEvents: 'auto' }}
                         >
                           <FileDown className="w-4 h-4 mr-2" />
                           Professional PDF
@@ -2853,11 +2858,12 @@ const NotesScreen = () => {
                         <Button
                           onClick={() => exportAiAnalysis('docx')}
                           variant="outline"
-                          className={`${
+                          className={`relative z-10 ${
                             theme.isExpeditors 
                               ? 'border-red-600 text-red-600 hover:bg-red-50'
                               : 'border-blue-600 text-blue-600 hover:bg-blue-50'
                           }`}
+                          style={{ pointerEvents: 'auto' }}
                         >
                           <FileText className="w-4 h-4 mr-2" />
                           Word
@@ -2866,7 +2872,8 @@ const NotesScreen = () => {
                         <Button
                           onClick={() => exportAiAnalysis('txt')}
                           variant="outline"
-                          className="text-sm"
+                          className="text-sm relative z-10"
+                          style={{ pointerEvents: 'auto' }}
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Clean TXT
@@ -2875,11 +2882,12 @@ const NotesScreen = () => {
                         <Button
                           onClick={() => exportAiAnalysis('rtf')}
                           variant="outline"
-                          className={`col-span-2 ${
+                          className={`col-span-2 relative z-10 ${
                             theme.isExpeditors 
                               ? 'border-red-600 text-red-600 hover:bg-red-50'
                               : 'border-blue-600 text-blue-600 hover:bg-blue-50'
                           }`}
+                          style={{ pointerEvents: 'auto' }}
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Clean RTF Format
