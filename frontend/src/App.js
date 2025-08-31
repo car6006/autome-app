@@ -1546,12 +1546,25 @@ const NotesScreen = () => {
     }
   };
 
-  const toggleNoteSelection = (noteId) => {
+  const toggleNoteSelection = async (noteId) => {
+    setAddingToBatch(prev => ({...prev, [noteId]: true}));
+    
+    // Simulate brief processing time for user feedback
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     setSelectedNotesForBatch(prev => 
       prev.includes(noteId) 
         ? prev.filter(id => id !== noteId)
         : [...prev, noteId]
     );
+    
+    setAddingToBatch(prev => ({...prev, [noteId]: false}));
+    
+    const isAdding = !selectedNotesForBatch.includes(noteId);
+    toast({ 
+      title: isAdding ? "✅ Added to Batch" : "➖ Removed from Batch", 
+      description: isAdding ? "Note added to batch selection" : "Note removed from batch selection"
+    });
   };
 
   const openAiChat = (note) => {
