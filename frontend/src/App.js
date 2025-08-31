@@ -28,7 +28,7 @@ import {
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.js";
-import AuthModal from "./components/AuthModal.tsx";
+import AuthModal from "./components/AuthModal";
 import ProfileScreen from "./components/ProfileScreen.js";
 
 import IISBAnalysisScreen from "./components/IISBAnalysisScreen";
