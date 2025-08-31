@@ -512,9 +512,31 @@ class ReportGenerationTester:
         return critical_functionality_working
 
 def main():
+    """Main test execution"""
+    print("🚀 Professional Report Generation Testing")
+    print("Testing the report generation functionality that users report as failing")
+    print("=" * 80)
+    
     tester = ReportGenerationTester()
-    success = tester.run_tests()
-    return 0 if success else 1
+    
+    try:
+        success = tester.run_comprehensive_report_tests()
+        
+        if success:
+            print("\n🎉 REPORT GENERATION TESTS COMPLETED SUCCESSFULLY!")
+            print("The professional report generation functionality appears to be working.")
+            return 0
+        else:
+            print("\n❌ REPORT GENERATION TESTS FAILED!")
+            print("Critical issues found with report generation functionality.")
+            return 1
+            
+    except KeyboardInterrupt:
+        print("\n⚠️  Tests interrupted by user")
+        return 1
+    except Exception as e:
+        print(f"\n💥 Test execution failed: {str(e)}")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())
