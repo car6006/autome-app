@@ -3243,16 +3243,19 @@ const Navigation = () => {
             </Link>
           )}
           
-          <Link to="/metrics" className="flex flex-col items-center space-y-1 p-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              theme.isExpeditors 
-                ? 'bg-gradient-to-r from-gray-700 to-gray-800' 
-                : 'bg-gradient-to-r from-orange-500 to-red-600'
-            }`}>
-              <BarChart3 className="w-5 h-5 text-white" />
-            </div>
-            <span className={`text-xs ${theme.navItemClass}`}>Stats</span>
-          </Link>
+          {/* Stats tab - only show to authenticated users */}
+          {isAuthenticated && (
+            <Link to="/metrics" className="flex flex-col items-center space-y-1 p-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                theme.isExpeditors 
+                  ? 'bg-gradient-to-r from-gray-700 to-gray-800' 
+                  : 'bg-gradient-to-r from-orange-500 to-red-600'
+              }`}>
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+              <span className={`text-xs ${theme.navItemClass}`}>Stats</span>
+            </Link>
+          )}
           
           {/* Profile/Auth Button */}
           {isAuthenticated ? (
