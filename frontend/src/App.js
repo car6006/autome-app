@@ -2390,16 +2390,39 @@ const NotesScreen = () => {
                           <DropdownMenuSeparator />
 
                           {/* Archive & Delete */}
-                          <DropdownMenuItem onClick={() => archiveNote(note.id)}>
-                            <Archive className="w-4 h-4 mr-3 text-yellow-600" />
-                            Archive Note
+                          <DropdownMenuItem 
+                            onClick={() => archiveNote(note.id)}
+                            disabled={archivingNote[note.id]}
+                          >
+                            {archivingNote[note.id] ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                                Archiving...
+                              </>
+                            ) : (
+                              <>
+                                <Archive className="w-4 h-4 mr-3 text-yellow-600" />
+                                Archive Note
+                              </>
+                            )}
                           </DropdownMenuItem>
+                          
                           <DropdownMenuItem 
                             onClick={() => deleteNote(note.id)}
                             className="text-red-600 focus:text-red-600"
+                            disabled={deletingNote[note.id]}
                           >
-                            <Trash2 className="w-4 h-4 mr-3" />
-                            Delete Note
+                            {deletingNote[note.id] ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="w-4 h-4 mr-3" />
+                                Delete Note
+                              </>
+                            )}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
