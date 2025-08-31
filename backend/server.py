@@ -473,9 +473,9 @@ async def upload_file_for_scan(
 @api_router.get("/notes/{note_id}", response_model=NoteResponse)
 async def get_note(
     note_id: str,
-    current_user: Optional[dict] = Depends(get_current_user_optional)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Get a specific note"""
+    """Get a specific note (authentication required)"""
     note = await NotesStore.get(note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
