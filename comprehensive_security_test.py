@@ -17,7 +17,7 @@ def log(message):
     print(f"[{timestamp}] {message}")
 
 def test_comprehensive_security():
-    base_url = "https://voice-capture-9.preview.emergentagent.com"
+    base_url = "https://typescript-auth.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     tests_run = 0

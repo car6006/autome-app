@@ -23,7 +23,7 @@ class Phase3TestSuite:
     
     def __init__(self):
         # Get backend URL from environment
-        self.backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://voice-capture-9.preview.emergentagent.com')
+        self.backend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://typescript-auth.preview.emergentagent.com')
         self.api_base = f"{self.backend_url}/api"
         self.headers = {"Content-Type": "application/json"}
         self.test_results = []
