@@ -489,10 +489,10 @@ async def get_note(
 @api_router.get("/notes", response_model=List[NoteResponse])
 async def list_notes(
     limit: int = Query(50, le=100),
-    current_user: Optional[dict] = Depends(get_current_user_optional)
+    current_user: dict = Depends(get_current_user)
 ):
-    """List notes (user's notes if authenticated, public notes if not)"""
-    user_id = current_user["id"] if current_user else None
+    """List user's notes (authentication required)"""
+    user_id = current_user["id"]
     notes = await NotesStore.list_recent(limit, user_id)
     return [NoteResponse(**note) for note in notes]
 
