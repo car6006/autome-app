@@ -200,6 +200,46 @@ class NoteResponse(BaseModel):
     user_id: Optional[str] = None
 
 # Authentication endpoints
+@api_router.post("/auth/verify-user")
+async def verify_user(request: dict):
+    """Verify if user exists for password reset"""
+    email = request.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    # Find user by email
+    user = await AuthService.get_user_by_email(email)
+    
+    if user:
+        return {"exists": True, "message": "User found"}
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: dict):
+    """Reset user password"""
+    email = request.get("email")
+    new_password = request.get("newPassword")
+    
+    if not email or not new_password:
+        raise HTTPException(status_code=400, detail="Email and new password are required")
+    
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    
+    # Find user by email
+    user = await AuthService.get_user_by_email(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update password
+    success = await AuthService.update_user_password(user["id"], new_password)
+    
+    if success:
+        return {"message": "Password updated successfully"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserCreate):
     """Register a new user"""
