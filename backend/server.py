@@ -207,6 +207,9 @@ async def verify_user(request: dict):
     if not email:
         raise HTTPException(status_code=400, detail="Email is required")
     
+    # Clean and normalize email (trim whitespace and convert to lowercase)
+    email = email.strip().lower()
+    
     # Find user by email
     user = await AuthService.get_user_by_email(email)
     
