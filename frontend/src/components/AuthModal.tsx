@@ -89,9 +89,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         });
       }
     } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || "No account found with this email address";
+      const description = typeof errorMessage === 'string' 
+        ? errorMessage 
+        : Array.isArray(errorMessage) 
+          ? errorMessage.map((err: any) => err.msg || 'Validation error').join(', ')
+          : "No account found with this email address";
+      
       toast({ 
         title: "User not found", 
-        description: "No account found with this email address", 
+        description, 
         variant: "destructive" 
       });
     }
