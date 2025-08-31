@@ -2868,6 +2868,30 @@ const NotesScreen = () => {
                           <FileText className="w-4 h-4 mr-2" />
                           Word
                         </Button>
+                        
+                        <Button
+                          onClick={() => exportAiAnalysis('txt')}
+                          variant="outline"
+                          className="text-sm relative z-10"
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Clean TXT
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportAiAnalysis('rtf')}
+                          variant="outline"
+                          className={`col-span-2 relative z-10 ${
+                            theme.isExpeditors 
+                              ? 'border-red-600 text-red-600 hover:bg-red-50'
+                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                          }`}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Clean RTF Format
+                        </Button>
                       </div>
                       
                       <p className="text-xs text-gray-500 mt-2">
