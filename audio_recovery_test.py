@@ -48,7 +48,7 @@ class AudioRecoveryTester:
             response = await self.client.post(f"{API_BASE}/auth/register", json={
                 "email": self.test_user_email,
                 "password": self.test_user_password,
-                "username": f"recoveryuser_{int(time.time())}",
+                "username": f"recoveryuser{int(time.time())}",
                 "name": "Audio Recovery User"
             })
             
