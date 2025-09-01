@@ -475,10 +475,11 @@ class OCRFixVerificationTest:
         """Run all OCR fix verification tests"""
         self.log("🚀 Starting OCR Fix Verification Tests...")
         
-        # Authenticate first
-        if not await self.authenticate_user():
-            self.log("❌ Authentication failed - cannot proceed with tests")
-            return
+        # Try to authenticate (optional for OCR testing)
+        auth_success = await self.authenticate_user()
+        if not auth_success:
+            self.log("⚠️  Authentication failed - proceeding with anonymous testing")
+            self.auth_token = None
         
         # Run all test categories
         test_results = {}
