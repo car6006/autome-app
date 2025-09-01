@@ -345,7 +345,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                           });
                         }}
                         className="pl-10"
-                        required
                       />
                     </div>
                   </div>
