@@ -107,11 +107,12 @@ async def add_security_headers(request, call_next):
 # Input Validation and Rate Limiting
 @app.middleware("http")
 async def validate_and_rate_limit(request, call_next):
-    # Block common malicious patterns
+    """Enhanced request validation and centralized rate limiting"""
+    
+    # Security validation - check for malicious patterns
     malicious_patterns = [
-        "<script", "javascript:", "vbscript:", "onload=", "onerror=", 
-        "../../", "..\\", "%2e%2e", "..", "cmd.exe", "/etc/passwd",
-        "DROP TABLE", "SELECT * FROM", "UNION SELECT", "INSERT INTO",
+        "../", "\\", "cmd", "exec", "eval", "script", "javascript:",
+        "data:", "vbscript:", "onload", "onerror", "onclick", "onmouseover",
         "<?php", "<%", "{{", "{%", "<%=", "#{", "${", "/*", "*/", "--"
     ]
     
@@ -127,27 +128,63 @@ async def validate_and_rate_limit(request, call_next):
                 detail="Request blocked for security reasons"
             )
     
-    # Rate limiting by IP (basic implementation)
-    client_ip = request.client.host
-    current_time = time.time()
+    # Centralized rate limiting using proper rate_limiting.py utilities
+    from rate_limiting import check_rate_limit, check_user_quota
     
-    # Simple in-memory rate limiting (60 requests per minute per IP)
-    if not hasattr(app.state, "rate_limit"):
-        app.state.rate_limit = {}
+    # Extract user information
+    user_id = 'anonymous'
+    user_tier = 'free'
     
-    if client_ip in app.state.rate_limit:
-        requests, last_reset = app.state.rate_limit[client_ip]
-        if current_time - last_reset > 60:  # Reset every minute
-            app.state.rate_limit[client_ip] = (1, current_time)
-        elif requests > 60:
-            raise HTTPException(
-                status_code=429, 
-                detail="Rate limit exceeded. Please try again later."
-            )
+    # Try to get user info from JWT token if present
+    try:
+        auth_header = request.headers.get('authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            from auth import decode_token
+            token = auth_header.split(' ')[1]
+            user_data = decode_token(token)
+            if user_data:
+                user_id = user_data.get('user_id', 'anonymous')
+                # Could get user_tier from database if needed
         else:
-            app.state.rate_limit[client_ip] = (requests + 1, last_reset)
-    else:
-        app.state.rate_limit[client_ip] = (1, current_time)
+            # Use IP for anonymous users
+            user_id = f"ip_{request.client.host}"
+    except Exception:
+        # Fallback to IP-based identification
+        user_id = f"ip_{request.client.host}"
+    
+    # Determine endpoint category for rate limiting
+    endpoint_category = "general"
+    if "/upload" in url_path:
+        endpoint_category = "upload"
+    elif "/transcription" in url_path or "/transcribe" in url_path:
+        endpoint_category = "transcription"
+    
+    # Check rate limits
+    rate_allowed, rate_status = await check_rate_limit(user_id, endpoint_category)
+    if not rate_allowed:
+        logger.warning(f"🚨 Rate limit exceeded for {user_id} on {endpoint_category}")
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "Rate limit exceeded",
+                "limit_info": rate_status,
+                "retry_after": 60
+            }
+        )
+    
+    # Check user quotas for authenticated users
+    if user_id != 'anonymous' and not user_id.startswith('ip_'):
+        quota_allowed, quota_status = await check_user_quota(user_id, user_tier, api_calls=1)
+        if not quota_allowed:
+            logger.warning(f"🚨 Quota exceeded for user {user_id}")
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "error": "Quota exceeded",
+                    "quota_info": quota_status,
+                    "violations": quota_status.get('violations', [])
+                }
+            )
     
     return await call_next(request)
 
