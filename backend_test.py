@@ -27,12 +27,70 @@ class BackendTester:
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=60.0)
         self.auth_token = None
-        self.test_user_email = f"test_upload_workflow_{int(time.time())}@example.com"
+        self.test_user_email = f"test_ocr_delete_{int(time.time())}@example.com"
         self.test_user_password = "TestPassword123!"
+        self.created_notes = []  # Track created notes for cleanup
         
     async def cleanup(self):
-        """Clean up HTTP client"""
+        """Clean up HTTP client and test data"""
+        # Clean up created notes
+        for note_id in self.created_notes:
+            try:
+                headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+                await self.client.delete(f"{API_BASE}/notes/{note_id}", headers=headers)
+            except:
+                pass  # Ignore cleanup errors
         await self.client.aclose()
+    
+    def create_test_image_with_text(self, text="Test OCR Text 2025", width=400, height=200):
+        """Create a test image with text for OCR testing"""
+        # Create image with white background
+        img = Image.new('RGB', (width, height), color='white')
+        draw = ImageDraw.Draw(img)
+        
+        # Try to use a default font, fallback to basic if not available
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+        except:
+            try:
+                font = ImageFont.load_default()
+            except:
+                font = None
+        
+        # Draw text on image
+        text_bbox = draw.textbbox((0, 0), text, font=font) if font else (0, 0, len(text)*10, 20)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        
+        x = (width - text_width) // 2
+        y = (height - text_height) // 2
+        
+        draw.text((x, y), text, fill='black', font=font)
+        
+        # Save to temporary file
+        temp_file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        img.save(temp_file.name, 'PNG')
+        
+        return temp_file.name, text
+    
+    def create_large_test_image(self, size_mb=25):
+        """Create a large test image for size validation testing"""
+        # Calculate dimensions for target file size
+        target_bytes = size_mb * 1024 * 1024
+        # Rough estimate: RGB image is 3 bytes per pixel
+        pixels_needed = target_bytes // 3
+        dimension = int(math.sqrt(pixels_needed))
+        
+        img = Image.new('RGB', (dimension, dimension), color='red')
+        draw = ImageDraw.Draw(img)
+        
+        # Add some text
+        draw.text((50, 50), f"Large Image Test {size_mb}MB", fill='white')
+        
+        temp_file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        img.save(temp_file.name, 'PNG', quality=95)
+        
+        return temp_file.name
     
     def create_test_audio_file(self, duration_seconds=5, sample_rate=44100):
         """Create a test WAV file with sine wave"""
