@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Critical Upload-to-Processing Workflow Bug Fix
-Testing the fix where uploaded jobs were not being queued for processing.
+Backend Test Suite for OCR and Delete Functionality Testing
+Testing OCR fixes (gpt-4o model, validation, error handling) and delete functionality.
 """
 
 import asyncio
@@ -14,7 +14,10 @@ import tempfile
 import wave
 import struct
 import math
+import base64
 from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
+import io
 
 # Configuration
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://pwa-integration-fix.preview.emergentagent.com')
