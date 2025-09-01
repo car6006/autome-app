@@ -893,7 +893,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Critical Authentication Bypass Vulnerability - /api/notes Endpoint Security"
+    - "OCR System Error Handling Fix Verification"
   stuck_tasks:
     - "Critical Authentication Bypass Vulnerability - /api/notes Endpoint Security"
   test_all: false
