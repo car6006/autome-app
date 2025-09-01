@@ -352,17 +352,42 @@ async def ocr_read(file_url: str):
                 "max_tokens": 1000
             }
             
-            async with httpx.AsyncClient(timeout=60) as client:
-                r = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    json=payload,
-                    headers={"Authorization": f"Bearer {api_key}"}
-                )
-                r.raise_for_status()
-                data = r.json()
-                
-                text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                return {"text": text, "summary":"", "actions":[]}
+            async with httpx.AsyncClient(timeout=90) as client:
+                try:
+                    r = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        json=payload,
+                        headers={"Authorization": f"Bearer {api_key}"}
+                    )
+                    
+                    if r.status_code == 200:
+                        data = r.json()
+                        text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        logger.info(f"OCR completed successfully, extracted {len(text)} characters")
+                        return {"text": text, "summary":"", "actions":[]}
+                    else:
+                        error_detail = ""
+                        try:
+                            error_data = r.json()
+                            error_detail = error_data.get("error", {}).get("message", "Unknown error")
+                        except:
+                            error_detail = r.text
+                        
+                        logger.error(f"OpenAI API error {r.status_code}: {error_detail}")
+                        
+                        if r.status_code == 400:
+                            return {"text": "Image format not supported or image too large. Please try a smaller PNG or JPG image.", "summary": "", "actions": []}
+                        elif r.status_code == 429:
+                            return {"text": "OCR service temporarily busy. Please try again in a moment.", "summary": "", "actions": []}
+                        else:
+                            return {"text": f"OCR processing temporarily unavailable (Error {r.status_code}). Please try again.", "summary": "", "actions": []}
+                            
+                except httpx.TimeoutException:
+                    logger.error("OCR request timed out")
+                    return {"text": "OCR processing timed out. Please try with a smaller image.", "summary": "", "actions": []}
+                except Exception as e:
+                    logger.error(f"OCR request failed: {str(e)}")
+                    return {"text": "OCR processing failed due to network error. Please try again.", "summary": "", "actions": []}
         
         elif which == "gcv":
             # Keep Google Vision as fallback
