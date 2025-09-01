@@ -332,6 +332,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="login-email"
+                        name="email"
                         type="email"
                         placeholder="you@example.com"
                         value={loginData.email}
