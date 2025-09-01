@@ -30,7 +30,23 @@ const LargeFileTranscriptionScreen = () => {
   // Load user's transcription jobs
   const loadJobs = async () => {
     try {
-      const response = await axios.get(`${API}/transcriptions/`);
+      // Get authentication token
+      const token = localStorage.getItem('auto_me_token');
+      if (!token) {
+        console.error('No authentication token available');
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to view your transcription jobs",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await axios.get(`${API}/transcriptions/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const jobs = response.data.jobs || [];
       
       const active = jobs.filter(job => 
@@ -44,7 +60,13 @@ const LargeFileTranscriptionScreen = () => {
       setCompletedJobs(completed);
     } catch (error) {
       console.error('Failed to load jobs:', error);
-      if (error.response?.status !== 401) {
+      if (error.response?.status === 401) {
+        toast({
+          title: "Authentication expired",
+          description: "Please sign in again to view your transcription jobs",
+          variant: "destructive"
+        });
+      } else if (error.response?.status !== 401) {
         toast({
           title: "Error loading jobs",
           description: "Could not fetch your transcription jobs",
