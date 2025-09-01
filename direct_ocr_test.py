@@ -7,6 +7,10 @@ import tempfile
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import io
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv('/app/backend/.env')
 
 # Add backend to path
 sys.path.append('/app/backend')
