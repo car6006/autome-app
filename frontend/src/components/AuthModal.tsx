@@ -317,7 +317,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                         type="email"
                         placeholder="you@example.com"
                         value={loginData.email}
-                        onChange={handleLoginChange('email')}
+                        onChange={(e) => {
+                          console.log('📧 EMAIL CHANGE EVENT:', e.target.value);
+                          setLoginData(prev => {
+                            const newData = { ...prev, email: e.target.value };
+                            console.log('📧 EMAIL STATE UPDATE:', newData);
+                            return newData;
+                          });
+                        }}
                         className="pl-10"
                         required
                       />
