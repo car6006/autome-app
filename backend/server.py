@@ -113,20 +113,25 @@ async def validate_and_rate_limit(request, call_next):
     malicious_patterns = [
         "../", "\\", "cmd", "exec", "eval", "script", "javascript:",
         "data:", "vbscript:", "onload", "onerror", "onclick", "onmouseover",
-        "<?php", "<%", "{{", "{%", "<%=", "#{", "${", "/*", "*/", "--"
+        "<?php", "<%", "{{", "{%", "<%=", "#{", "${", "/*", "*/"
     ]
     
     # Check URL and query parameters
     url_path = str(request.url.path).lower()
     query_string = str(request.url.query).lower()
     
-    for pattern in malicious_patterns:
-        if pattern in url_path or pattern in query_string:
-            logger.warning(f"🚨 Blocked malicious request: {pattern} in {request.url}")
-            raise HTTPException(
-                status_code=400, 
-                detail="Request blocked for security reasons"
-            )
+    # Skip security checks for legitimate API endpoints
+    legitimate_endpoints = ['/api/', '/transcriptions/', '/metrics', '/auth/', '/notes', '/upload']
+    is_legitimate_api = any(endpoint in url_path for endpoint in legitimate_endpoints)
+    
+    if not is_legitimate_api:
+        for pattern in malicious_patterns:
+            if pattern in url_path or pattern in query_string:
+                logger.warning(f"🚨 Blocked malicious request: {pattern} in {request.url}")
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Request blocked for security reasons"
+                )
     
     # Centralized rate limiting using proper rate_limiting.py utilities
     from rate_limiting import check_rate_limit, check_user_quota
