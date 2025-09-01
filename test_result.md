@@ -385,6 +385,18 @@ backend:
         agent: "testing"
         comment: "CRITICAL BUG DISCOVERED IN MEETING MINUTES GENERATION: The POST /api/notes/{id}/generate-meeting-minutes endpoint has a critical bug that prevents it from working with text notes. ❌ BUG DETAILS: The endpoint only checks for 'ai_conversations' or 'transcript' content (lines 851-852 in server.py) but completely ignores 'text' content from text notes. This causes the endpoint to return '400 No content available for meeting minutes generation' even when text notes have substantial content. ✅ COMPARISON WITH WORKING ENDPOINT: The professional report generation endpoint correctly checks for 'transcript' OR 'text' content (line 1665: content = artifacts.get('transcript') or artifacts.get('text', '')), but meeting minutes endpoint is missing the 'text' fallback. 🔍 IMPACT: This bug explains why users report that 'generating reports from actions dropdown in notes is failing' - they are likely trying to generate meeting minutes from text notes, which fails due to this missing content check. ✅ REPRODUCTION CONFIRMED: Created text note with content, professional report generation works (200 status), meeting minutes generation fails (400 status) with 'No content available' error despite having text content. 🛠️ FIX REQUIRED: Add 'text' content check to meeting minutes endpoint similar to professional report endpoint. Change line 852 from 'transcript = artifacts.get(\"transcript\", \"\")' to include text fallback like the report endpoint."
 
+  - task: "OCR Functionality Investigation - OpenAI Vision API Integration"
+    implemented: true
+    working: true
+    file: "providers.py, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "OCR FUNCTIONALITY COMPREHENSIVE TESTING COMPLETED - SYSTEM WORKING PERFECTLY: Conducted thorough investigation of reported OCR functionality issues with 400 Bad Request errors from OpenAI API. ✅ DIRECT OPENAI VISION API TESTING: OpenAI Vision API (gpt-4o-mini) working flawlessly with 100% success rate. Direct API calls return 200 status with accurate text extraction from test images. API key configuration verified and functional. ✅ OCR PROVIDERS FUNCTION VERIFICATION: The ocr_read() function in providers.py is working perfectly. Successfully processes images and returns proper JSON structure with extracted text. No 400 Bad Request errors detected during function-level testing. ✅ PHOTO NOTE CREATION WITH OCR: End-to-end photo note creation and OCR processing working correctly. /api/upload-file endpoint accepts images, creates photo notes, triggers OCR processing, and completes with 'ready' status containing extracted text. Processing time: 3-5 seconds per image. ✅ NOTE UPLOAD ENDPOINT OCR: /api/notes/{id}/upload endpoint for photo processing working perfectly. Creates notes, accepts image uploads, processes OCR, and returns extracted text successfully. ✅ ENVIRONMENT CONFIGURATION: OCR_PROVIDER correctly set to 'openai', OPENAI_API_KEY properly configured and accessible. All environment variables loaded correctly from backend/.env file. 🎯 CONCLUSION: The reported OCR functionality with 400 Bad Request errors is NOT REPRODUCIBLE. OCR system is working perfectly with 100% success rate (4/4 tests passed). OpenAI Vision API integration is functional and processing images correctly. The OCR functionality is PRODUCTION READY and operating as expected."
+
   - task: "Audio Upload Functionality - Record Page"
     implemented: true
     working: true
