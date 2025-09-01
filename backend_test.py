@@ -122,10 +122,10 @@ class BackendTester:
     async def register_test_user(self):
         """Register a test user for authentication"""
         try:
+            # Try to register first
             response = await self.client.post(f"{API_BASE}/auth/register", json={
                 "email": self.test_user_email,
                 "password": self.test_user_password,
-                "username": "testocr",
                 "name": "Test OCR User"
             })
             
@@ -135,11 +135,24 @@ class BackendTester:
                 print(f"✅ Test user registered: {self.test_user_email}")
                 return True
             else:
-                print(f"❌ User registration failed: {response.status_code} - {response.text}")
-                return False
+                # If registration fails, try to login (user might already exist)
+                print(f"Registration failed, trying login...")
+                login_response = await self.client.post(f"{API_BASE}/auth/login", json={
+                    "email": self.test_user_email,
+                    "password": self.test_user_password
+                })
+                
+                if login_response.status_code == 200:
+                    data = login_response.json()
+                    self.auth_token = data.get("access_token")
+                    print(f"✅ Test user logged in: {self.test_user_email}")
+                    return True
+                else:
+                    print(f"❌ Both registration and login failed: {login_response.status_code} - {login_response.text}")
+                    return False
                 
         except Exception as e:
-            print(f"❌ User registration error: {str(e)}")
+            print(f"❌ User authentication error: {str(e)}")
             return False
     
     async def test_ocr_with_gpt4o_model(self):
