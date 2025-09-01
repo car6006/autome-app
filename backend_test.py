@@ -123,25 +123,31 @@ class BackendTester:
         """Register a test user for authentication"""
         try:
             # Try to register first
-            response = await self.client.post(f"{API_BASE}/auth/register", json={
+            register_data = {
                 "email": self.test_user_email,
                 "password": self.test_user_password,
                 "name": "Test OCR User"
-            })
+            }
             
+            print(f"Attempting to register user: {self.test_user_email}")
+            response = await self.client.post(f"{API_BASE}/auth/register", json=register_data)
+            
+            print(f"Registration response: {response.status_code}")
             if response.status_code in [200, 201]:
                 data = response.json()
                 self.auth_token = data.get("access_token")
                 print(f"✅ Test user registered: {self.test_user_email}")
                 return True
             else:
+                print(f"Registration failed: {response.status_code} - {response.text}")
                 # If registration fails, try to login (user might already exist)
-                print(f"Registration failed, trying login...")
+                print(f"Trying login...")
                 login_response = await self.client.post(f"{API_BASE}/auth/login", json={
                     "email": self.test_user_email,
                     "password": self.test_user_password
                 })
                 
+                print(f"Login response: {login_response.status_code}")
                 if login_response.status_code == 200:
                     data = login_response.json()
                     self.auth_token = data.get("access_token")
