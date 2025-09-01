@@ -255,10 +255,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const handleLoginChange = (field: keyof LoginData) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setLoginData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
+    console.log(`🔄 Field ${field} changed:`, e.target.value);
+    setLoginData(prev => {
+      const newData = {
+        ...prev,
+        [field]: e.target.value
+      };
+      console.log('📝 Updated loginData:', newData);
+      return newData;
+    });
   };
 
   const handleRegisterChange = (field: keyof RegisterData) => (
