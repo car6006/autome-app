@@ -147,22 +147,37 @@ async def enqueue_ocr(note_id: str):
         # Add timeout for OCR to prevent hanging
         try:
             result = await asyncio.wait_for(ocr_read(signed), timeout=180)  # 3 minute timeout
+            
+            # If we get here, OCR was successful
+            latency_ms = int((time.time() - start) * 1000)
+            
+            artifacts = {
+                "text": result.get("text",""),
+                "summary": result.get("summary",""),
+                "actions": result.get("actions",[])
+            }
+            
+            await NotesStore.set_artifacts(note_id, artifacts)
+            await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
+            await NotesStore.update_status(note_id, "ready")
+            
         except asyncio.TimeoutError:
             logger.error(f"OCR timeout for note {note_id}")
             await NotesStore.update_status(note_id, "failed")
             await NotesStore.set_artifacts(note_id, {"error": "OCR processing timed out after 3 minutes. Please try with a smaller or clearer image."})
             return
-            
-        latency_ms = int((time.time() - start) * 1000)
-        
-        artifacts = {
-            "text": result.get("text",""),
-            "summary": result.get("summary",""),
-            "actions": result.get("actions",[])
-        }
-        
-        await NotesStore.set_artifacts(note_id, artifacts)
-        await NotesStore.set_metrics(note_id, {"latency_ms": latency_ms})
+        except ValueError as ve:
+            # These are our custom validation errors
+            logger.error(f"OCR validation error for note {note_id}: {str(ve)}")
+            await NotesStore.update_status(note_id, "failed")
+            await NotesStore.set_artifacts(note_id, {"error": str(ve)})
+            return
+        except Exception as e:
+            # Unexpected errors
+            logger.error(f"OCR processing error for note {note_id}: {str(e)}")
+            await NotesStore.update_status(note_id, "failed")
+            await NotesStore.set_artifacts(note_id, {"error": "OCR processing failed due to an unexpected error. Please try again."})
+            return
         await NotesStore.update_status(note_id, "ready")
         logger.info(f"OCR completed for note {note_id}")
         
