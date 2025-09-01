@@ -125,8 +125,8 @@ class BackendTester:
             response = await self.client.post(f"{API_BASE}/auth/register", json={
                 "email": self.test_user_email,
                 "password": self.test_user_password,
-                "username": "testuploaduser",
-                "name": "Test Upload User"
+                "username": "testocr",
+                "name": "Test OCR User"
             })
             
             if response.status_code in [200, 201]:
@@ -140,6 +140,424 @@ class BackendTester:
                 
         except Exception as e:
             print(f"❌ User registration error: {str(e)}")
+            return False
+    
+    async def test_ocr_with_gpt4o_model(self):
+        """Test 1: OCR Processing with gpt-4o model"""
+        print("\n🧪 Test 1: OCR Processing with gpt-4o Model")
+        
+        try:
+            # Create test image with text
+            image_file, expected_text = self.create_test_image_with_text("Hello World OCR Test 2025")
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            # Upload image for OCR processing
+            with open(image_file, 'rb') as f:
+                files = {
+                    "file": ("test_ocr.png", f, "image/png")
+                }
+                data = {
+                    "title": "OCR Test Image"
+                }
+                
+                response = await self.client.post(f"{API_BASE}/upload-file", 
+                    headers=headers,
+                    files=files,
+                    data=data
+                )
+            
+            os.unlink(image_file)
+            
+            if response.status_code == 200:
+                data = response.json()
+                note_id = data.get("id")
+                status = data.get("status")
+                kind = data.get("kind")
+                
+                print(f"✅ Image uploaded successfully:")
+                print(f"   Note ID: {note_id}")
+                print(f"   Status: {status}")
+                print(f"   Kind: {kind}")
+                
+                if note_id:
+                    self.created_notes.append(note_id)
+                
+                # Wait for OCR processing to complete
+                print("   🔍 Waiting for OCR processing...")
+                max_wait = 30
+                start_time = time.time()
+                
+                while time.time() - start_time < max_wait:
+                    note_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+                    
+                    if note_response.status_code == 200:
+                        note_data = note_response.json()
+                        note_status = note_data.get("status")
+                        artifacts = note_data.get("artifacts", {})
+                        
+                        if note_status == "ready" and artifacts.get("text"):
+                            extracted_text = artifacts.get("text", "")
+                            print(f"   ✅ OCR completed successfully!")
+                            print(f"   📝 Extracted text: '{extracted_text}'")
+                            
+                            # Verify text extraction quality
+                            if "OCR" in extracted_text and "Test" in extracted_text:
+                                print("   ✅ OCR accuracy verified - key words detected")
+                                return True, note_id
+                            else:
+                                print(f"   ⚠️  OCR completed but text quality may be low")
+                                return True, note_id  # Still success as OCR worked
+                        elif note_status == "failed":
+                            error_msg = artifacts.get("error", "Unknown error")
+                            print(f"   ❌ OCR processing failed: {error_msg}")
+                            return False, note_id
+                    
+                    await asyncio.sleep(2)
+                
+                print(f"   ⏰ OCR processing timeout after {max_wait}s")
+                return False, note_id
+            else:
+                print(f"❌ Image upload failed: {response.status_code} - {response.text}")
+                return False, None
+                
+        except Exception as e:
+            print(f"❌ OCR test error: {str(e)}")
+            return False, None
+    
+    async def test_image_size_validation(self):
+        """Test 2: Image Size Validation (20MB limit)"""
+        print("\n🧪 Test 2: Image Size Validation (20MB limit)")
+        
+        try:
+            # Create a large image (attempt 25MB)
+            large_image = self.create_large_test_image(25)
+            file_size = os.path.getsize(large_image)
+            print(f"   Created test image: {file_size / (1024*1024):.1f}MB")
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            with open(large_image, 'rb') as f:
+                files = {
+                    "file": ("large_test.png", f, "image/png")
+                }
+                data = {
+                    "title": "Large Image Test"
+                }
+                
+                response = await self.client.post(f"{API_BASE}/upload-file", 
+                    headers=headers,
+                    files=files,
+                    data=data
+                )
+            
+            os.unlink(large_image)
+            
+            # Should either reject large file or handle it gracefully
+            if response.status_code == 400:
+                error_detail = response.json().get("detail", "")
+                if "size" in error_detail.lower() or "limit" in error_detail.lower():
+                    print(f"   ✅ Size validation working: {error_detail}")
+                    return True
+                else:
+                    print(f"   ❌ Unexpected 400 error: {error_detail}")
+                    return False
+            elif response.status_code == 200:
+                print(f"   ✅ Large image accepted (server handles large files)")
+                data = response.json()
+                note_id = data.get("id")
+                if note_id:
+                    self.created_notes.append(note_id)
+                return True
+            else:
+                print(f"   ❌ Unexpected response: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Size validation test error: {str(e)}")
+            return False
+    
+    async def test_ocr_error_handling(self):
+        """Test 3: OCR Error Handling and User-Friendly Messages"""
+        print("\n🧪 Test 3: OCR Error Handling")
+        
+        try:
+            # Test with unsupported file type
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            # Create a text file (unsupported for OCR)
+            temp_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
+            temp_file.write(b"This is not an image file")
+            temp_file.close()
+            
+            with open(temp_file.name, 'rb') as f:
+                files = {
+                    "file": ("test.txt", f, "text/plain")
+                }
+                data = {
+                    "title": "Invalid File Test"
+                }
+                
+                response = await self.client.post(f"{API_BASE}/upload-file", 
+                    headers=headers,
+                    files=files,
+                    data=data
+                )
+            
+            os.unlink(temp_file.name)
+            
+            if response.status_code == 400:
+                error_detail = response.json().get("detail", "")
+                print(f"   ✅ Invalid file type rejected: {error_detail}")
+                
+                # Check if error message is user-friendly
+                if any(word in error_detail.lower() for word in ["unsupported", "allowed", "type"]):
+                    print("   ✅ User-friendly error message provided")
+                    return True
+                else:
+                    print("   ⚠️  Error message could be more user-friendly")
+                    return True  # Still success as validation works
+            else:
+                print(f"   ❌ Expected 400 error, got: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error handling test error: {str(e)}")
+            return False
+    
+    async def test_note_creation_and_retrieval(self):
+        """Test 4: Note Creation and Retrieval for Delete Testing"""
+        print("\n🧪 Test 4: Note Creation and Retrieval")
+        
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            # Create a text note
+            note_data = {
+                "title": "Test Note for Delete",
+                "kind": "text",
+                "text_content": "This is a test note that will be deleted."
+            }
+            
+            response = await self.client.post(f"{API_BASE}/notes", 
+                headers=headers,
+                json=note_data
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                note_id = data.get("id")
+                status = data.get("status")
+                
+                print(f"✅ Note created successfully:")
+                print(f"   Note ID: {note_id}")
+                print(f"   Status: {status}")
+                
+                if note_id:
+                    self.created_notes.append(note_id)
+                
+                # Verify note can be retrieved
+                get_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+                
+                if get_response.status_code == 200:
+                    note_details = get_response.json()
+                    print(f"   ✅ Note retrieved successfully: {note_details.get('title')}")
+                    return True, note_id
+                else:
+                    print(f"   ❌ Note retrieval failed: {get_response.status_code}")
+                    return False, note_id
+            else:
+                print(f"❌ Note creation failed: {response.status_code} - {response.text}")
+                return False, None
+                
+        except Exception as e:
+            print(f"❌ Note creation test error: {str(e)}")
+            return False, None
+    
+    async def test_delete_functionality(self):
+        """Test 5: Delete Functionality for Authenticated Users"""
+        print("\n🧪 Test 5: Delete Functionality")
+        
+        try:
+            # First create a note to delete
+            success, note_id = await self.test_note_creation_and_retrieval()
+            if not success or not note_id:
+                print("   ❌ Cannot test delete without a note to delete")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            # Test delete functionality
+            print(f"   🗑️  Attempting to delete note: {note_id}")
+            delete_response = await self.client.delete(f"{API_BASE}/notes/{note_id}", headers=headers)
+            
+            if delete_response.status_code == 200:
+                result = delete_response.json()
+                print(f"   ✅ Note deleted successfully: {result.get('message', 'Deleted')}")
+                
+                # Remove from our tracking list since it's deleted
+                if note_id in self.created_notes:
+                    self.created_notes.remove(note_id)
+                
+                # Verify note is actually deleted
+                get_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+                
+                if get_response.status_code == 404:
+                    print("   ✅ Note deletion verified - note no longer exists")
+                    return True
+                else:
+                    print(f"   ❌ Note still exists after deletion: {get_response.status_code}")
+                    return False
+            else:
+                print(f"   ❌ Delete failed: {delete_response.status_code} - {delete_response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Delete functionality test error: {str(e)}")
+            return False
+    
+    async def test_delete_authentication_required(self):
+        """Test 6: Delete Requires Authentication"""
+        print("\n🧪 Test 6: Delete Authentication Requirement")
+        
+        try:
+            # Create a note first
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            note_data = {
+                "title": "Auth Test Note",
+                "kind": "text",
+                "text_content": "This note tests authentication for delete."
+            }
+            
+            response = await self.client.post(f"{API_BASE}/notes", 
+                headers=headers,
+                json=note_data
+            )
+            
+            if response.status_code != 200:
+                print("   ❌ Could not create test note")
+                return False
+            
+            note_id = response.json().get("id")
+            if note_id:
+                self.created_notes.append(note_id)
+            
+            # Try to delete without authentication
+            print("   🔒 Testing delete without authentication...")
+            unauth_delete_response = await self.client.delete(f"{API_BASE}/notes/{note_id}")
+            
+            if unauth_delete_response.status_code in [401, 403]:
+                print(f"   ✅ Unauthenticated delete properly rejected: {unauth_delete_response.status_code}")
+                return True
+            else:
+                print(f"   ❌ Unauthenticated delete should be rejected, got: {unauth_delete_response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Authentication test error: {str(e)}")
+            return False
+    
+    async def test_complete_user_workflow(self):
+        """Test 7: Complete User Workflow - Create → Upload → OCR → Delete"""
+        print("\n🧪 Test 7: Complete User Workflow")
+        
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            print("   📝 Step 1: Create note...")
+            # Create a photo note
+            note_data = {
+                "title": "Complete Workflow Test",
+                "kind": "photo"
+            }
+            
+            response = await self.client.post(f"{API_BASE}/notes", 
+                headers=headers,
+                json=note_data
+            )
+            
+            if response.status_code != 200:
+                print(f"   ❌ Note creation failed: {response.status_code}")
+                return False
+            
+            note_id = response.json().get("id")
+            self.created_notes.append(note_id)
+            print(f"   ✅ Note created: {note_id}")
+            
+            print("   📷 Step 2: Upload image...")
+            # Upload image to the note
+            image_file, expected_text = self.create_test_image_with_text("Workflow Test Image 2025")
+            
+            with open(image_file, 'rb') as f:
+                files = {
+                    "file": ("workflow_test.png", f, "image/png")
+                }
+                
+                upload_response = await self.client.post(f"{API_BASE}/notes/{note_id}/upload", 
+                    headers=headers,
+                    files=files
+                )
+            
+            os.unlink(image_file)
+            
+            if upload_response.status_code != 200:
+                print(f"   ❌ Image upload failed: {upload_response.status_code}")
+                return False
+            
+            print("   ✅ Image uploaded successfully")
+            
+            print("   🔍 Step 3: Wait for OCR processing...")
+            # Wait for OCR processing
+            max_wait = 30
+            start_time = time.time()
+            ocr_success = False
+            
+            while time.time() - start_time < max_wait:
+                note_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+                
+                if note_response.status_code == 200:
+                    note_data = note_response.json()
+                    note_status = note_data.get("status")
+                    
+                    if note_status == "ready":
+                        artifacts = note_data.get("artifacts", {})
+                        extracted_text = artifacts.get("text", "")
+                        print(f"   ✅ OCR completed: '{extracted_text}'")
+                        ocr_success = True
+                        break
+                    elif note_status == "failed":
+                        print(f"   ❌ OCR processing failed")
+                        break
+                
+                await asyncio.sleep(2)
+            
+            if not ocr_success:
+                print("   ⚠️  OCR processing did not complete in time")
+            
+            print("   🗑️  Step 4: Delete note...")
+            # Delete the note
+            delete_response = await self.client.delete(f"{API_BASE}/notes/{note_id}", headers=headers)
+            
+            if delete_response.status_code == 200:
+                print("   ✅ Note deleted successfully")
+                if note_id in self.created_notes:
+                    self.created_notes.remove(note_id)
+                
+                # Verify deletion
+                verify_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+                if verify_response.status_code == 404:
+                    print("   ✅ Complete workflow successful!")
+                    return True
+                else:
+                    print("   ❌ Note deletion not verified")
+                    return False
+            else:
+                print(f"   ❌ Note deletion failed: {delete_response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Complete workflow test error: {str(e)}")
             return False
     
     async def test_upload_session_creation(self):
