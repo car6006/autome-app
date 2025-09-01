@@ -358,6 +358,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="login-password"
+                        name="password"
                         type="password"
                         placeholder="••••••••"
                         value={loginData.password}
