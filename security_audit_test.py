@@ -17,7 +17,7 @@ from pathlib import Path
 from urllib.parse import quote, unquote
 
 class SecurityAuditor:
-    def __init__(self, base_url="https://typescript-auth.preview.emergentagent.com"):
+    def __init__(self, base_url="https://pwa-integration-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0

@@ -5,7 +5,7 @@ import os
 import time
 
 # Test the file upload endpoint
-base_url = 'https://typescript-auth.preview.emergentagent.com'
+base_url = 'https://pwa-integration-fix.preview.emergentagent.com'
 api_url = f'{base_url}/api'
 
 print("Testing file upload endpoint...")

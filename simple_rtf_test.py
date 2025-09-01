@@ -7,7 +7,7 @@ import requests
 import json
 
 def test_rtf_export():
-    api_url = 'https://typescript-auth.preview.emergentagent.com/api'
+    api_url = 'https://pwa-integration-fix.preview.emergentagent.com/api'
     
     print("🔍 Finding notes with AI conversations...")
     
@@ -157,7 +157,7 @@ def test_rtf_export():
 
 def test_expeditors_branding():
     """Test Expeditors branding by registering an Expeditors user"""
-    api_url = 'https://typescript-auth.preview.emergentagent.com/api'
+    api_url = 'https://pwa-integration-fix.preview.emergentagent.com/api'
     
     print("\n👑 Testing Expeditors Branding...")
     

@@ -9,7 +9,7 @@ import json
 import time
 
 def test_professional_context():
-    base_url = "https://typescript-auth.preview.emergentagent.com"
+    base_url = "https://pwa-integration-fix.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🚀 Testing Professional Context API Endpoints")

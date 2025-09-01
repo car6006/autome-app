@@ -31,7 +31,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Configuration
-BACKEND_URL = "https://typescript-auth.preview.emergentagent.com/api"
+BACKEND_URL = "https://pwa-integration-fix.preview.emergentagent.com/api"
 TEST_FILE_PATH = "/tmp/autome_storage/0639ab87-0315-42be-bb12-61a1f466adf9_Regional Meeting 21 August - Recap Session 1.mp3"
 EXPECTED_DURATION = 7015  # seconds (1.95 hours)
 EXPECTED_CHUNKS = 117  # Expected number of 4-minute chunks
