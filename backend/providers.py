@@ -402,18 +402,21 @@ async def ocr_read(file_url: str):
                         logger.error(f"OpenAI API error {r.status_code}: {error_detail}")
                         
                         if r.status_code == 400:
-                            return {"text": "Image format not supported or image too large. Please try a smaller PNG or JPG image.", "summary": "", "actions": []}
+                            raise ValueError("Image format not supported or image too large. Please try a smaller PNG or JPG image.")
                         elif r.status_code == 429:
-                            return {"text": "OCR service temporarily busy. Please try again in a moment.", "summary": "", "actions": []}
+                            raise ValueError("OCR service temporarily busy. Please try again in a moment.")
                         else:
-                            return {"text": f"OCR processing temporarily unavailable (Error {r.status_code}). Please try again.", "summary": "", "actions": []}
+                            raise ValueError(f"OCR processing temporarily unavailable (Error {r.status_code}). Please try again.")
                             
                 except httpx.TimeoutException:
                     logger.error("OCR request timed out")
-                    return {"text": "OCR processing timed out. Please try with a smaller image.", "summary": "", "actions": []}
+                    raise ValueError("OCR processing timed out. Please try with a smaller image.")
+                except ValueError:
+                    # Re-raise ValueError as-is (these are our custom validation errors)
+                    raise
                 except Exception as e:
                     logger.error(f"OCR request failed: {str(e)}")
-                    return {"text": "OCR processing failed due to network error. Please try again.", "summary": "", "actions": []}
+                    raise ValueError("OCR processing failed due to network error. Please try again.")
         
         elif which == "gcv":
             # Keep Google Vision as fallback
