@@ -309,6 +309,38 @@ async def ocr_read(file_url: str):
             if file_size > max_size:
                 return {"text": f"Image file too large ({file_size/1024/1024:.1f}MB). Please use an image smaller than 20MB.", "summary": "", "actions": []}
             
+            # Check minimum file size (corrupted files are often very small)
+            if file_size < 100:  # Very small files are likely corrupted
+                return {"text": "Invalid image file. Please upload a valid PNG or JPG image.", "summary": "", "actions": []}
+            
+            # Validate image content using PIL
+            try:
+                from PIL import Image as PILImage
+                with PILImage.open(local) as img:
+                    # This will raise an exception if not a valid image
+                    img.verify()
+                    
+                # Reopen to get format (verify() closes the image)
+                with PILImage.open(local) as img:
+                    pil_format = img.format.lower() if img.format else None
+                    
+                # Map PIL format to OpenAI format
+                format_mapping = {
+                    'jpeg': 'jpeg',
+                    'jpg': 'jpeg', 
+                    'png': 'png',
+                    'webp': 'webp'
+                }
+                
+                if pil_format not in format_mapping:
+                    return {"text": f"Unsupported image format: {pil_format}. Please use PNG, JPG, or WebP.", "summary": "", "actions": []}
+                
+                image_format = format_mapping[pil_format]
+                
+            except Exception as e:
+                logger.error(f"Image validation failed: {str(e)}")
+                return {"text": "Invalid or corrupted image file. Please upload a valid PNG or JPG image.", "summary": "", "actions": []}
+            
             # Convert image to base64
             with open(local, "rb") as f:
                 image_bytes = f.read()
@@ -317,15 +349,6 @@ async def ocr_read(file_url: str):
             # Validate base64 data size (OpenAI has limits)
             if len(image_data) > 25_000_000:  # ~25MB base64 limit
                 return {"text": "Image too large for processing. Please use a smaller image or reduce image quality.", "summary": "", "actions": []}
-                
-            # Determine image format
-            image_format = "jpeg"
-            if local.lower().endswith('.png'):
-                image_format = "png"
-            elif local.lower().endswith('.webp'):
-                image_format = "webp"
-            elif local.lower().endswith('.gif'):
-                return {"text": "GIF files are not supported for OCR. Please use PNG or JPG.", "summary": "", "actions": []}
             
             logger.info(f"Processing OCR for image: size={file_size} bytes, format={image_format}, base64_length={len(image_data)}")
             
