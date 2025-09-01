@@ -1,0 +1,30 @@
+🚀 Starting Large-File Audio Transcription Pipeline Test
+📁 Test file: /tmp/test_pipeline_30s.wav
+🌐 Backend URL: https://typescript-auth.preview.emergentagent.com
+================================================================================
+
+🔄 Running: File Check
+✅ PASS: Test File Check - Test file found: 2646078 bytes
+   Details: {'file_path': '/tmp/test_pipeline_30s.wav', 'size_bytes': 2646078}
+
+🔄 Running: User Authentication
+✅ PASS: User Authentication - Pipeline testing works without authentication
+
+🔄 Running: Upload Session
+✅ PASS: Upload Session Creation - Upload session created successfully
+   Details: {'upload_id': 'a88e23d0-405c-4533-99f0-e7d739034136', 'chunk_size': 5242880}
+
+🔄 Running: File Upload
+✅ PASS: File Upload - File chunk uploaded successfully
+
+🔄 Running: Upload Finalization
+✅ PASS: Upload Finalization - Upload finalized and job created
+   Details: {'job_id': '322bef14-f448-4e70-950a-53705f07a294', 'status': 'created'}
+
+🔄 Running: Job Progression Monitoring
+
+🔄 Monitoring job 322bef14-f448-4e70-950a-53705f07a294 progression...
+   Stage: created (Progress: 0.0%)
+   Stage: transcoding (Progress: 20.0%)
+   Stage: transcribing (Progress: 5.0%)
+   Stage: failed (Progress: 5.0%)

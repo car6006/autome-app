@@ -1,0 +1,69 @@
+[11:44:20] 🚀 Starting Large Audio File Processing Test
+[11:44:20]    Target: JNB Management Meeting 22 August 2025.mp3 (31.9MB, 93 minutes)
+[11:44:20] 📁 Test file: /tmp/test_audio.mp3
+[11:44:20] 📊 File size: 33,514,991 bytes (32.0 MB)
+[11:44:20] ✅ File size matches expected: 33,514,991 bytes
+[11:44:20] 
+📝 METHOD 1: Create note then upload file
+[11:44:20] 🎵 Creating audio note for large file test...
+[11:44:20] ✅ Created note ID: 62d44cb7-babb-4dd9-8367-cda0200daa16
+[11:44:20] 📤 Uploading large audio file to note 62d44cb7...
+[11:44:21] ✅ File uploaded successfully
+[11:44:21]    Status: processing
+[11:44:21]    Message: File uploaded successfully
+[11:44:21] ⏳ Monitoring processing for note 62d44cb7... (max 35 minutes)
+[11:44:51] ❌ Error monitoring: HTTPSConnectionPool(host='autome-app.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)
+[11:44:56]    Status: processing (after 0.6 minutes)
+[11:51:09]    Status: ready (after 6.8 minutes)
+[11:51:09] ✅ Processing completed in 6.8 minutes!
+[11:51:09]    ✅ Chunking detected: 24 parts found
+[11:51:09]    📝 Transcript length: 77,212 characters
+[11:51:09]    📄 Transcript preview: [Part 1] We're probably not going to cover everything, so I'm not going to keep you here the whole day. I don't think we've had any apologies that I know of. I don't know where Dina is. Did you get Di...
+[11:51:09] 🔍 Analyzing chunking behavior...
+[11:51:09]    ✅ File was chunked into 24 parts
+[11:51:09]    📊 Expected chunks (~93 min / 4 min): ~23.3
+[11:51:09]    📊 Actual chunks found: 24
+[11:51:09]    ✅ Chunk count matches expectation (±2)
+[11:51:09]    📝 Total transcript length: 77,212 characters
+[11:51:09]    📝 Estimated words: 15,442
+[11:51:09]    ✅ Word count reasonable for 93-minute meeting
+[11:51:09] ✅ Method 1 completed successfully
+[11:51:09] 
+📤 METHOD 2: Direct file upload
+[11:51:09] 📤 Testing direct file upload endpoint...
+[11:51:09] ✅ Direct upload successful
+[11:51:09]    Note ID: 97e76ac1-5388-40d1-adec-2d47ddfdccae
+[11:51:09]    Kind: audio
+[11:51:09]    Status: processing
+[11:51:09] ⏳ Monitoring processing for note 97e76ac1... (max 35 minutes)
+[11:51:39] ❌ Error monitoring: HTTPSConnectionPool(host='autome-app.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)
+[11:51:44]    Status: processing (after 0.6 minutes)
+[12:06:56]    Status: ready (after 15.8 minutes)
+[12:06:56] ✅ Processing completed in 15.8 minutes!
+[12:06:56]    ✅ Chunking detected: 23 parts found
+[12:06:56]    📝 Transcript length: 73,486 characters
+[12:06:56]    📄 Transcript preview: [Part 1] We're probably not going to cover everything, so I'm not going to keep you here the whole day. I don't think we've had any apologies that I know of. I don't know where Dina is. Did you get Di...
+[12:06:56] 🔍 Analyzing chunking behavior...
+[12:06:56]    ✅ File was chunked into 23 parts
+[12:06:56]    📊 Expected chunks (~93 min / 4 min): ~23.3
+[12:06:56]    📊 Actual chunks found: 23
+[12:06:56]    ✅ Chunk count matches expectation (±2)
+[12:06:56]    📝 Total transcript length: 73,486 characters
+[12:06:56]    📝 Estimated words: 14,697
+[12:06:56]    ✅ Word count reasonable for 93-minute meeting
+[12:06:56] ✅ Method 2 completed successfully
+[12:06:56] 
+============================================================
+[12:06:56] 📊 LARGE AUDIO FILE TEST SUMMARY
+[12:06:56] ============================================================
+[12:06:56] Test file: JNB Management Meeting 22 August 2025.mp3
+[12:06:56] File size: 31.9MB (33,514,991 bytes)
+[12:06:56] Expected duration: 93 minutes (5585 seconds)
+[12:06:56] Expected chunks: ~23 (at 4 minutes each)
+[12:06:56] 
+Created test notes: 2
+[12:06:56]   - 62d44cb7-babb-4dd9-8367-cda0200daa16
+[12:06:56]   - 97e76ac1-5388-40d1-adec-2d47ddfdccae
+[12:06:56] ============================================================
+
+🎉 Large audio file test completed!
