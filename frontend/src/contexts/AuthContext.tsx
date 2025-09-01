@@ -108,19 +108,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
+      console.log('🔑 LOGIN ATTEMPT:', { email, passwordLength: password.length });
+      console.log('🌐 Login URL:', `${API}/auth/login`);
+      
       const response = await axios.post<LoginResponse>(`${API}/auth/login`, {
         email,
         password
       });
       
+      console.log('✅ LOGIN SUCCESS:', response.data);
       const { access_token, user: userData } = response.data;
       
       localStorage.setItem('auto_me_token', access_token);
       setToken(access_token);
       setUser(userData);
       
+      console.log('✅ AUTH STATE UPDATED');
       return { success: true };
     } catch (error: any) {
+      console.error('❌ LOGIN ERROR:', error.response?.status, error.response?.data);
       const errorMessage = error.response?.data?.detail || 'Login failed';
       const errorText = typeof errorMessage === 'string' 
         ? errorMessage 
@@ -128,6 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           ? errorMessage.map((err: any) => err.msg || 'Validation error').join(', ')
           : 'Login failed';
       
+      console.error('❌ PROCESSED ERROR:', errorText);
       return { 
         success: false, 
         error: errorText
