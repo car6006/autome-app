@@ -19,8 +19,9 @@ class NotesLoadingTester:
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=60.0)
         self.auth_token = None
-        self.test_user_email = "car6006@gmail.com"  # The specific user mentioned in review
+        self.test_user_email = f"notes_test_{int(time.time())}@gmail.com"  # Create fresh user for testing
         self.test_user_password = "TestPassword123!"
+        self.target_user_email = "car6006@gmail.com"  # The specific user mentioned in review
         
     async def cleanup(self):
         """Clean up HTTP client"""
