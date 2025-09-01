@@ -121,7 +121,8 @@ class NotesLoadingTester:
             
         except Exception as e:
             print(f"❌ Note creation test error: {str(e)}")
-            return False, []
+    
+    async def test_notes_endpoint_basic(self):
         """Test 1: Basic GET /api/notes endpoint functionality"""
         print("\n🧪 Test 1: Basic Notes Endpoint Access")
         
