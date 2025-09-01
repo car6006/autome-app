@@ -55,7 +55,73 @@ class NotesLoadingTester:
             print(f"❌ Authentication error: {str(e)}")
             return False
     
-    async def test_notes_endpoint_basic(self):
+    async def test_create_notes_with_timestamps(self):
+        """Test 0: Create test notes to verify created_at timestamp handling"""
+        print("\n🧪 Test 0: Create Notes with Proper Timestamps")
+        
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            
+            # Create several test notes including one similar to Delta Service Provider Meeting
+            test_notes = [
+                {
+                    "title": "Delta Service Provider Meeting",
+                    "kind": "text",
+                    "text_content": "Meeting notes about Delta service provider integration and requirements."
+                },
+                {
+                    "title": "Project Status Update",
+                    "kind": "text", 
+                    "text_content": "Weekly project status and milestone updates."
+                },
+                {
+                    "title": "Client Requirements Review",
+                    "kind": "text",
+                    "text_content": "Review of client requirements and specifications."
+                },
+                {
+                    "title": "Technical Architecture Discussion",
+                    "kind": "text",
+                    "text_content": "Discussion about technical architecture and implementation."
+                }
+            ]
+            
+            created_notes = []
+            
+            for i, note_data in enumerate(test_notes):
+                print(f"   📝 Creating note {i+1}: '{note_data['title']}'")
+                
+                response = await self.client.post(f"{API_BASE}/notes", 
+                    headers=headers,
+                    json=note_data
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    note_id = result.get("id")
+                    status = result.get("status")
+                    
+                    print(f"      ✅ Created successfully - ID: {note_id}, Status: {status}")
+                    created_notes.append(note_id)
+                    
+                    # Verify the note has created_at by fetching it
+                    get_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+                    if get_response.status_code == 200:
+                        note_details = get_response.json()
+                        created_at = note_details.get("created_at")
+                        if created_at:
+                            print(f"      ✅ Has created_at timestamp: {created_at}")
+                        else:
+                            print(f"      ❌ Missing created_at timestamp!")
+                else:
+                    print(f"      ❌ Creation failed: {response.status_code} - {response.text}")
+            
+            print(f"\n   📊 Created {len(created_notes)} test notes successfully")
+            return len(created_notes) > 0, created_notes
+            
+        except Exception as e:
+            print(f"❌ Note creation test error: {str(e)}")
+            return False, []
         """Test 1: Basic GET /api/notes endpoint functionality"""
         print("\n🧪 Test 1: Basic Notes Endpoint Access")
         
