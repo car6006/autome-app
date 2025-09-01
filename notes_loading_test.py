@@ -385,6 +385,10 @@ class NotesLoadingTester:
         
         test_results = []
         
+        # Test 0: Create test notes with proper timestamps
+        creation_success, created_note_ids = await self.test_create_notes_with_timestamps()
+        test_results.append(("Create Notes with Timestamps", creation_success))
+        
         # Test 1: Basic notes endpoint access
         basic_success, _ = await self.test_notes_endpoint_basic()
         test_results.append(("Basic Notes Endpoint Access", basic_success))
