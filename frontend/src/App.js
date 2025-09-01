@@ -3019,12 +3019,31 @@ const MetricsScreen = () => {
       console.log('👤 User authenticated:', isAuthenticated);
       console.log('👤 User info:', user?.id);
       
-      const response = await axios.get(`${API}/metrics?days=7`);
+      // Ensure we have auth token before making request
+      const token = localStorage.getItem('auto_me_token');
+      if (!token) {
+        console.error('❌ No auth token found in localStorage');
+        return;
+      }
+      
+      // Make request with explicit auth header (in case axios defaults aren't working)
+      const response = await axios.get(`${API}/metrics?days=7`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       console.log('📊 Metrics response:', response.data);
       setMetrics(response.data);
     } catch (error) {
       console.error('❌ Metrics fetching error:', error.response?.status, error.response?.data);
       console.error('Full error:', error);
+      
+      // If 401/403, user is not authenticated - redirect to login
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log('🔑 Authentication failed - clearing token');
+        localStorage.removeItem('auto_me_token');
+        window.location.reload();
+      }
     } finally {
       setLoading(false);
     }
