@@ -323,7 +323,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </TabsList>
               
               <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4" noValidate>
                   <div className="space-y-2">
                     <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
                       Email Address
