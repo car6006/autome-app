@@ -27,7 +27,7 @@ class BackendTester:
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=60.0)
         self.auth_token = None
-        self.test_user_email = f"test_ocr_delete_{int(time.time())}@example.com"
+        self.test_user_email = f"ocr_test_{int(time.time())}_{os.getpid()}@example.com"
         self.test_user_password = "TestPassword123!"
         self.created_notes = []  # Track created notes for cleanup
         
