@@ -180,17 +180,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log('🚀 FORM SUBMITTED - handleLogin called');
+    console.log('📝 Login data state:', loginData);
+    console.log('📧 Email value:', loginData.email);
+    console.log('🔑 Password length:', loginData.password.length);
+    
     setLoading(true);
     
     const result = await login(loginData.email, loginData.password);
+    console.log('🔄 Login result:', result);
     
     if (result.success) {
+      console.log('✅ Login successful, closing modal');
       toast({ 
         title: "🎉 Welcome back!", 
         description: "You're now logged in to AUTO-ME" 
       });
       onClose();
     } else {
+      console.error('❌ Login failed:', result.error);
       toast({ 
         title: "Login failed", 
         description: result.error, 
