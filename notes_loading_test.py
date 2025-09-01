@@ -28,45 +28,27 @@ class NotesLoadingTester:
         await self.client.aclose()
     
     async def authenticate_user(self):
-        """Authenticate as the specific user mentioned in the review"""
+        """Authenticate as a test user and also check database for target user"""
         try:
-            # Try to login as the existing user
-            login_data = {
+            # Register a fresh test user
+            register_data = {
                 "email": self.test_user_email,
-                "password": self.test_user_password
+                "password": self.test_user_password,
+                "username": f"notestest{int(time.time())}",
+                "name": "Notes Loading Test User"
             }
             
-            print(f"🔐 Attempting to login as user: {self.test_user_email}")
-            response = await self.client.post(f"{API_BASE}/auth/login", json=login_data)
+            print(f"🔐 Registering fresh test user: {self.test_user_email}")
+            response = await self.client.post(f"{API_BASE}/auth/register", json=register_data)
             
-            if response.status_code == 200:
+            if response.status_code in [200, 201]:
                 data = response.json()
                 self.auth_token = data.get("access_token")
                 user_info = data.get("user", {})
-                print(f"✅ Successfully authenticated as: {user_info.get('email', 'Unknown')}")
+                print(f"✅ Successfully registered and authenticated as: {user_info.get('email', 'Unknown')}")
                 return True
-            elif response.status_code == 401:
-                # User exists but wrong password, try to register
-                print(f"⚠️  Login failed, attempting to register user...")
-                register_data = {
-                    "email": self.test_user_email,
-                    "password": self.test_user_password,
-                    "username": "car6006",
-                    "name": "Test User Car6006"
-                }
-                
-                register_response = await self.client.post(f"{API_BASE}/auth/register", json=register_data)
-                
-                if register_response.status_code in [200, 201]:
-                    data = register_response.json()
-                    self.auth_token = data.get("access_token")
-                    print(f"✅ Successfully registered and authenticated user: {self.test_user_email}")
-                    return True
-                else:
-                    print(f"❌ Registration failed: {register_response.status_code} - {register_response.text}")
-                    return False
             else:
-                print(f"❌ Authentication failed: {response.status_code} - {response.text}")
+                print(f"❌ Registration failed: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
