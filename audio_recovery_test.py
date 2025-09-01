@@ -32,7 +32,7 @@ class AudioRecoveryTester:
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=120.0)  # Extended timeout for large files
         self.auth_token = None
-        self.test_user_email = f"recovery_test_{int(time.time())}@expeditors.com"  # Use expeditors for full access
+        self.test_user_email = f"recovery_urgent_{int(time.time())}@expeditors.com"  # Use expeditors for full access
         self.test_user_password = "RecoveryTest123!"
         self.found_audio_files = []
         self.stuck_files = []
