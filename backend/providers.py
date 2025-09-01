@@ -271,7 +271,7 @@ async def ocr_read(file_url: str):
         if which == "openai":
             api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
             if not api_key:
-                return {"text":"", "summary":"", "actions":[], "note":"missing OPENAI_API_KEY"}
+                raise ValueError("OpenAI API key not configured. Please contact support.")
             
             # Check if it's a PDF file
             if local.lower().endswith('.pdf'):
