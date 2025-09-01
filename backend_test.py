@@ -126,6 +126,7 @@ class BackendTester:
             register_data = {
                 "email": self.test_user_email,
                 "password": self.test_user_password,
+                "username": f"ocrtest{int(time.time())}",
                 "name": "Test OCR User"
             }
             
