@@ -317,7 +317,7 @@ async def ocr_read(file_url: str):
             
             # Use OpenAI Vision API
             payload = {
-                "model": "gpt-4o-mini",
+                "model": "gpt-4o",
                 "messages": [
                     {
                         "role": "user",
