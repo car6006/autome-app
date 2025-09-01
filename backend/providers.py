@@ -302,9 +302,21 @@ async def ocr_read(file_url: str):
                     return {"text": "PDF processing failed. Please try uploading an image format (PNG, JPG) instead.", "summary": "", "actions": []}
             
             # For image files, continue with OpenAI Vision API
+            # Check file size first
+            file_size = os.path.getsize(local)
+            max_size = 20 * 1024 * 1024  # 20MB limit for OpenAI Vision API
+            
+            if file_size > max_size:
+                return {"text": f"Image file too large ({file_size/1024/1024:.1f}MB). Please use an image smaller than 20MB.", "summary": "", "actions": []}
+            
             # Convert image to base64
             with open(local, "rb") as f:
-                image_data = base64.b64encode(f.read()).decode()
+                image_bytes = f.read()
+                image_data = base64.b64encode(image_bytes).decode()
+            
+            # Validate base64 data size (OpenAI has limits)
+            if len(image_data) > 25_000_000:  # ~25MB base64 limit
+                return {"text": "Image too large for processing. Please use a smaller image or reduce image quality.", "summary": "", "actions": []}
                 
             # Determine image format
             image_format = "jpeg"
@@ -314,6 +326,8 @@ async def ocr_read(file_url: str):
                 image_format = "webp"
             elif local.lower().endswith('.gif'):
                 return {"text": "GIF files are not supported for OCR. Please use PNG or JPG.", "summary": "", "actions": []}
+            
+            logger.info(f"Processing OCR for image: size={file_size} bytes, format={image_format}, base64_length={len(image_data)}")
             
             # Use OpenAI Vision API
             payload = {
