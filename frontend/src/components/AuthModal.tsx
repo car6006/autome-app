@@ -187,18 +187,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     const emailFromForm = formData.get('email') as string;
     const passwordFromForm = formData.get('password') as string;
     
+    // Also try getting values directly from DOM
+    const emailElement = e.currentTarget.querySelector('input[name="email"]') as HTMLInputElement;
+    const passwordElement = e.currentTarget.querySelector('input[name="password"]') as HTMLInputElement;
+    
+    const emailFromDOM = emailElement?.value || '';
+    const passwordFromDOM = passwordElement?.value || '';
+    
     console.log('📝 Login data state:', loginData);
     console.log('📝 Form data fallback:', { email: emailFromForm, password: passwordFromForm });
+    console.log('📝 DOM values:', { email: emailFromDOM, password: passwordFromDOM });
     
-    // Use form data if state is empty
-    const emailToUse = loginData.email || emailFromForm;
-    const passwordToUse = loginData.password || passwordFromForm;
+    // Use the first non-empty value we find
+    const emailToUse = loginData.email || emailFromForm || emailFromDOM;
+    const passwordToUse = loginData.password || passwordFromForm || passwordFromDOM;
     
     console.log('📧 Email to use:', emailToUse);
     console.log('🔑 Password length to use:', passwordToUse.length);
     
     if (!emailToUse || !passwordToUse) {
       console.error('❌ Empty credentials - cannot proceed');
+      console.error('State:', loginData);
+      console.error('FormData:', { emailFromForm, passwordFromForm });
+      console.error('DOM:', { emailFromDOM, passwordFromDOM });
       toast({ title: "Error", description: "Please enter email and password", variant: "destructive" });
       return;
     }
