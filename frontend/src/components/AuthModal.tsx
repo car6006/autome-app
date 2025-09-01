@@ -362,15 +362,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                         name="password"
                         type="password"
                         placeholder="••••••••"
-                        value={loginData.password}
-                        onChange={(e) => {
-                          console.log('🔑 PASSWORD CHANGE EVENT:', e.target.value.length, 'chars');
-                          setLoginData(prev => {
-                            const newData = { ...prev, password: e.target.value };
-                            console.log('🔑 PASSWORD STATE UPDATE - length:', newData.password.length);
-                            return newData;
-                          });
-                        }}
                         className="pl-10"
                       />
                     </div>
