@@ -378,6 +378,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     type="submit" 
                     disabled={loading}
                     className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white py-2.5 sm:py-3 mt-4 sm:mt-6 text-sm sm:text-base"
+                    onClick={(e) => {
+                      console.log('🔘 BUTTON CLICKED - type:', e.currentTarget.type);
+                      console.log('🔘 BUTTON CLICKED - form:', e.currentTarget.form);
+                      // Don't prevent default - let the form submit naturally
+                    }}
                   >
                     {loading ? (
                       <>
