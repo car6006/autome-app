@@ -3014,10 +3014,17 @@ const MetricsScreen = () => {
 
   const fetchMetrics = async () => {
     try {
+      console.log('🔍 Fetching metrics from:', `${API}/metrics?days=7`);
+      console.log('🔑 Current auth headers:', axios.defaults.headers.common['Authorization'] ? 'SET' : 'NOT SET');
+      console.log('👤 User authenticated:', isAuthenticated);
+      console.log('👤 User info:', user?.id);
+      
       const response = await axios.get(`${API}/metrics?days=7`);
+      console.log('📊 Metrics response:', response.data);
       setMetrics(response.data);
     } catch (error) {
-      // Metrics fetching error logged for debugging
+      console.error('❌ Metrics fetching error:', error.response?.status, error.response?.data);
+      console.error('Full error:', error);
     } finally {
       setLoading(false);
     }
