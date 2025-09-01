@@ -139,9 +139,31 @@ async def enqueue_ocr(note_id: str):
     if not note:
         logger.error(f"Note not found: {note_id}")
         return
+    
+    # Ensure this is actually a photo note that should be processed for OCR
+    if note.get("kind") != "photo":
+        logger.error(f"OCR requested for non-photo note {note_id} with kind: {note.get('kind')}")
+        await NotesStore.update_status(note_id, "failed")
+        await NotesStore.set_artifacts(note_id, {"error": "OCR can only process photo notes. This appears to be a different note type."})
+        return
+    
+    # Ensure note has a media_key
+    if not note.get("media_key"):
+        logger.error(f"OCR requested for note {note_id} without media_key")
+        await NotesStore.update_status(note_id, "failed")
+        await NotesStore.set_artifacts(note_id, {"error": "No image file found to process."})
+        return
         
     try:
         signed = create_presigned_get_url(note["media_key"])
+        
+        # Validate that the file actually exists
+        if not os.path.exists(signed):
+            logger.error(f"Media file not found for note {note_id}: {signed}")
+            await NotesStore.update_status(note_id, "failed")
+            await NotesStore.set_artifacts(note_id, {"error": "Image file not found. Please try uploading again."})
+            return
+        
         start = time.time()
         
         # Add timeout for OCR to prevent hanging
