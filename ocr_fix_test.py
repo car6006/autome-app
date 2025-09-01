@@ -22,8 +22,10 @@ class OCRFixTester:
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=120.0)
         self.auth_token = None
-        self.test_user_email = f"ocr_test_user_{int(time.time())}@example.com"
+        timestamp = int(time.time())
+        self.test_user_email = f"ocr_fix_test_{timestamp}@example.com"
         self.test_user_password = "OCRTestPassword123!"
+        self.username = f"ocrfixtest{timestamp}"
         
     async def cleanup(self):
         """Clean up HTTP client"""
