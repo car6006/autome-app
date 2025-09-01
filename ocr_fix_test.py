@@ -62,8 +62,8 @@ class OCRFixTester:
             response = await self.client.post(f"{API_BASE}/auth/register", json={
                 "email": self.test_user_email,
                 "password": self.test_user_password,
-                "username": "ocrtest",
-                "name": "OCR Test User"
+                "username": self.username,
+                "name": "OCR Fix Test User"
             })
             
             if response.status_code in [200, 201]:
