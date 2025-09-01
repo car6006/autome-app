@@ -13,6 +13,10 @@ import base64
 import tempfile
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv('/app/backend/.env')
 
 # Configuration
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://pwa-integration-fix.preview.emergentagent.com')
