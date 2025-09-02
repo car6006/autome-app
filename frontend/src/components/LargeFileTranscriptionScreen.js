@@ -97,24 +97,23 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
+  // Smart polling with single interval to prevent race conditions
   useEffect(() => {
     if (user) {
       loadJobs();
       
-      // More frequent updates for better real-time progress
-      const interval = setInterval(loadJobs, 5000); // Every 5 seconds
-      return () => clearInterval(interval);
+      // Adaptive polling: faster when active jobs, slower otherwise
+      const getPollingInterval = () => activeJobs.length > 0 ? 3000 : 8000; // 3s with active jobs, 8s otherwise
+      
+      const pollJobs = () => {
+        loadJobs();
+        setTimeout(pollJobs, getPollingInterval());
+      };
+      
+      const timeoutId = setTimeout(pollJobs, getPollingInterval());
+      return () => clearTimeout(timeoutId);
     }
-  }, [user]);
-
-  // Additional effect for real-time progress updates on active jobs
-  useEffect(() => {
-    if (activeJobs.length > 0) {
-      // Even more frequent updates when there are active jobs
-      const activeJobsInterval = setInterval(loadJobs, 2000); // Every 2 seconds
-      return () => clearInterval(activeJobsInterval);
-    }
-  }, [activeJobs.length]);
+  }, [user, activeJobs.length]);
 
   // Handle successful upload
   const handleUploadComplete = (uploadResult) => {
