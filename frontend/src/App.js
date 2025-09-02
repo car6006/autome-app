@@ -1385,9 +1385,34 @@ const NotesScreen = () => {
       }
       
     } catch (error) {
+      console.error('Regular batch report generation error:', error);
+      
+      let errorMessage = "Failed to generate batch report. Please try again.";
+      let errorDetails = "";
+      
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 401) {
+          errorMessage = "Authentication required. Please sign in again.";
+        } else if (status === 403) {
+          errorMessage = "Access denied. You can only create reports with your own notes.";
+        } else if (status === 400) {
+          errorMessage = data?.detail || "Invalid request. Please check your selected notes.";
+        } else if (status >= 500) {
+          errorMessage = "Server error. Please try again in a few moments.";
+          errorDetails = `Status: ${status}`;
+        }
+      } else if (error.request) {
+        // Network error
+        errorMessage = "Network error. Please check your connection and try again.";
+      }
+      
       toast({ 
-        title: "Error", 
-        description: "Failed to generate batch report. Please try again.", 
+        title: "Batch Report Error", 
+        description: errorDetails ? `${errorMessage} ${errorDetails}` : errorMessage,
         variant: "destructive" 
       });
     } finally {
