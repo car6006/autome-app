@@ -76,15 +76,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     
     try {
-      // Verify if user exists
-      const response = await axios.post(`${API}/auth/verify-user`, {
+      const response = await axios.post(`${API}/auth/validate-email`, {
         email: forgotPasswordData.email
       });
       
-      if (response.data.exists) {
+      if (response.data.email_exists) {
         setForgotPasswordStep('reset');
         toast({ 
-          title: "✅ User verified", 
+          title: "✅ Email verified", 
           description: "Please set your new password" 
         });
       }
