@@ -39,11 +39,11 @@ class BatchReportTester:
         """Create and authenticate a test user"""
         try:
             # Register test user
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             register_data = {
-                "email": f"batch_test_{timestamp}@test.com",
-                "username": f"batch_test_{timestamp}",
-                "password": "testpass123",
+                "email": f"batchtest{timestamp}@test.com",
+                "username": f"batchtest{timestamp}",
+                "password": "TestPass123!",
                 "first_name": "Batch",
                 "last_name": "Tester"
             }
