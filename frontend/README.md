@@ -553,6 +553,197 @@ class ErrorBoundary extends React.Component {
 - Use React DevTools Profiler for performance analysis
 - Monitor network requests in browser DevTools
 
+## 🚨 **Error Handling & User Feedback**
+
+### **Frontend Error Types and Solutions**
+
+#### **Batch Report Generation Errors**
+
+The frontend implements comprehensive error handling for batch report functionality with specific user feedback:
+
+##### **Authentication Errors (401)**
+```javascript
+// Error Message: "Authentication required. Please sign in again."
+// User Action: Sign out and back in to refresh JWT token
+```
+
+##### **Authorization Errors (403)**
+```javascript
+// Error Message: "Access denied. You can only create reports with your own notes."
+// User Action: Only select notes owned by current user
+```
+
+##### **Bad Request Errors (400)**
+```javascript
+// Error Message: "Invalid request. Please check your selected notes."
+// User Actions:
+// - Ensure notes have completed processing (status: "ready")
+// - Verify notes contain transcript or text content
+// - Try different note combinations
+```
+
+##### **Server Errors (5xx)**
+```javascript
+// Error Message: "Server error. Please try again in a few moments. Status: 500"
+// User Actions:
+// - Wait 1-2 minutes and retry
+// - Reduce number of notes in batch
+// - Check backend service status
+```
+
+##### **Network Errors**
+```javascript
+// Error Message: "Network error. Please check your connection and try again."
+// User Actions:
+// - Check internet connectivity
+// - Refresh the page
+// - Ensure stable connection for large operations
+```
+
+#### **File Upload Errors**
+
+##### **Large File Upload Issues**
+```javascript
+// Common Errors:
+// - "Error loading jobs"
+// - "Could not fetch your transcription jobs"
+
+// Causes & Solutions:
+// 1. Temporary network issues - retry automatically
+// 2. Authentication token expiry - re-authenticate
+// 3. Backend processing delays - wait and refresh
+// 4. File size/format issues - check file specifications
+```
+
+##### **OCR Image Processing Errors**
+```javascript
+// Error: "Invalid image file. Please upload a valid PNG or JPG image."
+// Solutions:
+// - Use supported formats: PNG, JPG, JPEG, WebP
+// - Ensure file is not corrupted
+// - Try converting to PNG format
+// - Verify image contains actual text content
+```
+
+#### **Error Handling Implementation**
+
+##### **Toast Notification System**
+```javascript
+// Success notification
+toast({
+  title: "📋 Report Generated",
+  description: "Your batch report is ready for download"
+});
+
+// Error notification with specific details
+toast({
+  title: "Batch Report Error",
+  description: "Authentication required. Please sign in again.",
+  variant: "destructive"
+});
+```
+
+##### **Console Logging for Debugging**
+```javascript
+// All errors are logged to console for debugging
+console.error('Batch report generation error:', error);
+
+// Include response details for troubleshooting
+console.error('Response status:', error.response?.status);
+console.error('Response data:', error.response?.data);
+```
+
+### **User Experience Guidelines**
+
+#### **Error Message Principles**
+1. **Be Specific**: Avoid generic "something went wrong" messages
+2. **Actionable**: Tell users exactly what they can do to fix the issue
+3. **Context-Aware**: Different messages for different error types
+4. **Professional**: Maintain consistent tone and branding
+5. **Helpful**: Include status codes and technical details when useful
+
+#### **Loading States and Feedback**
+```javascript
+// Button states during processing
+<Button disabled={generatingReport.batch}>
+  {generatingReport.batch ? (
+    <>
+      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      Generating...
+    </>
+  ) : (
+    'Generate Report'
+  )}
+</Button>
+```
+
+#### **Error Recovery Patterns**
+```javascript
+// Automatic retry for temporary errors
+const retryWithBackoff = async (fn, maxRetries = 3) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+    }
+  }
+};
+```
+
+### **Debugging Frontend Issues**
+
+#### **Browser Developer Tools**
+```javascript
+// Enable verbose logging in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Request:', config);
+  console.log('API Response:', response);
+}
+```
+
+#### **Common Debugging Steps**
+1. **Check Console**: Look for error messages and stack traces
+2. **Network Tab**: Verify API calls and response status codes
+3. **Application Tab**: Check localStorage for authentication tokens
+4. **React DevTools**: Inspect component state and props
+5. **Performance Tab**: Profile for performance issues
+
+#### **Error Boundary Implementation**
+```javascript
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error Boundary caught an error:', error, errorInfo);
+    // Send to error reporting service
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 text-center">
+          <h2>Something went wrong</h2>
+          <p>Please refresh the page or contact support if the issue persists.</p>
+          <button onClick={() => window.location.reload()}>
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+```
+
 ## 📚 **Additional Resources**
 
 ### **Documentation**
