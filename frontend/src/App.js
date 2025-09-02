@@ -2053,9 +2053,9 @@ const NotesScreen = () => {
           {notes.map((note) => (
             <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass} w-full overflow-hidden`}>
               <CardHeader className="pb-3 px-3 sm:px-6 relative">
-                {/* Batch indicator - mobile responsive positioning */}
+                {/* Batch indicator - positioned to wrap around card corner */}
                 {selectedNotesForBatch.includes(note.id) && (
-                  <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg z-10 border-2 border-white">
+                  <div className="absolute -top-1 right-1 sm:-top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg z-10 border-2 border-white">
                     {selectedNotesForBatch.indexOf(note.id) + 1}
                   </div>
                 )}
