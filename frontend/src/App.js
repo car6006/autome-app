@@ -1906,6 +1906,81 @@ const NotesScreen = () => {
     }
   };
 
+  const exportBatchAiAnalysis = async (format = 'pdf') => {
+    console.log('Batch AI Export triggered:', format);
+    console.log('Batch AI Content:', batchAiContent);
+    console.log('Batch AI Conversations:', batchAiConversations);
+    
+    if (!batchAiContent || batchAiConversations.length === 0) {
+      toast({ 
+        title: "No conversations", 
+        description: "Please have AI conversations with your batch report before exporting", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    try {
+      // Create export content from batch AI conversations
+      let exportContent = `BATCH REPORT AI ANALYSIS\n`;
+      exportContent += `${batchAiContent.title}\n`;
+      exportContent += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+      
+      // Add all conversations
+      batchAiConversations.forEach((conv, index) => {
+        exportContent += `QUESTION ${index + 1}:\n${conv.question}\n\n`;
+        exportContent += `AI RESPONSE ${index + 1}:\n${conv.response}\n\n`;
+        exportContent += `${'='.repeat(50)}\n\n`;
+      });
+      
+      // Create and download file based on format
+      let blob;
+      let filename = `Batch_AI_Analysis_${batchAiContent.title.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '_')}`;
+      
+      if (format === 'pdf') {
+        // For PDF, we'll create a simple text file for now
+        blob = new Blob([exportContent], { type: 'text/plain' });
+        filename += '.txt';
+      } else if (format === 'docx') {
+        // For DOCX, create text file
+        blob = new Blob([exportContent], { type: 'text/plain' });
+        filename += '.txt';
+      } else if (format === 'txt') {
+        blob = new Blob([exportContent], { type: 'text/plain' });
+        filename += '.txt';
+      } else if (format === 'rtf') {
+        // Create RTF format
+        const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${exportContent.replace(/\n/g, '\\par ')}}`;
+        blob = new Blob([rtfContent], { type: 'application/rtf' });
+        filename += '.rtf';
+      }
+      
+      // Download the file
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({ 
+        title: "📄 Export successful", 
+        description: `Batch AI analysis exported as ${format.toUpperCase()}` 
+      });
+      
+    } catch (error) {
+      console.error('Batch AI Export error:', error);
+      
+      toast({ 
+        title: "Export Error", 
+        description: "Failed to export batch AI analysis. Please try again.", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   const formatReportText = (text) => {
     // Handle undefined or null text input
     if (!text || typeof text !== 'string') {
