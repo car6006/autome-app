@@ -115,9 +115,6 @@ const LargeFileTranscriptionScreen = () => {
     setCompletedJobs([]);
     setIsRequestInProgress(false); // Reset the debouncing flag
     
-    // Clear any existing timeouts
-    clearTimeout(timeoutId);
-    
     // Force reload jobs
     await loadJobs();
     
