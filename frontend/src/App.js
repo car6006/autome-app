@@ -1098,6 +1098,14 @@ const NotesScreen = () => {
   const [aiChatLoading, setAiChatLoading] = useState(false);
   const [aiConversations, setAiConversations] = useState([]);
   
+  // Batch AI Chat state
+  const [showBatchAiModal, setShowBatchAiModal] = useState(false);
+  const [batchAiContent, setBatchAiContent] = useState(null);
+  const [batchAiQuestion, setBatchAiQuestion] = useState("");
+  const [batchAiResponse, setBatchAiResponse] = useState("");
+  const [batchAiLoading, setBatchAiLoading] = useState(false);
+  const [batchAiConversations, setBatchAiConversations] = useState([]);
+  
   // Professional Context Setup state
   const [showProfessionalContextModal, setShowProfessionalContextModal] = useState(false);
   const [showMeetingMinutesPreview, setShowMeetingMinutesPreview] = useState(false);
