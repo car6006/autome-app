@@ -23,7 +23,8 @@ import {
   Mic, Camera, Upload, Play, Square, Mail, GitBranch, Clock, FileText, 
   Zap, BarChart3, Loader2, User, Settings, UserPlus, LogIn, Sparkles,
   Heart, Download, Edit, Save, HelpCircle, Trash2, Archive, Target,
-  FileBarChart, Users, FileDown, Bot, CheckCircle, ChevronDown
+  FileBarChart, Users, FileDown, Bot, CheckCircle, ChevronDown,
+  MessageSquare
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
