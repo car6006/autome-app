@@ -72,6 +72,19 @@ class User(BaseModel):
     notes_count: int = 0
     total_time_saved: int = 0  # in minutes
 
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordUpdateRequest(BaseModel):
+    email: EmailStr
+    new_password: str
+    
+    @validator('new_password')
+    def password_strength(cls, v):
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        return v
+
 class UserCreate(BaseModel):
     email: EmailStr
     username: str
