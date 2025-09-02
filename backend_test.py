@@ -143,13 +143,13 @@ class PasswordResetTester:
                     f"{BACKEND_URL}/auth/reset-password",
                     json={
                         "email": self.test_user_email,
-                        "new_password": self.new_password
+                        "newPassword": self.new_password  # Use newPassword parameter
                     }
                 )
                 
                 if response.status_code == 200:
                     data = response.json()
-                    if "success" in data and data.get("success") is True:
+                    if "message" in data and "Password updated successfully" in data.get("message"):
                         await self.log_test("Password Reset - Valid Email", True, f"Password reset successful: {data}")
                         return True
                     else:
