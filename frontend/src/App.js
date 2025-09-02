@@ -3277,6 +3277,117 @@ const NotesScreen = () => {
                       Clear
                     </Button>
                   </div>
+                  
+                  {/* Export Section - Show if there are conversations */}
+                  {batchAiConversations.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export Batch AI Analysis Report</h4>
+                      
+                      {/* Mobile: Stack vertically */}
+                      <div className="sm:hidden space-y-2">
+                        <Button
+                          onClick={() => exportBatchAiAnalysis('pdf')}
+                          className={`w-full relative z-10 ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                          }`}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          Professional PDF
+                        </Button>
+                        
+                        <div className="grid grid-cols-3 gap-1">
+                          <Button
+                            onClick={() => exportBatchAiAnalysis('docx')}
+                            variant="outline"
+                            className="text-xs relative z-10"
+                            style={{ pointerEvents: 'auto' }}
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Word
+                          </Button>
+                          <Button
+                            onClick={() => exportBatchAiAnalysis('txt')}
+                            variant="outline"
+                            className="text-xs relative z-10"
+                            style={{ pointerEvents: 'auto' }}
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            TXT
+                          </Button>
+                          <Button
+                            onClick={() => exportBatchAiAnalysis('rtf')}
+                            variant="outline"
+                            className="text-xs relative z-10"
+                            style={{ pointerEvents: 'auto' }}
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            RTF
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Desktop: Horizontal layout */}
+                      <div className="hidden sm:flex sm:flex-wrap sm:gap-2">
+                        <Button
+                          onClick={() => exportBatchAiAnalysis('pdf')}
+                          className={`relative z-10 ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                          }`}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" />
+                          Professional PDF
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportBatchAiAnalysis('docx')}
+                          variant="outline"
+                          className={`relative z-10 ${
+                            theme.isExpeditors 
+                              ? 'border-red-600 text-red-600 hover:bg-red-50'
+                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                          }`}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Word
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportBatchAiAnalysis('txt')}
+                          variant="outline"
+                          className="text-sm relative z-10"
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Clean TXT
+                        </Button>
+                        
+                        <Button
+                          onClick={() => exportBatchAiAnalysis('rtf')}
+                          variant="outline"
+                          className={`relative z-10 ${
+                            theme.isExpeditors 
+                              ? 'border-red-600 text-red-600 hover:bg-red-50'
+                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                          }`}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Rich RTF
+                        </Button>
+                      </div>
+                      
+                      <p className="text-xs text-gray-500 mt-2">
+                        ✨ All formats are clean (no *** or ### symbols)
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
