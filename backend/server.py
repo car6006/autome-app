@@ -2177,6 +2177,8 @@ async def generate_batch_report(
             content_text = f"{title}\n{'='*len(title)}\n\n"
             content_text += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             content_text += f"Notes included: {len(note_titles)}\n\n"
+            content_text += "SOURCE NOTES:\n"
+            content_text += "\n".join([f"• {note_title}" for note_title in note_titles]) + "\n\n"
             content_text += "\n\n".join(combined_content)
             
             # Mark all accessible notes as completed
