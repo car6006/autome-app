@@ -48,9 +48,10 @@ const AuthModal = ({ isOpen, onClose }) => {
       });
       onClose();
     } else {
+      console.error('Login error:', result.error);
       toast({ 
         title: "Login failed", 
-        description: result.error, 
+        description: typeof result.error === 'string' ? result.error : "Please check your credentials and try again", 
         variant: "destructive" 
       });
     }
