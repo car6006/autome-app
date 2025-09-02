@@ -448,6 +448,108 @@ const ProfileScreen: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Security Settings Card */}
+        <div className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Settings className="w-5 h-5" />
+                <span>Security Settings</span>
+              </CardTitle>
+              <CardDescription>
+                Manage your account security and password
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPasswordChange(!showPasswordChange)}
+                  className="w-full sm:w-auto"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Change Password
+                </Button>
+                
+                {showPasswordChange && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword" className="text-sm font-medium">
+                        New Password
+                      </Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        placeholder="Enter new password (min 6 characters)"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({
+                          ...prev,
+                          newPassword: e.target.value
+                        }))}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                        Confirm New Password
+                      </Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({
+                          ...prev,
+                          confirmPassword: e.target.value
+                        }))}
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={handlePasswordChange}
+                        disabled={passwordLoading || !passwordData.newPassword || !passwordData.confirmPassword}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {passwordLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Update Password
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowPasswordChange(false);
+                          setPasswordData({
+                            currentPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                          });
+                        }}
+                        disabled={passwordLoading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                    
+                    <p className="text-xs text-gray-500">
+                      Your password will be updated immediately. You don't need to log out and back in.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
