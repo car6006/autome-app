@@ -80,9 +80,10 @@ const AuthModal = ({ isOpen, onClose }) => {
       });
       onClose();
     } else {
+      console.error('Registration error:', result.error);
       toast({ 
         title: "Registration failed", 
-        description: result.error, 
+        description: typeof result.error === 'string' ? result.error : "Registration failed. Please try again with different details.", 
         variant: "destructive" 
       });
     }
