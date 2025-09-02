@@ -60,16 +60,35 @@ const LargeFileTranscriptionScreen = () => {
       setCompletedJobs(completed);
     } catch (error) {
       console.error('Failed to load jobs:', error);
+      
+      // Enhanced error handling with proper categorization
       if (error.response?.status === 401) {
         toast({
           title: "Authentication expired",
           description: "Please sign in again to view your transcription jobs",
           variant: "destructive"
         });
-      } else if (error.response?.status !== 401) {
+      } else if (error.response?.status === 403) {
+        toast({
+          title: "Access denied",
+          description: "You don't have permission to access transcription jobs",
+          variant: "destructive"
+        });
+      } else if (error.response?.status >= 500) {
+        // Server errors - retry silently after a delay
+        console.log('Server error, will retry on next poll cycle');
+        // Don't show error message for server errors as they're usually temporary
+      } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        // Network timeout - retry silently
+        console.log('Request timeout, will retry on next poll cycle');
+      } else if (!error.response) {
+        // Network error (no response) - retry silently  
+        console.log('Network error, will retry on next poll cycle');
+      } else {
+        // Only show error for genuine API errors (4xx except 401/403)
         toast({
           title: "Error loading jobs",
-          description: "Could not fetch your transcription jobs",
+          description: "Could not fetch your transcription jobs. Retrying...",
           variant: "destructive"
         });
       }
