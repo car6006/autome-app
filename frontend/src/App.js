@@ -1678,6 +1678,86 @@ const NotesScreen = () => {
     setAiResponse("");
   };
 
+  const askAI = async () => {
+    if (!aiQuestion.trim()) return;
+    
+    setAiChatLoading(true);
+    try {
+      const response = await axios.post(`${API}/notes/${aiChatNote.id}/ai-chat`, {
+        question: aiQuestion
+      });
+      
+      const newConversation = {
+        question: aiQuestion,
+        response: response.data.response,
+        timestamp: new Date().toISOString()
+      };
+      
+      setAiConversations(prev => [...prev, newConversation]);
+      setAiResponse(response.data.response);
+      setAiQuestion("");
+      
+    } catch (error) {
+      console.error('AI chat error:', error);
+      toast({
+        title: "AI Chat Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setAiChatLoading(false);
+    }
+  };
+
+  // Batch AI chat function
+  const askBatchAI = async () => {
+    if (!batchAiQuestion.trim() || !batchAiContent) return;
+    
+    setBatchAiLoading(true);
+    try {
+      const response = await axios.post(`${API}/batch-report/ai-chat`, {
+        content: batchAiContent.content,
+        question: batchAiQuestion
+      });
+      
+      const newConversation = {
+        question: batchAiQuestion,
+        response: response.data.response,
+        timestamp: new Date().toISOString()
+      };
+      
+      setBatchAiConversations(prev => [...prev, newConversation]);
+      setBatchAiResponse(response.data.response);
+      setBatchAiQuestion("");
+      
+      toast({
+        title: "AI Response Ready",
+        description: "Your question has been answered based on the batch report content.",
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('Batch AI chat error:', error);
+      
+      let errorMessage = "Failed to get AI response. Please try again.";
+      if (error.response?.status === 401) {
+        errorMessage = "Authentication required. Please sign in again.";
+      } else if (error.response?.status === 400) {
+        errorMessage = "Invalid request. Please check your question.";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again in a few moments.";
+      }
+      
+      toast({
+        title: "AI Chat Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setBatchAiLoading(false);
+    }
+  };
+
   const generateMeetingMinutes = async (note) => {
     setGeneratingMinutes(prev => ({...prev, [note.id]: true}));
     try {
