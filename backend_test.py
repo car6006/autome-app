@@ -58,7 +58,13 @@ class BatchReportTester:
                     await self.log_result("User Registration", True, f"User ID: {self.user_id}")
                     return True
                 else:
-                    await self.log_result("User Registration", False, f"Status: {response.status_code}")
+                    error_text = ""
+                    try:
+                        error_data = response.json()
+                        error_text = str(error_data)
+                    except:
+                        error_text = response.text
+                    await self.log_result("User Registration", False, f"Status: {response.status_code}, Error: {error_text}")
                     return False
                     
         except Exception as e:
