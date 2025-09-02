@@ -103,6 +103,7 @@ const LargeFileTranscriptionScreen = () => {
       }
     } finally {
       setLoading(false);
+      setIsRequestInProgress(false); // Reset request flag
     }
   };
 
