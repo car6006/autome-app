@@ -2201,6 +2201,11 @@ async def generate_batch_report(
             content_text += f"\\b\\fs32 {title}\\b0\\fs24\\par\\par "
             content_text += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\\par "
             content_text += f"Notes included: {len(note_titles)}\\par\\par "
+            content_text += "\\b SOURCE NOTES:\\b0\\par "
+            
+            for note_title in note_titles:
+                content_text += f"\\bullet {note_title}\\par "
+            content_text += "\\par "
             
             for section in combined_content:
                 # Convert to RTF format
