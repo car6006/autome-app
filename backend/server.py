@@ -2037,6 +2037,12 @@ SESSION: {item['title']}
         
         filename = f"{title.replace(' ', '_')}_Comprehensive_Report.{format if format != 'ai' else 'txt'}"
         
+        # Mark all accessible notes as completed after successful export
+        for note_id in note_ids:
+            note = await NotesStore.get(note_id)
+            if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                await NotesStore.update_status(note_id, "completed")
+        
         return {
             "content": final_content,
             "filename": filename,
