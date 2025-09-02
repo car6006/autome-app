@@ -164,9 +164,9 @@ class PasswordResetTester:
             return False
 
     async def test_password_reset_weak_password(self):
-        """Test password reset with weak password (less than 6 characters)"""
+        """Test password reset with weak password (less than 8 characters)"""
         try:
-            weak_passwords = ["123", "ab", "12345"]
+            weak_passwords = ["123", "ab", "1234567"]  # All less than 8 characters
             
             for weak_password in weak_passwords:
                 async with httpx.AsyncClient(timeout=30) as client:
@@ -174,13 +174,13 @@ class PasswordResetTester:
                         f"{BACKEND_URL}/auth/reset-password",
                         json={
                             "email": self.test_user_email,
-                            "new_password": weak_password
+                            "newPassword": weak_password  # Use newPassword parameter
                         }
                     )
                     
                     if response.status_code == 400:
                         data = response.json()
-                        if "6 characters" in data.get("detail", ""):
+                        if "8 characters" in data.get("detail", ""):  # First endpoint requires 8 characters
                             await self.log_test(f"Password Reset - Weak Password ({weak_password})", True, f"Correctly rejected weak password")
                         else:
                             await self.log_test(f"Password Reset - Weak Password ({weak_password})", False, f"Wrong error message: {data}")
