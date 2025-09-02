@@ -2561,19 +2561,36 @@ async def get_metrics(
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Get productivity metrics for authenticated user only"""
-    since = datetime.now(timezone.utc) - timedelta(days=days)
     
-    # Only show metrics for the authenticated user
+    # Get stored metrics from user record first
+    user_doc = await db["users"].find_one({"id": current_user["id"]})
+    stored_metrics = {}
+    if user_doc:
+        stored_metrics = {
+            "total_time_saved": user_doc.get("total_time_saved", 0),
+            "notes_count": user_doc.get("notes_count", 0),
+            "audio_notes_count": user_doc.get("audio_notes_count", 0),
+            "photo_notes_count": user_doc.get("photo_notes_count", 0),
+            "text_notes_count": user_doc.get("text_notes_count", 0),
+            "avg_processing_time_minutes": user_doc.get("avg_processing_time_minutes", 0),
+            "last_metrics_update": user_doc.get("last_metrics_update")
+        }
+    
+    # Get recent notes for time-window specific metrics
+    since = datetime.now(timezone.utc) - timedelta(days=days)
     query = {"created_at": {"$gte": since}, "user_id": current_user["id"]}
     
-    # Get notes from the specified time window
     cursor = db["notes"].find(query)
-    notes = await cursor.to_list(None)
+    recent_notes = await cursor.to_list(None)
     
-    total = len(notes)
-    ready = sum(1 for n in notes if n.get("status") == "ready")
-    latencies = [n.get("metrics", {}).get("latency_ms") for n in notes if n.get("metrics", {}).get("latency_ms")]
+    total_recent = len(recent_notes)
+    ready_recent = sum(1 for n in recent_notes if n.get("status") in ["ready", "completed"])
     
+    # Calculate success rate for recent period
+    success_rate = round(ready_recent / total_recent * 100, 1) if total_recent > 0 else 100
+    
+    # Get latency metrics for recent notes
+    latencies = [n.get("metrics", {}).get("latency_ms") for n in recent_notes if n.get("metrics", {}).get("latency_ms")]
     p95 = None
     if latencies:
         sorted_latencies = sorted(latencies)
@@ -2581,30 +2598,39 @@ async def get_metrics(
         if idx >= 0:
             p95 = sorted_latencies[idx]
     
-    # Calculate estimated time saved (rough estimates)
-    audio_notes = [n for n in notes if n.get("kind") == "audio" and n.get("status") == "ready"]
-    photo_notes = [n for n in notes if n.get("kind") == "photo" and n.get("status") == "ready"]
+    # Calculate recent period time savings
+    recent_audio = [n for n in recent_notes if n.get("kind") == "audio" and n.get("status") in ["ready", "completed"]]
+    recent_photo = [n for n in recent_notes if n.get("kind") == "photo" and n.get("status") in ["ready", "completed"]]
+    recent_text = [n for n in recent_notes if n.get("kind") == "text" and n.get("status") in ["ready", "completed"]]
     
-    # Rough time savings estimates
-    estimated_minutes_saved = len(audio_notes) * 15 + len(photo_notes) * 10
-    
-    # Update user's total time saved if authenticated
-    if current_user:
-        await db["users"].update_one(
-            {"id": current_user["id"]},
-            {"$set": {"total_time_saved": estimated_minutes_saved, "notes_count": total}}
-        )
+    recent_time_saved = (
+        len(recent_audio) * 30 +
+        len(recent_photo) * 10 +
+        len(recent_text) * 5
+    )
     
     return {
         "window_days": days,
-        "notes_total": total,
-        "notes_ready": ready,
-        "notes_audio": len(audio_notes),
-        "notes_photo": len(photo_notes),
+        
+        # Recent period metrics (time-window specific)
+        "recent_notes_total": total_recent,
+        "recent_notes_ready": ready_recent,
+        "recent_time_saved": recent_time_saved,
+        "success_rate": success_rate,
         "p95_latency_ms": p95,
-        "estimated_minutes_saved": estimated_minutes_saved,
-        "success_rate": round(ready / total * 100, 1) if total > 0 else 0,
-        "user_authenticated": current_user is not None
+        
+        # Overall user metrics (all-time from stored data)
+        "notes_total": stored_metrics.get("notes_count", total_recent),
+        "notes_audio": stored_metrics.get("audio_notes_count", len(recent_audio)),
+        "notes_photo": stored_metrics.get("photo_notes_count", len(recent_photo)),
+        "notes_text": stored_metrics.get("text_notes_count", len(recent_text)),
+        "estimated_minutes_saved": stored_metrics.get("total_time_saved", recent_time_saved),
+        "avg_processing_time_minutes": stored_metrics.get("avg_processing_time_minutes", 0),
+        "last_metrics_update": stored_metrics.get("last_metrics_update"),
+        
+        # Metadata
+        "user_authenticated": True,
+        "metrics_auto_tracked": True  # Indicates metrics are automatically updated
     }
 
 # Include the router in the main app
