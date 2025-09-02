@@ -774,6 +774,47 @@ async def get_professional_context(
 from ai_context_processor import ai_context_processor
 import providers
 
+@api_router.post("/batch-report/ai-chat")
+async def batch_report_ai_chat(
+    request: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Handle AI chat for batch reports without requiring database note lookup"""
+    try:
+        batch_content = request.get("content", "")
+        question = request.get("question", "")
+        
+        if not batch_content or not question:
+            raise HTTPException(status_code=400, detail="Both 'content' and 'question' are required")
+        
+        # Prepare context for AI
+        context = f"""
+        BATCH REPORT CONTENT:
+        {batch_content}
+        
+        USER QUESTION: {question}
+        
+        Please provide a helpful response based on the batch report content above.
+        """
+        
+        # Get AI response using OpenAI
+        response = providers.query_openai_gpt(
+            context,
+            user_preferences=current_user.get("preferences", {}),
+            model="gpt-4o-mini"
+        )
+        
+        return {
+            "response": response,
+            "question": question,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "user_id": current_user["id"]
+        }
+        
+    except Exception as e:
+        print(f"Error in batch report AI chat: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process AI chat request")
+
 @api_router.post("/notes/{note_id}/ai-chat")
 async def ai_chat_with_note(
     note_id: str,
