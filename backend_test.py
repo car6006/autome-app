@@ -39,10 +39,13 @@ class BatchReportTester:
         """Create and authenticate a test user"""
         try:
             # Register test user
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             register_data = {
-                "email": f"batch_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}@test.com",
+                "email": f"batch_test_{timestamp}@test.com",
+                "username": f"batch_test_{timestamp}",
                 "password": "testpass123",
-                "full_name": "Batch Report Tester"
+                "first_name": "Batch",
+                "last_name": "Tester"
             }
             
             async with httpx.AsyncClient(timeout=30) as client:
