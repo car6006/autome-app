@@ -60,34 +60,22 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    
     if (registerData.password !== registerData.confirmPassword) {
       toast({ 
-        title: "Passwords don't match", 
-        description: "Please make sure both passwords are identical", 
-        variant: "destructive" 
-      });
-      return;
-    }
-    
-    if (registerData.password.length < 8) {
-      toast({ 
-        title: "Password too short", 
-        description: "Password must be at least 8 characters long", 
+        title: "Password mismatch", 
+        description: "Passwords do not match", 
         variant: "destructive" 
       });
       return;
     }
     
     setLoading(true);
-    
-    const { confirmPassword, ...dataToSend } = registerData;
-    const result = await register(dataToSend);
+    const result = await register(registerData);
     
     if (result.success) {
       toast({ 
-        title: "🚀 Account created!", 
-        description: "Welcome to AUTO-ME! Start capturing your ideas." 
+        title: "🎉 Welcome to AUTO-ME!", 
+        description: "Your account has been created successfully" 
       });
       onClose();
     } else {
@@ -99,6 +87,119 @@ const AuthModal = ({ isOpen, onClose }) => {
     }
     
     setLoading(false);
+  };
+
+  // Handle forgot password - step 1: verify email
+  const handleVerifyEmail = async (e) => {
+    e.preventDefault();
+    if (!forgotPasswordData.email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+      const response = await fetch(`${API}/auth/validate-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: forgotPasswordData.email
+        })
+      });
+
+      if (response.ok) {
+        setForgotPasswordStep('reset');
+        toast({
+          title: "✅ Email verified",
+          description: "Please set your new password"
+        });
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Email not found",
+          description: error.detail || "This email is not registered in our system",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Verification failed",
+        description: "Please check your connection and try again",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle forgot password - step 2: reset password
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (forgotPasswordData.newPassword !== forgotPasswordData.confirmPassword) {
+      toast({
+        title: "Password mismatch",
+        description: "New password and confirmation do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (forgotPasswordData.newPassword.length < 6) {
+      toast({
+        title: "Weak password",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+      const response = await fetch(`${API}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: forgotPasswordData.email,
+          new_password: forgotPasswordData.newPassword
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "✅ Password reset successful",
+          description: "You can now sign in with your new password"
+        });
+        // Reset forgot password state and return to login
+        setShowForgotPassword(false);
+        setForgotPasswordStep('verify');
+        setForgotPasswordData({ email: '', newPassword: '', confirmPassword: '' });
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Password reset failed",
+          description: error.detail || "Failed to reset password. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Reset failed",
+        description: "Please check your connection and try again",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
