@@ -204,7 +204,7 @@ class PasswordResetTester:
                     f"{BACKEND_URL}/auth/reset-password",
                     json={
                         "email": non_existing_email,
-                        "new_password": "ValidPassword123"
+                        "newPassword": "ValidPassword123"  # Use newPassword parameter
                     }
                 )
                 
