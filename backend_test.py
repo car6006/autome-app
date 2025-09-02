@@ -1,661 +1,572 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for OCR and Delete Functionality Testing
-Testing OCR fixes (gpt-4o model, validation, error handling) and delete functionality.
+Enhanced Batch Report Functionality Testing
+Testing the improved comprehensive batch report formatting and note status updates
 """
 
 import asyncio
 import httpx
 import json
 import os
-import time
-import hashlib
-import tempfile
-import wave
-import struct
-import math
-import base64
-from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
-import io
+import sys
+from datetime import datetime
+import re
 
-# Configuration
+# Get backend URL from environment
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://auto-me-debugger.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-class BackendTester:
+class BatchReportTester:
     def __init__(self):
-        self.client = httpx.AsyncClient(timeout=60.0)
         self.auth_token = None
-        self.test_user_email = f"ocr_test_{int(time.time())}_{os.getpid()}@example.com"
-        self.test_user_password = "TestPassword123!"
-        self.created_notes = []  # Track created notes for cleanup
+        self.user_id = None
+        self.test_notes = []
+        self.results = []
         
-    async def cleanup(self):
-        """Clean up HTTP client and test data"""
-        # Clean up created notes
-        for note_id in self.created_notes:
-            try:
-                headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-                await self.client.delete(f"{API_BASE}/notes/{note_id}", headers=headers)
-            except:
-                pass  # Ignore cleanup errors
-        await self.client.aclose()
+    async def log_result(self, test_name, success, details=""):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        self.results.append({
+            'test': test_name,
+            'success': success,
+            'details': details
+        })
+        print(f"{status}: {test_name}")
+        if details:
+            print(f"   Details: {details}")
     
-    def create_test_image_with_text(self, text="Test OCR Text 2025", width=400, height=200):
-        """Create a test image with text for OCR testing"""
-        # Create image with white background
-        img = Image.new('RGB', (width, height), color='white')
-        draw = ImageDraw.Draw(img)
-        
-        # Try to use a default font, fallback to basic if not available
+    async def setup_test_user(self):
+        """Create and authenticate a test user"""
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
-        except:
-            try:
-                font = ImageFont.load_default()
-            except:
-                font = None
-        
-        # Draw text on image
-        text_bbox = draw.textbbox((0, 0), text, font=font) if font else (0, 0, len(text)*10, 20)
-        text_width = text_bbox[2] - text_bbox[0]
-        text_height = text_bbox[3] - text_bbox[1]
-        
-        x = (width - text_width) // 2
-        y = (height - text_height) // 2
-        
-        draw.text((x, y), text, fill='black', font=font)
-        
-        # Save to temporary file
-        temp_file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-        img.save(temp_file.name, 'PNG')
-        
-        return temp_file.name, text
-    
-    def create_large_test_image(self, size_mb=25):
-        """Create a large test image for size validation testing"""
-        # Calculate dimensions for target file size
-        target_bytes = size_mb * 1024 * 1024
-        # Rough estimate: RGB image is 3 bytes per pixel
-        pixels_needed = target_bytes // 3
-        dimension = int(math.sqrt(pixels_needed))
-        
-        img = Image.new('RGB', (dimension, dimension), color='red')
-        draw = ImageDraw.Draw(img)
-        
-        # Add some text
-        draw.text((50, 50), f"Large Image Test {size_mb}MB", fill='white')
-        
-        temp_file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-        img.save(temp_file.name, 'PNG', quality=95)
-        
-        return temp_file.name
-    
-    def create_test_audio_file(self, duration_seconds=5, sample_rate=44100):
-        """Create a test WAV file with sine wave"""
-        frames = []
-        for i in range(int(duration_seconds * sample_rate)):
-            # Generate sine wave at 440 Hz (A note)
-            value = int(32767 * math.sin(2 * math.pi * 440 * i / sample_rate))
-            frames.append(struct.pack('<h', value))
-        
-        # Create temporary file
-        temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
-        
-        with wave.open(temp_file.name, 'wb') as wav_file:
-            wav_file.setnchannels(1)  # Mono
-            wav_file.setsampwidth(2)  # 16-bit
-            wav_file.setframerate(sample_rate)
-            wav_file.writeframes(b''.join(frames))
-        
-        return temp_file.name
-    
-    def calculate_sha256(self, file_path):
-        """Calculate SHA256 hash of file"""
-        sha256_hash = hashlib.sha256()
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(chunk)
-        return sha256_hash.hexdigest()
-    
-    async def register_test_user(self):
-        """Register a test user for authentication"""
-        try:
-            # Try to register first
+            # Register test user
             register_data = {
-                "email": self.test_user_email,
-                "password": self.test_user_password,
-                "username": f"ocrtest{int(time.time())}",
-                "name": "Test OCR User"
+                "email": f"batch_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}@test.com",
+                "password": "testpass123",
+                "full_name": "Batch Report Tester"
             }
             
-            print(f"Attempting to register user: {self.test_user_email}")
-            response = await self.client.post(f"{API_BASE}/auth/register", json=register_data)
-            
-            print(f"Registration response: {response.status_code}")
-            if response.status_code in [200, 201]:
-                data = response.json()
-                self.auth_token = data.get("access_token")
-                print(f"✅ Test user registered: {self.test_user_email}")
-                return True
-            else:
-                print(f"Registration failed: {response.status_code} - {response.text}")
-                # If registration fails, try to login (user might already exist)
-                print(f"Trying login...")
-                login_response = await self.client.post(f"{API_BASE}/auth/login", json={
-                    "email": self.test_user_email,
-                    "password": self.test_user_password
-                })
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(f"{API_BASE}/auth/register", json=register_data)
                 
-                print(f"Login response: {login_response.status_code}")
-                if login_response.status_code == 200:
-                    data = login_response.json()
-                    self.auth_token = data.get("access_token")
-                    print(f"✅ Test user logged in: {self.test_user_email}")
+                if response.status_code == 200:
+                    data = response.json()
+                    self.auth_token = data["access_token"]
+                    self.user_id = data["user"]["id"]
+                    await self.log_result("User Registration", True, f"User ID: {self.user_id}")
                     return True
                 else:
-                    print(f"❌ Both registration and login failed: {login_response.status_code} - {login_response.text}")
+                    await self.log_result("User Registration", False, f"Status: {response.status_code}")
                     return False
-                
+                    
         except Exception as e:
-            print(f"❌ User authentication error: {str(e)}")
+            await self.log_result("User Registration", False, f"Error: {str(e)}")
             return False
     
-    async def test_ocr_with_gpt4o_model(self):
-        """Test 1: OCR Processing with gpt-4o model"""
-        print("\n🧪 Test 1: OCR Processing with gpt-4o Model")
-        
+    async def create_test_notes(self):
+        """Create multiple test notes with different content types"""
         try:
-            # Create test image with text
-            image_file, expected_text = self.create_test_image_with_text("Hello World OCR Test 2025")
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
             
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-            
-            # Upload image for OCR processing
-            with open(image_file, 'rb') as f:
-                files = {
-                    "file": ("test_ocr.png", f, "image/png")
+            # Test notes with different content
+            test_notes_data = [
+                {
+                    "title": "Meeting Notes - Q4 Planning",
+                    "kind": "text",
+                    "text_content": "Speaker 1: We need to focus on Q4 deliverables. Speaker 2: The budget allocation needs review. Key action items: 1. Review budget by Friday 2. Schedule team meetings 3. Prepare quarterly reports. Next steps include stakeholder alignment and resource planning."
+                },
+                {
+                    "title": "Project Status Update",
+                    "kind": "text", 
+                    "text_content": "Speaker A: Project is 75% complete. Speaker B: We're facing some technical challenges. Action items: Complete testing phase, resolve integration issues, prepare deployment plan. Timeline: Testing by next week, deployment in two weeks."
+                },
+                {
+                    "title": "Team Retrospective",
+                    "kind": "text",
+                    "text_content": "Speaker 1: Communication has improved significantly. Speaker 2: We need better documentation processes. Key insights: Team collaboration is strong, documentation needs improvement, process optimization required. Action items: Create documentation templates, schedule training sessions."
                 }
-                data = {
-                    "title": "OCR Test Image"
-                }
-                
-                response = await self.client.post(f"{API_BASE}/upload-file", 
-                    headers=headers,
-                    files=files,
-                    data=data
-                )
+            ]
             
-            os.unlink(image_file)
-            
-            if response.status_code == 200:
-                data = response.json()
-                note_id = data.get("id")
-                status = data.get("status")
-                kind = data.get("kind")
-                
-                print(f"✅ Image uploaded successfully:")
-                print(f"   Note ID: {note_id}")
-                print(f"   Status: {status}")
-                print(f"   Kind: {kind}")
-                
-                if note_id:
-                    self.created_notes.append(note_id)
-                
-                # Wait for OCR processing to complete
-                print("   🔍 Waiting for OCR processing...")
-                max_wait = 30
-                start_time = time.time()
-                
-                while time.time() - start_time < max_wait:
-                    note_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
+            async with httpx.AsyncClient(timeout=30) as client:
+                for note_data in test_notes_data:
+                    response = await client.post(f"{API_BASE}/notes", json=note_data, headers=headers)
                     
-                    if note_response.status_code == 200:
-                        note_data = note_response.json()
-                        note_status = note_data.get("status")
-                        artifacts = note_data.get("artifacts", {})
+                    if response.status_code == 200:
+                        note_info = response.json()
+                        self.test_notes.append({
+                            "id": note_info["id"],
+                            "title": note_data["title"],
+                            "status": note_info["status"]
+                        })
+                        await self.log_result(f"Create Note: {note_data['title']}", True, f"ID: {note_info['id']}")
+                    else:
+                        await self.log_result(f"Create Note: {note_data['title']}", False, f"Status: {response.status_code}")
                         
-                        if note_status == "ready" and artifacts.get("text"):
-                            extracted_text = artifacts.get("text", "")
-                            print(f"   ✅ OCR completed successfully!")
-                            print(f"   📝 Extracted text: '{extracted_text}'")
+            return len(self.test_notes) >= 2  # Need at least 2 notes for batch testing
+            
+        except Exception as e:
+            await self.log_result("Create Test Notes", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_comprehensive_batch_report_formatting(self):
+        """Test comprehensive batch report with clean formatting"""
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Test AI format (comprehensive)
+            batch_request = {
+                "note_ids": [note["id"] for note in self.test_notes],
+                "title": "Comprehensive Team Analysis Report",
+                "format": "ai"
+            }
+            
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                           json=batch_request, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    content = data.get("content", "")
+                    
+                    # Check for clean formatting (no speaker labels)
+                    has_speaker_labels = bool(re.search(r'Speaker \d+:', content) or re.search(r'Speaker [A-Z]:', content))
+                    
+                    # Check for proper structure
+                    has_meeting_summary = "MEETING SUMMARY" in content
+                    has_executive_summary = "EXECUTIVE SUMMARY" in content
+                    has_action_items = "ACTION ITEMS" in content
+                    has_session_appendix = "APPENDIX" in content
+                    
+                    # Check content length (should be comprehensive)
+                    is_comprehensive = len(content) > 2000
+                    
+                    success = (not has_speaker_labels and has_meeting_summary and 
+                             has_executive_summary and has_action_items and 
+                             has_session_appendix and is_comprehensive)
+                    
+                    details = f"Length: {len(content)}, Speaker labels removed: {not has_speaker_labels}, Sections: {has_meeting_summary and has_executive_summary and has_action_items}"
+                    await self.log_result("Comprehensive Batch Report Formatting", success, details)
+                    
+                    return success
+                else:
+                    await self.log_result("Comprehensive Batch Report Formatting", False, f"Status: {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            await self.log_result("Comprehensive Batch Report Formatting", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_action_items_table_clean(self):
+        """Test that action items table is clean and structured"""
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            batch_request = {
+                "note_ids": [note["id"] for note in self.test_notes],
+                "title": "Action Items Analysis",
+                "format": "ai"
+            }
+            
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                           json=batch_request, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    content = data.get("content", "")
+                    
+                    # Look for action items section
+                    action_items_match = re.search(r'CONSOLIDATED ACTION ITEMS.*?(?=\n\n---|\nAPPENDIX|$)', content, re.DOTALL)
+                    
+                    if action_items_match:
+                        action_items_section = action_items_match.group(0)
+                        
+                        # Check for table structure
+                        has_table_headers = "No." in action_items_section and "Action Item" in action_items_section
+                        has_numbered_items = bool(re.search(r'\n\s*\d+\s*\|', action_items_section))
+                        no_speaker_labels = not bool(re.search(r'Speaker \d+|Speaker [A-Z]', action_items_section))
+                        
+                        success = has_table_headers and has_numbered_items and no_speaker_labels
+                        details = f"Table headers: {has_table_headers}, Numbered items: {has_numbered_items}, Clean of speaker labels: {no_speaker_labels}"
+                        await self.log_result("Action Items Table Clean", success, details)
+                        return success
+                    else:
+                        await self.log_result("Action Items Table Clean", False, "No action items section found")
+                        return False
+                else:
+                    await self.log_result("Action Items Table Clean", False, f"Status: {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            await self.log_result("Action Items Table Clean", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_session_appendix_cleaned(self):
+        """Test that session appendix is properly cleaned"""
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            batch_request = {
+                "note_ids": [note["id"] for note in self.test_notes],
+                "title": "Session Content Analysis",
+                "format": "ai"
+            }
+            
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                           json=batch_request, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    content = data.get("content", "")
+                    
+                    # Look for appendix section
+                    appendix_match = re.search(r'APPENDIX: CLEANED SESSION SUMMARIES.*$', content, re.DOTALL)
+                    
+                    if appendix_match:
+                        appendix_section = appendix_match.group(0)
+                        
+                        # Check that speaker labels are removed
+                        no_speaker_labels = not bool(re.search(r'Speaker \d+:|Speaker [A-Z]:', appendix_section))
+                        
+                        # Check for session structure
+                        has_sessions = "SESSION:" in appendix_section
+                        has_content = len(appendix_section) > 500  # Should have substantial content
+                        
+                        success = no_speaker_labels and has_sessions and has_content
+                        details = f"Speaker labels removed: {no_speaker_labels}, Has sessions: {has_sessions}, Substantial content: {has_content}"
+                        await self.log_result("Session Appendix Cleaned", success, details)
+                        return success
+                    else:
+                        await self.log_result("Session Appendix Cleaned", False, "No appendix section found")
+                        return False
+                else:
+                    await self.log_result("Session Appendix Cleaned", False, f"Status: {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            await self.log_result("Session Appendix Cleaned", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_note_status_updates_comprehensive(self):
+        """Test that notes are marked as completed after comprehensive batch export"""
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Get initial note statuses
+            initial_statuses = {}
+            async with httpx.AsyncClient(timeout=30) as client:
+                for note in self.test_notes:
+                    response = await client.get(f"{API_BASE}/notes/{note['id']}", headers=headers)
+                    if response.status_code == 200:
+                        note_data = response.json()
+                        initial_statuses[note['id']] = note_data.get('status')
+            
+            # Generate comprehensive batch report
+            batch_request = {
+                "note_ids": [note["id"] for note in self.test_notes],
+                "title": "Status Update Test Report",
+                "format": "ai"
+            }
+            
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                           json=batch_request, headers=headers)
+                
+                if response.status_code == 200:
+                    # Check note statuses after export
+                    updated_statuses = {}
+                    async with httpx.AsyncClient(timeout=30) as client:
+                        for note in self.test_notes:
+                            response = await client.get(f"{API_BASE}/notes/{note['id']}", headers=headers)
+                            if response.status_code == 200:
+                                note_data = response.json()
+                                updated_statuses[note['id']] = note_data.get('status')
+                    
+                    # Check if statuses were updated to 'completed'
+                    completed_count = sum(1 for status in updated_statuses.values() if status == 'completed')
+                    success = completed_count == len(self.test_notes)
+                    
+                    details = f"Notes marked as completed: {completed_count}/{len(self.test_notes)}"
+                    await self.log_result("Note Status Updates - Comprehensive", success, details)
+                    return success
+                else:
+                    await self.log_result("Note Status Updates - Comprehensive", False, f"Status: {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            await self.log_result("Note Status Updates - Comprehensive", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_note_status_updates_regular_batch(self):
+        """Test that notes are marked as completed after regular batch export"""
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            
+            # Create new test notes for this test
+            new_note_data = {
+                "title": "Regular Batch Test Note",
+                "kind": "text",
+                "text_content": "This is a test note for regular batch report functionality. It contains some sample content for testing purposes."
+            }
+            
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(f"{API_BASE}/notes", json=new_note_data, headers=headers)
+                
+                if response.status_code == 200:
+                    note_info = response.json()
+                    test_note_id = note_info["id"]
+                    
+                    # Generate regular batch report
+                    batch_request = {
+                        "note_ids": [test_note_id],
+                        "title": "Regular Batch Status Test",
+                        "format": "professional"
+                    }
+                    
+                    response = await client.post(f"{API_BASE}/notes/batch-report", 
+                                               json=batch_request, headers=headers)
+                    
+                    if response.status_code == 200:
+                        # Check note status after export
+                        response = await client.get(f"{API_BASE}/notes/{test_note_id}", headers=headers)
+                        if response.status_code == 200:
+                            note_data = response.json()
+                            final_status = note_data.get('status')
                             
-                            # Verify text extraction quality
-                            if "OCR" in extracted_text and "Test" in extracted_text:
-                                print("   ✅ OCR accuracy verified - key words detected")
-                                return True, note_id
-                            else:
-                                print(f"   ⚠️  OCR completed but text quality may be low")
-                                return True, note_id  # Still success as OCR worked
-                        elif note_status == "failed":
-                            error_msg = artifacts.get("error", "Unknown error")
-                            print(f"   ❌ OCR processing failed: {error_msg}")
-                            return False, note_id
+                            success = final_status == 'completed'
+                            details = f"Final status: {final_status}"
+                            await self.log_result("Note Status Updates - Regular Batch", success, details)
+                            return success
+                        else:
+                            await self.log_result("Note Status Updates - Regular Batch", False, "Failed to get note status")
+                            return False
+                    else:
+                        await self.log_result("Note Status Updates - Regular Batch", False, f"Batch report failed: {response.status_code}")
+                        return False
+                else:
+                    await self.log_result("Note Status Updates - Regular Batch", False, f"Note creation failed: {response.status_code}")
+                    return False
                     
-                    await asyncio.sleep(2)
-                
-                print(f"   ⏰ OCR processing timeout after {max_wait}s")
-                return False, note_id
-            else:
-                print(f"❌ Image upload failed: {response.status_code} - {response.text}")
-                return False, None
-                
         except Exception as e:
-            print(f"❌ OCR test error: {str(e)}")
-            return False, None
-    
-    async def test_image_size_validation(self):
-        """Test 2: Image Size Validation (20MB limit)"""
-        print("\n🧪 Test 2: Image Size Validation (20MB limit)")
-        
-        try:
-            # Create a large image (attempt 25MB)
-            large_image = self.create_large_test_image(25)
-            file_size = os.path.getsize(large_image)
-            print(f"   Created test image: {file_size / (1024*1024):.1f}MB")
-            
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-            
-            with open(large_image, 'rb') as f:
-                files = {
-                    "file": ("large_test.png", f, "image/png")
-                }
-                data = {
-                    "title": "Large Image Test"
-                }
-                
-                response = await self.client.post(f"{API_BASE}/upload-file", 
-                    headers=headers,
-                    files=files,
-                    data=data
-                )
-            
-            os.unlink(large_image)
-            
-            # Should either reject large file or handle it gracefully
-            if response.status_code == 400:
-                error_detail = response.json().get("detail", "")
-                if "size" in error_detail.lower() or "limit" in error_detail.lower():
-                    print(f"   ✅ Size validation working: {error_detail}")
-                    return True
-                else:
-                    print(f"   ❌ Unexpected 400 error: {error_detail}")
-                    return False
-            elif response.status_code == 200:
-                print(f"   ✅ Large image accepted (server handles large files)")
-                data = response.json()
-                note_id = data.get("id")
-                if note_id:
-                    self.created_notes.append(note_id)
-                return True
-            else:
-                print(f"   ❌ Unexpected response: {response.status_code} - {response.text}")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Size validation test error: {str(e)}")
+            await self.log_result("Note Status Updates - Regular Batch", False, f"Error: {str(e)}")
             return False
     
-    async def test_ocr_error_handling(self):
-        """Test 3: OCR Error Handling and User-Friendly Messages"""
-        print("\n🧪 Test 3: OCR Error Handling")
-        
+    async def test_error_handling_invalid_notes(self):
+        """Test error handling with invalid note IDs"""
         try:
-            # Test with unsupported file type
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
             
-            # Create a text file (unsupported for OCR)
-            temp_file = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
-            temp_file.write(b"This is not an image file")
-            temp_file.close()
-            
-            with open(temp_file.name, 'rb') as f:
-                files = {
-                    "file": ("test.txt", f, "text/plain")
-                }
-                data = {
-                    "title": "Invalid File Test"
-                }
-                
-                response = await self.client.post(f"{API_BASE}/upload-file", 
-                    headers=headers,
-                    files=files,
-                    data=data
-                )
-            
-            os.unlink(temp_file.name)
-            
-            if response.status_code == 400:
-                error_detail = response.json().get("detail", "")
-                print(f"   ✅ Invalid file type rejected: {error_detail}")
-                
-                # Check if error message is user-friendly
-                if any(word in error_detail.lower() for word in ["unsupported", "allowed", "type"]):
-                    print("   ✅ User-friendly error message provided")
-                    return True
-                else:
-                    print("   ⚠️  Error message could be more user-friendly")
-                    return True  # Still success as validation works
-            else:
-                print(f"   ❌ Expected 400 error, got: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Error handling test error: {str(e)}")
-            return False
-    
-    async def test_note_creation_and_retrieval(self):
-        """Test 4: Note Creation and Retrieval for Delete Testing"""
-        print("\n🧪 Test 4: Note Creation and Retrieval")
-        
-        try:
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-            
-            # Create a text note
-            note_data = {
-                "title": "Test Note for Delete",
-                "kind": "text",
-                "text_content": "This is a test note that will be deleted."
+            # Test with invalid note IDs
+            batch_request = {
+                "note_ids": ["invalid-id-1", "invalid-id-2"],
+                "title": "Invalid Notes Test",
+                "format": "ai"
             }
             
-            response = await self.client.post(f"{API_BASE}/notes", 
-                headers=headers,
-                json=note_data
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                note_id = data.get("id")
-                status = data.get("status")
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                           json=batch_request, headers=headers)
                 
-                print(f"✅ Note created successfully:")
-                print(f"   Note ID: {note_id}")
-                print(f"   Status: {status}")
+                # Should return 400 for no valid content
+                success = response.status_code == 400
+                details = f"Status: {response.status_code}"
+                if response.status_code == 400:
+                    error_detail = response.json().get('detail', '')
+                    details += f", Error: {error_detail}"
                 
-                if note_id:
-                    self.created_notes.append(note_id)
-                
-                # Verify note can be retrieved
-                get_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
-                
-                if get_response.status_code == 200:
-                    note_details = get_response.json()
-                    print(f"   ✅ Note retrieved successfully: {note_details.get('title')}")
-                    return True, note_id
-                else:
-                    print(f"   ❌ Note retrieval failed: {get_response.status_code}")
-                    return False, note_id
-            else:
-                print(f"❌ Note creation failed: {response.status_code} - {response.text}")
-                return False, None
+                await self.log_result("Error Handling - Invalid Notes", success, details)
+                return success
                 
         except Exception as e:
-            print(f"❌ Note creation test error: {str(e)}")
-            return False, None
-    
-    async def test_delete_functionality(self):
-        """Test 5: Delete Functionality for Authenticated Users"""
-        print("\n🧪 Test 5: Delete Functionality")
-        
-        try:
-            # First create a note to delete
-            success, note_id = await self.test_note_creation_and_retrieval()
-            if not success or not note_id:
-                print("   ❌ Cannot test delete without a note to delete")
-                return False
-            
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-            
-            # Test delete functionality
-            print(f"   🗑️  Attempting to delete note: {note_id}")
-            delete_response = await self.client.delete(f"{API_BASE}/notes/{note_id}", headers=headers)
-            
-            if delete_response.status_code == 200:
-                result = delete_response.json()
-                print(f"   ✅ Note deleted successfully: {result.get('message', 'Deleted')}")
-                
-                # Remove from our tracking list since it's deleted
-                if note_id in self.created_notes:
-                    self.created_notes.remove(note_id)
-                
-                # Verify note is actually deleted
-                get_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
-                
-                if get_response.status_code == 404:
-                    print("   ✅ Note deletion verified - note no longer exists")
-                    return True
-                else:
-                    print(f"   ❌ Note still exists after deletion: {get_response.status_code}")
-                    return False
-            else:
-                print(f"   ❌ Delete failed: {delete_response.status_code} - {delete_response.text}")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Delete functionality test error: {str(e)}")
+            await self.log_result("Error Handling - Invalid Notes", False, f"Error: {str(e)}")
             return False
     
-    async def test_delete_authentication_required(self):
-        """Test 6: Delete Requires Authentication"""
-        print("\n🧪 Test 6: Delete Authentication Requirement")
-        
+    async def test_error_handling_empty_content(self):
+        """Test error handling with empty content"""
         try:
-            # Create a note first
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
             
-            note_data = {
-                "title": "Auth Test Note",
-                "kind": "text",
-                "text_content": "This note tests authentication for delete."
+            # Create note with no content
+            empty_note_data = {
+                "title": "Empty Note Test",
+                "kind": "text"
+                # No text_content provided
             }
             
-            response = await self.client.post(f"{API_BASE}/notes", 
-                headers=headers,
-                json=note_data
-            )
-            
-            if response.status_code != 200:
-                print("   ❌ Could not create test note")
-                return False
-            
-            note_id = response.json().get("id")
-            if note_id:
-                self.created_notes.append(note_id)
-            
-            # Try to delete without authentication
-            print("   🔒 Testing delete without authentication...")
-            unauth_delete_response = await self.client.delete(f"{API_BASE}/notes/{note_id}")
-            
-            if unauth_delete_response.status_code in [401, 403]:
-                print(f"   ✅ Unauthenticated delete properly rejected: {unauth_delete_response.status_code}")
-                return True
-            else:
-                print(f"   ❌ Unauthenticated delete should be rejected, got: {unauth_delete_response.status_code}")
-                return False
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(f"{API_BASE}/notes", json=empty_note_data, headers=headers)
                 
-        except Exception as e:
-            print(f"❌ Authentication test error: {str(e)}")
-            return False
-    
-    async def test_complete_user_workflow(self):
-        """Test 7: Complete User Workflow - Create → Upload → OCR → Delete"""
-        print("\n🧪 Test 7: Complete User Workflow")
-        
-        try:
-            headers = {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-            
-            print("   📝 Step 1: Create note...")
-            # Create a photo note
-            note_data = {
-                "title": "Complete Workflow Test",
-                "kind": "photo"
-            }
-            
-            response = await self.client.post(f"{API_BASE}/notes", 
-                headers=headers,
-                json=note_data
-            )
-            
-            if response.status_code != 200:
-                print(f"   ❌ Note creation failed: {response.status_code}")
-                return False
-            
-            note_id = response.json().get("id")
-            self.created_notes.append(note_id)
-            print(f"   ✅ Note created: {note_id}")
-            
-            print("   📷 Step 2: Upload image...")
-            # Upload image to the note
-            image_file, expected_text = self.create_test_image_with_text("Workflow Test Image 2025")
-            
-            with open(image_file, 'rb') as f:
-                files = {
-                    "file": ("workflow_test.png", f, "image/png")
-                }
-                
-                upload_response = await self.client.post(f"{API_BASE}/notes/{note_id}/upload", 
-                    headers=headers,
-                    files=files
-                )
-            
-            os.unlink(image_file)
-            
-            if upload_response.status_code != 200:
-                print(f"   ❌ Image upload failed: {upload_response.status_code}")
-                return False
-            
-            print("   ✅ Image uploaded successfully")
-            
-            print("   🔍 Step 3: Wait for OCR processing...")
-            # Wait for OCR processing
-            max_wait = 30
-            start_time = time.time()
-            ocr_success = False
-            
-            while time.time() - start_time < max_wait:
-                note_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
-                
-                if note_response.status_code == 200:
-                    note_data = note_response.json()
-                    note_status = note_data.get("status")
+                if response.status_code == 200:
+                    note_info = response.json()
+                    empty_note_id = note_info["id"]
                     
-                    if note_status == "ready":
-                        artifacts = note_data.get("artifacts", {})
-                        extracted_text = artifacts.get("text", "")
-                        print(f"   ✅ OCR completed: '{extracted_text}'")
-                        ocr_success = True
-                        break
-                    elif note_status == "failed":
-                        print(f"   ❌ OCR processing failed")
-                        break
-                
-                await asyncio.sleep(2)
-            
-            if not ocr_success:
-                print("   ⚠️  OCR processing did not complete in time")
-            
-            print("   🗑️  Step 4: Delete note...")
-            # Delete the note
-            delete_response = await self.client.delete(f"{API_BASE}/notes/{note_id}", headers=headers)
-            
-            if delete_response.status_code == 200:
-                print("   ✅ Note deleted successfully")
-                if note_id in self.created_notes:
-                    self.created_notes.remove(note_id)
-                
-                # Verify deletion
-                verify_response = await self.client.get(f"{API_BASE}/notes/{note_id}", headers=headers)
-                if verify_response.status_code == 404:
-                    print("   ✅ Complete workflow successful!")
-                    return True
+                    # Try to generate batch report with empty note
+                    batch_request = {
+                        "note_ids": [empty_note_id],
+                        "title": "Empty Content Test",
+                        "format": "ai"
+                    }
+                    
+                    response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                               json=batch_request, headers=headers)
+                    
+                    # Should return 400 for no valid content
+                    success = response.status_code == 400
+                    details = f"Status: {response.status_code}"
+                    if response.status_code == 400:
+                        error_detail = response.json().get('detail', '')
+                        details += f", Error: {error_detail}"
+                    
+                    await self.log_result("Error Handling - Empty Content", success, details)
+                    return success
                 else:
-                    print("   ❌ Note deletion not verified")
+                    await self.log_result("Error Handling - Empty Content", False, f"Note creation failed: {response.status_code}")
                     return False
-            else:
-                print(f"   ❌ Note deletion failed: {delete_response.status_code}")
-                return False
-                
+                    
         except Exception as e:
-            print(f"❌ Complete workflow test error: {str(e)}")
+            await self.log_result("Error Handling - Empty Content", False, f"Error: {str(e)}")
+            return False
+    
+    async def test_different_formats(self):
+        """Test different export formats (TXT, RTF, AI)"""
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            formats_to_test = ["txt", "rtf", "ai"]
+            format_results = {}
+            
+            for format_type in formats_to_test:
+                if format_type in ["txt", "rtf"]:
+                    # Use regular batch-report for txt/rtf
+                    batch_request = {
+                        "note_ids": [self.test_notes[0]["id"]],  # Use first test note
+                        "title": f"Format Test {format_type.upper()}",
+                        "format": format_type
+                    }
+                    
+                    async with httpx.AsyncClient(timeout=60) as client:
+                        response = await client.post(f"{API_BASE}/notes/batch-report", 
+                                                   json=batch_request, headers=headers)
+                else:
+                    # Use comprehensive-batch-report for ai format
+                    batch_request = {
+                        "note_ids": [self.test_notes[0]["id"]],
+                        "title": f"Format Test {format_type.upper()}",
+                        "format": format_type
+                    }
+                    
+                    async with httpx.AsyncClient(timeout=120) as client:
+                        response = await client.post(f"{API_BASE}/notes/comprehensive-batch-report", 
+                                                   json=batch_request, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    content = data.get("content", "")
+                    
+                    # Validate format-specific content
+                    if format_type == "txt":
+                        # Should be plain text
+                        format_valid = len(content) > 100 and not content.startswith("{\\rtf")
+                    elif format_type == "rtf":
+                        # Should be RTF format
+                        format_valid = content.startswith("{\\rtf") and content.endswith("}")
+                    else:  # ai format
+                        # Should be comprehensive with multiple sections
+                        format_valid = len(content) > 1000 and "MEETING SUMMARY" in content
+                    
+                    format_results[format_type] = format_valid
+                    await self.log_result(f"Format Test - {format_type.upper()}", format_valid, 
+                                        f"Content length: {len(content)}")
+                else:
+                    format_results[format_type] = False
+                    await self.log_result(f"Format Test - {format_type.upper()}", False, 
+                                        f"Status: {response.status_code}")
+            
+            # Overall success if all formats work
+            success = all(format_results.values())
+            return success
+            
+        except Exception as e:
+            await self.log_result("Different Formats Test", False, f"Error: {str(e)}")
             return False
     
     async def run_all_tests(self):
-        """Run all OCR and delete functionality tests"""
-        print("🚀 Starting Backend Test Suite - OCR and Delete Functionality")
-        print("=" * 80)
+        """Run all batch report tests"""
+        print("🔍 ENHANCED BATCH REPORT FUNCTIONALITY TESTING")
+        print("=" * 60)
         
-        # Register test user
-        if not await self.register_test_user():
-            print("❌ Cannot proceed without test user registration")
-            return False
+        # Setup
+        if not await self.setup_test_user():
+            print("❌ Failed to setup test user. Aborting tests.")
+            return
         
-        test_results = []
+        if not await self.create_test_notes():
+            print("❌ Failed to create test notes. Aborting tests.")
+            return
         
-        # Test 1: OCR with gpt-4o model
-        ocr_success, _ = await self.test_ocr_with_gpt4o_model()
-        test_results.append(("OCR Processing with gpt-4o Model", ocr_success))
+        print(f"\n📝 Created {len(self.test_notes)} test notes for batch testing")
+        print("=" * 60)
         
-        # Test 2: Image size validation
-        size_validation_success = await self.test_image_size_validation()
-        test_results.append(("Image Size Validation", size_validation_success))
+        # Run tests
+        test_methods = [
+            self.test_comprehensive_batch_report_formatting,
+            self.test_action_items_table_clean,
+            self.test_session_appendix_cleaned,
+            self.test_note_status_updates_comprehensive,
+            self.test_note_status_updates_regular_batch,
+            self.test_error_handling_invalid_notes,
+            self.test_error_handling_empty_content,
+            self.test_different_formats
+        ]
         
-        # Test 3: OCR error handling
-        error_handling_success = await self.test_ocr_error_handling()
-        test_results.append(("OCR Error Handling", error_handling_success))
-        
-        # Test 4: Note creation (prerequisite for delete tests)
-        creation_success, _ = await self.test_note_creation_and_retrieval()
-        test_results.append(("Note Creation and Retrieval", creation_success))
-        
-        # Test 5: Delete functionality
-        delete_success = await self.test_delete_functionality()
-        test_results.append(("Delete Functionality", delete_success))
-        
-        # Test 6: Delete authentication requirement
-        auth_delete_success = await self.test_delete_authentication_required()
-        test_results.append(("Delete Authentication Requirement", auth_delete_success))
-        
-        # Test 7: Complete user workflow
-        workflow_success = await self.test_complete_user_workflow()
-        test_results.append(("Complete User Workflow", workflow_success))
+        for test_method in test_methods:
+            await test_method()
+            print()  # Add spacing between tests
         
         # Summary
-        print("\n" + "=" * 80)
-        print("📊 TEST RESULTS SUMMARY")
-        print("=" * 80)
+        print("=" * 60)
+        print("📊 TEST SUMMARY")
+        print("=" * 60)
         
-        passed = 0
-        total = len(test_results)
+        passed = sum(1 for result in self.results if result['success'])
+        total = len(self.results)
+        success_rate = (passed / total) * 100 if total > 0 else 0
         
-        for test_name, success in test_results:
-            status = "✅ PASS" if success else "❌ FAIL"
-            print(f"{status} {test_name}")
-            if success:
-                passed += 1
+        print(f"✅ Passed: {passed}/{total} ({success_rate:.1f}%)")
         
-        print(f"\n📈 Overall Results: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+        if passed < total:
+            print(f"❌ Failed: {total - passed}")
+            print("\nFailed Tests:")
+            for result in self.results:
+                if not result['success']:
+                    print(f"  - {result['test']}: {result['details']}")
         
-        if passed == total:
-            print("🎉 ALL TESTS PASSED - OCR and Delete functionality working correctly!")
-            return True
-        elif passed >= total * 0.7:  # 70% pass rate
-            print("✅ MOSTLY SUCCESSFUL - Core functionality working, minor issues detected")
-            return True
+        print("\n🎯 BATCH REPORT TESTING CONCLUSIONS:")
+        
+        if success_rate >= 90:
+            print("✅ EXCELLENT: Enhanced batch report functionality is working perfectly!")
+            print("   - Comprehensive formatting with clean output")
+            print("   - Speaker labels properly removed")
+            print("   - Action items table structured correctly")
+            print("   - Note status updates working")
+            print("   - All formats (TXT, RTF, AI) functional")
+        elif success_rate >= 75:
+            print("⚠️  GOOD: Most batch report functionality working with minor issues")
         else:
-            print("❌ SIGNIFICANT ISSUES - Multiple critical failures detected")
-            return False
+            print("❌ ISSUES: Significant problems with batch report functionality")
+        
+        return success_rate >= 75
 
 async def main():
     """Main test execution"""
-    tester = BackendTester()
+    tester = BatchReportTester()
+    success = await tester.run_all_tests()
     
-    try:
-        success = await tester.run_all_tests()
-        return success
-    finally:
-        await tester.cleanup()
+    if success:
+        print("\n🎉 BATCH REPORT TESTING COMPLETED SUCCESSFULLY!")
+        sys.exit(0)
+    else:
+        print("\n🚨 BATCH REPORT TESTING COMPLETED WITH ISSUES!")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    success = asyncio.run(main())
-    exit(0 if success else 1)
+    asyncio.run(main())
