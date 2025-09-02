@@ -1851,7 +1851,22 @@ async def generate_comprehensive_batch_report(
             raise HTTPException(status_code=400, detail="No valid content found in selected notes")
         
         # Generate Meeting Minutes for the entire batch
-        session_list = "\n\n".join([f"SESSION: {item['title']}\n{item['content']}" for item in all_transcripts])
+        # Clean speaker labels from all content first
+        cleaned_transcripts = []
+        for item in all_transcripts:
+            content = item['content']
+            # Remove speaker labels
+            import re
+            content = re.sub(r'Speaker \d+:\s*', '', content)
+            content = re.sub(r'Speaker [A-Z]:\s*', '', content)
+            content = re.sub(r'Speaker:\s*', '', content)
+            cleaned_transcripts.append({
+                'title': item['title'],
+                'content': content,
+                'created_at': item['created_at']
+            })
+        
+        session_list = "\n\n".join([f"SESSION: {item['title']}\n{item['content']}" for item in cleaned_transcripts])
         combined_transcript = session_list
         
         api_key = os.environ.get('OPENAI_API_KEY')
