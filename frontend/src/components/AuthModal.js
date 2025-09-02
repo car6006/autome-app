@@ -121,14 +121,15 @@ const AuthModal = ({ isOpen, onClose }) => {
           description: "Please set your new password"
         });
       } else {
-        const error = await response.json();
+        const errorData = await response.json();
         toast({
           title: "Email not found",
-          description: error.detail || "This email is not registered in our system",
+          description: errorData?.detail || "This email is not registered in our system",
           variant: "destructive"
         });
       }
     } catch (error) {
+      console.error('Verification error:', error);
       toast({
         title: "Verification failed",
         description: "Please check your connection and try again",
