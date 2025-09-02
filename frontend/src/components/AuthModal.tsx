@@ -370,11 +370,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   </Button>
                   
                   {/* Forgot Password Link - Right where users expect it */}
-                  <div className="text-center mt-3">
+                  <div className="text-center mt-3 mb-3">
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-violet-600 hover:text-violet-800 underline font-medium"
+                      className="text-sm text-violet-600 hover:text-violet-800 underline font-medium hover:bg-violet-50 px-2 py-1 rounded"
                     >
                       Forgot your password?
                     </button>
