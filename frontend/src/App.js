@@ -1942,15 +1942,37 @@ const NotesScreen = () => {
         blob = new Blob([exportContent], { type: 'text/plain' });
         filename += '.txt';
       } else if (format === 'docx') {
-        // For DOCX, create text file
-        blob = new Blob([exportContent], { type: 'text/plain' });
-        filename += '.txt';
+        // Create RTF format that Word can open as DOC
+        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 `;
+        
+        // Convert content to RTF format
+        const rtfText = exportContent
+          .replace(/\\/g, '\\\\')  // Escape backslashes
+          .replace(/\n/g, '\\par ') // Convert newlines to RTF paragraphs
+          .replace(/=/g, '\\bullet '); // Convert = to bullets for separators
+        
+        rtfContent += rtfText + '}';
+        
+        blob = new Blob([rtfContent], { type: 'application/msword' });
+        filename += '.doc';  // Use .doc extension for Word compatibility
       } else if (format === 'txt') {
         blob = new Blob([exportContent], { type: 'text/plain' });
         filename += '.txt';
       } else if (format === 'rtf') {
         // Create RTF format
-        const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${exportContent.replace(/\n/g, '\\par ')}}`;
+        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 `;
+        
+        // Convert content to RTF format with better formatting
+        const rtfText = exportContent
+          .replace(/\\/g, '\\\\')  // Escape backslashes
+          .replace(/\n\n/g, '\\par\\par ')  // Double newlines to double paragraphs
+          .replace(/\n/g, '\\par ')  // Single newlines to paragraphs
+          .replace(/QUESTION \d+:/g, '\\b$&\\b0')  // Bold questions
+          .replace(/AI RESPONSE \d+:/g, '\\b$&\\b0')  // Bold responses
+          .replace(/={50}/g, '\\line\\line');  // Convert separators to lines
+        
+        rtfContent += rtfText + '}';
+        
         blob = new Blob([rtfContent], { type: 'application/rtf' });
         filename += '.rtf';
       }
