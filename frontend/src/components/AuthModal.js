@@ -219,7 +219,138 @@ const AuthModal = ({ isOpen, onClose }) => {
           </CardHeader>
           
           <CardContent className="px-4 sm:px-6 pb-6">
-            <Tabs defaultValue="login" className="w-full">
+            {showForgotPassword ? (
+              // Forgot Password Form
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">Reset Your Password</h3>
+                  <p className="text-sm text-gray-600">
+                    {forgotPasswordStep === 'verify' 
+                      ? "Enter your email address to verify your account"
+                      : "Enter your new password"
+                    }
+                  </p>
+                </div>
+
+                {forgotPasswordStep === 'verify' ? (
+                  // Step 1: Email Verification
+                  <form onSubmit={handleVerifyEmail} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="forgot-email" className="text-sm font-medium text-gray-700">
+                        Email Address
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="forgot-email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={forgotPasswordData.email}
+                          onChange={(e) => setForgotPasswordData({
+                            ...forgotPasswordData, 
+                            email: e.target.value
+                          })}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-violet-600 hover:bg-violet-700"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify Email'
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  // Step 2: Password Reset
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+                        New Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="new-password"
+                          type="password"
+                          placeholder="Enter new password (min 6 characters)"
+                          value={forgotPasswordData.newPassword}
+                          onChange={(e) => setForgotPasswordData({
+                            ...forgotPasswordData, 
+                            newPassword: e.target.value
+                          })}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
+                        Confirm New Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          placeholder="Confirm your new password"
+                          value={forgotPasswordData.confirmPassword}
+                          onChange={(e) => setForgotPasswordData({
+                            ...forgotPasswordData, 
+                            confirmPassword: e.target.value
+                          })}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Password'
+                      )}
+                    </Button>
+                  </form>
+                )}
+
+                {/* Back to Login Button */}
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setForgotPasswordStep('verify');
+                      setForgotPasswordData({ email: '', newPassword: '', confirmPassword: '' });
+                    }}
+                    className="text-sm text-violet-600 hover:text-violet-800 underline"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Regular Login/Register Tabs
+              <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
                 <TabsTrigger value="login" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
                   <LogIn className="w-3 h-3 sm:w-4 sm:h-4" />
