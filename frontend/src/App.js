@@ -2561,6 +2561,29 @@ const NotesScreen = () => {
                       RTF
                     </Button>
                   </div>
+                  
+                  {/* Ask AI button for batch reports */}
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      // Create a virtual note for batch report AI interaction
+                      const batchNote = {
+                        id: `batch-${Date.now()}`,
+                        title: currentReport.data.title || 'Batch Report',
+                        artifacts: {
+                          transcript: currentReport.data.report || currentReport.data.content
+                        }
+                      };
+                      setAiChatNote(batchNote);
+                      setShowReportModal(false);
+                      setShowAiChatModal(true);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                  >
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    Ask AI about this content
+                  </Button>
+                  
                   <Button
                     onClick={() => downloadReport(
                       currentReport.data.report || currentReport.data.content,
