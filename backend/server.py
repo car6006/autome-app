@@ -798,11 +798,27 @@ async def batch_report_ai_chat(
         """
         
         # Get AI response using OpenAI
-        response = providers.query_openai_gpt(
-            context,
-            user_preferences=current_user.get("preferences", {}),
-            model="gpt-4o-mini"
-        )
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        async with httpx.AsyncClient(timeout=45) as client:
+            openai_response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": context}
+                    ],
+                    "max_tokens": 1200,
+                    "temperature": 0.3
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            openai_response.raise_for_status()
+            
+            ai_analysis = openai_response.json()
+            response = ai_analysis["choices"][0]["message"]["content"]
         
         return {
             "response": response,
