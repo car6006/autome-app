@@ -1,11 +1,15 @@
 import os
 import uuid
+import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from pathlib import Path
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
