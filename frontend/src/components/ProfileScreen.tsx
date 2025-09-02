@@ -46,6 +46,15 @@ const ProfileScreen: React.FC = () => {
     bio: user?.profile?.bio || '',
     avatar_url: user?.profile?.avatar_url || ''
   });
+  
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState<boolean>(false);
+  const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
+  const [passwordData, setPasswordData] = useState<PasswordChangeData>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   const handleSave = async (): Promise<void> => {
     setLoading(true);
