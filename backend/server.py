@@ -2499,42 +2499,51 @@ async def export_note(
         content += f"Created: {note['created_at']}\\par "
         content += f"Type: {note['kind']}\\par\\par "
         
-        # Raw transcript content - completely clean
+        # Raw transcript content with proper paragraph formatting
         if artifacts.get("transcript"):
-            # Remove ALL AI formatting: markdown, bullets, headers, etc.
             raw_transcript = artifacts["transcript"]
             
-            # Remove markdown formatting
-            raw_transcript = raw_transcript.replace("**", "")
-            raw_transcript = raw_transcript.replace("###", "")
-            raw_transcript = raw_transcript.replace("##", "")
-            raw_transcript = raw_transcript.replace("#", "")
-            raw_transcript = raw_transcript.replace("*", "")
-            raw_transcript = raw_transcript.replace("_", "")
-            
-            # Remove bullet points and list formatting
+            # Clean but preserve paragraph structure
             lines = raw_transcript.split('\n')
             clean_lines = []
+            current_paragraph = []
+            
             for line in lines:
                 line = line.strip()
                 if line:
-                    # Remove bullet points, dashes, numbers
-                    line = line.lstrip('•-*1234567890. ')
-                    if line:  # Only add non-empty lines
-                        clean_lines.append(line)
+                    # Remove markdown formatting but keep content
+                    clean_line = line.replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+                    clean_line = clean_line.replace("*", "").replace("_", "")
+                    clean_line = clean_line.lstrip('•-*1234567890. ')
+                    
+                    if clean_line:
+                        current_paragraph.append(clean_line)
+                else:
+                    # Empty line indicates paragraph break
+                    if current_paragraph:
+                        clean_lines.append(' '.join(current_paragraph))
+                        current_paragraph = []
             
-            # Join with simple line breaks
-            clean_content = ' '.join(clean_lines)
+            # Add final paragraph if exists
+            if current_paragraph:
+                clean_lines.append(' '.join(current_paragraph))
             
-            # Convert to RTF format
-            content += clean_content.replace("\n", " ").replace("\\", "\\\\") + "\\par\\par "
+            # Convert to RTF with proper paragraph breaks
+            for paragraph in clean_lines:
+                content += paragraph.replace("\\", "\\\\") + "\\par\\par "
         
-        # Raw OCR text if available
+        # Raw OCR text with paragraphs preserved
         if artifacts.get("text"):
             raw_text = artifacts["text"]
-            # Clean text completely
-            raw_text = raw_text.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
-            content += raw_text.replace("\n", " ").replace("\\", "\\\\") + "\\par\\par "
+            # Clean but preserve paragraph structure
+            paragraphs = raw_text.split('\n\n')  # Split on double newlines
+            for paragraph in paragraphs:
+                if paragraph.strip():
+                    clean_paragraph = paragraph.replace("**", "").replace("###", "")
+                    clean_paragraph = clean_paragraph.replace("##", "").replace("#", "")
+                    clean_paragraph = clean_paragraph.replace("*", "").replace("_", "")
+                    clean_paragraph = clean_paragraph.replace('\n', ' ').strip()
+                    content += clean_paragraph.replace("\\", "\\\\") + "\\par\\par "
         
         # RTF Footer
         content += "}"
