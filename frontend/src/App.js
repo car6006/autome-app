@@ -2690,17 +2690,17 @@ const NotesScreen = () => {
                     <Button
                       size="sm"
                       onClick={() => {
-                        // Create a virtual note for batch report AI interaction
-                        const batchNote = {
-                          id: `batch-${Date.now()}`,
+                        // Use dedicated batch report AI chat instead of virtual note
+                        const batchReportContent = currentReport.data.report || currentReport.data.content;
+                        
+                        // Create batch-specific AI chat state
+                        setBatchAiContent({
+                          content: batchReportContent,
                           title: currentReport.data.title || 'Batch Report',
-                          artifacts: {
-                            transcript: currentReport.data.report || currentReport.data.content
-                          }
-                        };
-                        setAiChatNote(batchNote);
+                          type: 'batch-report'
+                        });
                         setShowReportModal(false);
-                        setShowAiChatModal(true);
+                        setShowBatchAiModal(true);
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
