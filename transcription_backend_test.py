@@ -298,14 +298,14 @@ class TranscriptionTester:
             file_size = os.path.getsize(audio_file)
             print(f"      Created audio file: {file_size} bytes")
             
-            # Upload audio file to create a transcription job
-            print("   📤 Uploading audio file...")
+            # Test 1: Old system - Upload via /api/upload-file
+            print("   📤 Testing old system: /api/upload-file...")
             with open(audio_file, 'rb') as f:
                 files = {
-                    "file": ("test_transcription.wav", f, "audio/wav")
+                    "file": ("test_transcription_old.wav", f, "audio/wav")
                 }
                 data = {
-                    "title": "Transcription Test Audio"
+                    "title": "Old System Transcription Test"
                 }
                 
                 response = await self.client.post(f"{API_BASE}/upload-file", 
@@ -314,67 +314,158 @@ class TranscriptionTester:
                     data=data
                 )
             
-            os.unlink(audio_file)
-            
             if response.status_code == 200:
                 upload_data = response.json()
                 note_id = upload_data.get("id")
-                print(f"      ✅ Audio uploaded successfully: {note_id}")
+                print(f"      ✅ Old system upload successful: {note_id}")
+            else:
+                print(f"      ❌ Old system upload failed: {response.status_code}")
+            
+            # Test 2: New system - Large file transcription pipeline
+            print("   📤 Testing new system: Large-file transcription pipeline...")
+            
+            # Step 1: Create upload session
+            session_request = {
+                "filename": "test_transcription_new.wav",
+                "total_size": file_size,
+                "mime_type": "audio/wav"
+            }
+            
+            session_response = await self.client.post(f"{API_BASE}/uploads/sessions", 
+                headers=headers,
+                json=session_request
+            )
+            
+            if session_response.status_code == 200:
+                session_data = session_response.json()
+                upload_id = session_data.get("upload_id")
+                chunk_size = session_data.get("chunk_size")
+                print(f"      ✅ Upload session created: {upload_id}")
+                print(f"      📝 Chunk size: {chunk_size}")
                 
-                # Wait a moment for job creation
-                await asyncio.sleep(2)
+                # Step 2: Upload file as chunks
+                with open(audio_file, 'rb') as f:
+                    file_content = f.read()
                 
-                # Check if transcription jobs were created
-                print("   🔍 Checking for created transcription jobs...")
-                jobs_response = await self.client.get(f"{API_BASE}/transcriptions/", headers=headers)
+                chunks_needed = (file_size + chunk_size - 1) // chunk_size
+                print(f"      📦 Uploading {chunks_needed} chunks...")
                 
-                if jobs_response.status_code == 200:
-                    jobs_data = jobs_response.json()
-                    jobs = jobs_data.get("jobs", []) if isinstance(jobs_data, dict) else jobs_data
+                for chunk_index in range(chunks_needed):
+                    start = chunk_index * chunk_size
+                    end = min(start + chunk_size, file_size)
+                    chunk_data = file_content[start:end]
                     
-                    print(f"      📊 Found {len(jobs)} transcription jobs")
+                    # Create a temporary file for this chunk
+                    chunk_file = tempfile.NamedTemporaryFile(delete=False)
+                    chunk_file.write(chunk_data)
+                    chunk_file.close()
                     
-                    if jobs:
-                        # Check the most recent job
-                        latest_job = jobs[0] if jobs else None
-                        if latest_job:
-                            job_id = latest_job.get("job_id")
-                            status = latest_job.get("status")
-                            filename = latest_job.get("filename")
+                    try:
+                        with open(chunk_file.name, 'rb') as cf:
+                            files = {
+                                "chunk": (f"chunk_{chunk_index}", cf, "application/octet-stream")
+                            }
                             
-                            print(f"      📝 Latest job: {job_id}")
-                            print(f"      📝 Status: {status}")
-                            print(f"      📝 Filename: {filename}")
-                            
-                            if job_id:
-                                self.created_jobs.append(job_id)
-                            
-                            # Test individual job status endpoint
-                            print("   🔍 Testing individual job status...")
-                            job_response = await self.client.get(f"{API_BASE}/transcriptions/{job_id}", headers=headers)
-                            
-                            if job_response.status_code == 200:
-                                job_details = job_response.json()
-                                print(f"      ✅ Job details retrieved successfully")
-                                print(f"      📝 Job status: {job_details.get('status')}")
-                                print(f"      📝 Progress: {job_details.get('progress', 0)}%")
-                                print(f"      📝 Current stage: {job_details.get('current_stage')}")
-                                return True
-                            else:
-                                print(f"      ❌ Failed to get job details: {job_response.status_code}")
-                                return False
+                            chunk_response = await self.client.post(
+                                f"{API_BASE}/uploads/sessions/{upload_id}/chunks/{chunk_index}",
+                                headers=headers,
+                                files=files
+                            )
+                        
+                        if chunk_response.status_code == 200:
+                            print(f"         Chunk {chunk_index + 1}/{chunks_needed}: ✅")
+                        else:
+                            print(f"         Chunk {chunk_index + 1}/{chunks_needed}: ❌ {chunk_response.status_code}")
+                    finally:
+                        os.unlink(chunk_file.name)
+                
+                # Step 3: Finalize upload
+                finalize_request = {
+                    "sha256": None  # Optional
+                }
+                
+                finalize_response = await self.client.post(
+                    f"{API_BASE}/uploads/sessions/{upload_id}/complete",
+                    headers=headers,
+                    json=finalize_request
+                )
+                
+                if finalize_response.status_code == 200:
+                    finalize_data = finalize_response.json()
+                    job_id = finalize_data.get("job_id")
+                    print(f"      ✅ Upload finalized, job created: {job_id}")
+                    
+                    if job_id:
+                        self.created_jobs.append(job_id)
+                    
+                    # Wait a moment for job to appear in listings
+                    await asyncio.sleep(2)
+                    
+                    # Check if transcription jobs were created
+                    print("   🔍 Checking for created transcription jobs...")
+                    jobs_response = await self.client.get(f"{API_BASE}/transcriptions/", headers=headers)
+                    
+                    if jobs_response.status_code == 200:
+                        jobs_data = jobs_response.json()
+                        jobs = jobs_data.get("jobs", []) if isinstance(jobs_data, dict) else jobs_data
+                        
+                        print(f"      📊 Found {len(jobs)} transcription jobs")
+                        
+                        if jobs:
+                            # Check the most recent job
+                            latest_job = jobs[0] if jobs else None
+                            if latest_job:
+                                found_job_id = latest_job.get("job_id")
+                                status = latest_job.get("status")
+                                filename = latest_job.get("filename")
+                                
+                                print(f"      📝 Latest job: {found_job_id}")
+                                print(f"      📝 Status: {status}")
+                                print(f"      📝 Filename: {filename}")
+                                
+                                # Test individual job status endpoint
+                                print("   🔍 Testing individual job status...")
+                                job_response = await self.client.get(f"{API_BASE}/transcriptions/{found_job_id}", headers=headers)
+                                
+                                if job_response.status_code == 200:
+                                    job_details = job_response.json()
+                                    print(f"      ✅ Job details retrieved successfully")
+                                    print(f"      📝 Job status: {job_details.get('status')}")
+                                    print(f"      📝 Progress: {job_details.get('progress', 0)}%")
+                                    print(f"      📝 Current stage: {job_details.get('current_stage')}")
+                                    
+                                    os.unlink(audio_file)
+                                    return True
+                                else:
+                                    print(f"      ❌ Failed to get job details: {job_response.status_code}")
+                                    os.unlink(audio_file)
+                                    return False
+                        else:
+                            print("      ⚠️  No transcription jobs found after new system upload")
+                            os.unlink(audio_file)
+                            return False  # This is concerning for the new system
                     else:
-                        print("      ⚠️  No transcription jobs found after upload")
-                        return True  # Not necessarily an error, might be processed differently
+                        print(f"      ❌ Failed to list jobs: {jobs_response.status_code}")
+                        os.unlink(audio_file)
+                        return False
                 else:
-                    print(f"      ❌ Failed to list jobs: {jobs_response.status_code}")
+                    print(f"      ❌ Upload finalization failed: {finalize_response.status_code}")
+                    print(f"      📝 Response: {finalize_response.text}")
+                    os.unlink(audio_file)
                     return False
             else:
-                print(f"   ❌ Audio upload failed: {response.status_code} - {response.text}")
+                print(f"      ❌ Upload session creation failed: {session_response.status_code}")
+                print(f"      📝 Response: {session_response.text}")
+                os.unlink(audio_file)
                 return False
                 
         except Exception as e:
             print(f"❌ Job creation test error: {str(e)}")
+            if 'audio_file' in locals():
+                try:
+                    os.unlink(audio_file)
+                except:
+                    pass
             return False
     
     async def test_stuck_jobs_detection(self):
