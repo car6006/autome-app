@@ -2564,40 +2564,47 @@ async def export_note(
         content += f"Created: {note['created_at']}\n"
         content += f"Type: {note['kind']}\n\n"
         
-        # Raw transcript - completely clean without any AI formatting
+        # Raw transcript with proper paragraph formatting
         if artifacts.get("transcript"):
             raw_transcript = artifacts["transcript"]
             
-            # Remove ALL formatting markers
-            raw_transcript = raw_transcript.replace("**", "")
-            raw_transcript = raw_transcript.replace("###", "") 
-            raw_transcript = raw_transcript.replace("##", "")
-            raw_transcript = raw_transcript.replace("#", "")
-            raw_transcript = raw_transcript.replace("*", "")
-            raw_transcript = raw_transcript.replace("_", "")
-            
-            # Remove bullet points and list formatting
+            # Clean but preserve natural paragraph structure
             lines = raw_transcript.split('\n')
-            clean_lines = []
+            paragraphs = []
+            current_paragraph = []
+            
             for line in lines:
                 line = line.strip()
                 if line:
-                    # Remove bullet points, dashes, numbers, section headers
-                    line = line.lstrip('•-*1234567890. ')
-                    # Remove common AI section headers
-                    if not any(header in line.upper() for header in ['ATTENDEES:', 'APOLOGIES:', 'MEETING MINUTES:', 'ACTION ITEMS:', 'KEY INSIGHTS:', 'ASSESSMENTS:', 'RISK ASSESSMENT:', 'NEXT STEPS:']):
-                        if line:  # Only add non-empty meaningful lines
-                            clean_lines.append(line)
+                    # Remove formatting but keep content
+                    clean_line = line.replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+                    clean_line = clean_line.replace("*", "").replace("_", "")
+                    clean_line = clean_line.lstrip('•-*1234567890. ')
+                    
+                    # Skip AI section headers but keep the content
+                    if not any(header in clean_line.upper() for header in ['ATTENDEES:', 'APOLOGIES:', 'MEETING MINUTES:', 'ACTION ITEMS:', 'KEY INSIGHTS:', 'ASSESSMENTS:', 'RISK ASSESSMENT:', 'NEXT STEPS:']):
+                        if clean_line:
+                            current_paragraph.append(clean_line)
+                else:
+                    # Empty line creates paragraph break
+                    if current_paragraph:
+                        paragraphs.append(' '.join(current_paragraph))
+                        current_paragraph = []
             
-            # Join as continuous text with natural breaks
-            content += '\n'.join(clean_lines) + "\n\n"
+            # Add final paragraph
+            if current_paragraph:
+                paragraphs.append(' '.join(current_paragraph))
+            
+            # Join paragraphs with double newlines for proper formatting
+            content += '\n\n'.join(paragraphs) + "\n\n"
         
-        # Raw OCR text if available
+        # Raw OCR text with paragraph preservation
         if artifacts.get("text"):
             raw_text = artifacts["text"]
-            # Clean completely - no AI formatting
-            raw_text = raw_text.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
-            content += raw_text + "\n\n"
+            # Clean but preserve paragraph structure
+            clean_text = raw_text.replace("**", "").replace("###", "").replace("##", "").replace("#", "")
+            clean_text = clean_text.replace("*", "").replace("_", "")
+            content += clean_text + "\n\n"
         
         # Mark note as completed since file was exported
         if current_user:
