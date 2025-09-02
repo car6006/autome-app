@@ -85,6 +85,71 @@ const ProfileScreen: React.FC = () => {
     });
   };
 
+  // Handle password change
+  const handlePasswordChange = async (): Promise<void> => {
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "New password and confirmation do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate password strength
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setPasswordLoading(true);
+    
+    try {
+      const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+      const response = await fetch(`${API}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: user?.email,
+          new_password: passwordData.newPassword
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "✅ Password Changed",
+          description: "Your password has been updated successfully"
+        });
+        
+        // Clear form and hide section
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setShowPasswordChange(false);
+      } else {
+        const error = await response.json();
+        throw new Error(error.detail || 'Password change failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Password Change Failed",
+        description: error.message || "Failed to change password. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   const getInitials = (): string => {
     const first = user?.profile?.first_name || user?.username || '';
     const last = user?.profile?.last_name || '';
