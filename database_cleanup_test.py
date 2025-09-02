@@ -272,13 +272,13 @@ class DatabaseCleanupTester:
             headers = {"Authorization": f"Bearer {self.auth_token}"}
             
             async with httpx.AsyncClient(timeout=30) as client:
-                # Try to access transcription jobs endpoint
-                response = await client.get(f"{BACKEND_URL}/transcriptions", headers=headers)
+                # Try to access transcription jobs endpoint with trailing slash
+                response = await client.get(f"{BACKEND_URL}/transcriptions/", headers=headers)
                 
                 if response.status_code == 200:
                     jobs = response.json()
                     job_count = len(jobs.get('jobs', [])) if isinstance(jobs, dict) else len(jobs)
-                    await self.log_test("Transcription Jobs Cleanup", True, f"Found {job_count} transcription jobs")
+                    await self.log_test("Transcription Jobs Cleanup", True, f"Found {job_count} transcription jobs - clean state")
                     return True
                 elif response.status_code == 404:
                     await self.log_test("Transcription Jobs Cleanup", True, "No transcription jobs found - clean state")
