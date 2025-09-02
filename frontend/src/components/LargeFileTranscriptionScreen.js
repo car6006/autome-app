@@ -599,7 +599,8 @@ const LargeFileTranscriptionScreen = () => {
         </div>
 
         <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4 sm:mb-6">
+          <TabsList className="grid w-full sm:w-auto grid-cols-3">
             <TabsTrigger value="upload" className="text-xs sm:text-sm">Upload</TabsTrigger>
             <TabsTrigger value="active" className="text-xs sm:text-sm">
               Active Jobs {activeJobs.length > 0 && `(${activeJobs.length})`}
@@ -608,6 +609,28 @@ const LargeFileTranscriptionScreen = () => {
               Completed {completedJobs.length > 0 && `(${completedJobs.length})`}
             </TabsTrigger>
           </TabsList>
+          
+          {/* Refresh Button */}
+          <Button
+            onClick={forceRefreshJobs}
+            variant="outline"
+            size="sm"
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Jobs
+              </>
+            )}
+          </Button>
+        </div>
 
           {/* Upload Tab */}
           <TabsContent value="upload" className="space-y-6">
