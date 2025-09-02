@@ -22,13 +22,22 @@ const LargeFileTranscriptionScreen = () => {
   const [completedJobs, setCompletedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isRequestInProgress, setIsRequestInProgress] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
   const branding = getBrandingElements(user);
 
-  // Load user's transcription jobs
+  // Load user's transcription jobs with debouncing
   const loadJobs = async () => {
+    // Prevent multiple simultaneous requests
+    if (isRequestInProgress) {
+      console.log('Request already in progress, skipping...');
+      return;
+    }
+    
+    setIsRequestInProgress(true);
+    
     try {
       // Get authentication token
       const token = localStorage.getItem('auto_me_token');
