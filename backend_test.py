@@ -38,7 +38,7 @@ class PasswordResetTester:
             async with httpx.AsyncClient(timeout=30) as client:
                 user_data = {
                     "email": self.test_user_email,
-                    "username": f"testuser_{uuid.uuid4().hex[:8]}",
+                    "username": f"testuser{uuid.uuid4().hex[:8]}",  # Remove underscore for validation
                     "password": self.test_user_password,
                     "first_name": "Test",
                     "last_name": "User"
