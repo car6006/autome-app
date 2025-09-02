@@ -369,14 +369,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     )}
                   </Button>
                   
-                  {/* Forgot Password Link - Right where users expect it */}
-                  <div className="text-center mt-3 mb-3">
+                  {/* Forgot Password Link - HIGHLY VISIBLE FOR TESTING */}
+                  <div className="text-center mt-4 mb-4 p-2 bg-red-100 border border-red-300 rounded">
                     <button
                       type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-violet-600 hover:text-violet-800 underline font-medium hover:bg-violet-50 px-2 py-1 rounded"
+                      onClick={() => {
+                        console.log('Forgot password clicked!');
+                        setShowForgotPassword(true);
+                      }}
+                      className="text-lg font-bold text-red-600 hover:text-red-800 underline bg-yellow-200 px-4 py-2 rounded"
                     >
-                      Forgot your password?
+                      🔑 FORGOT YOUR PASSWORD? CLICK HERE!
                     </button>
                   </div>
                 </form>
