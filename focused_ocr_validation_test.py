@@ -13,7 +13,7 @@ import tempfile
 from PIL import Image, ImageDraw, ImageFont
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://pwa-integration-fix.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://auto-me-debugger.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class FocusedOCRTester:

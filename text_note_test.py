@@ -7,7 +7,7 @@ import asyncio
 import httpx
 import json
 
-BASE_URL = "https://pwa-integration-fix.preview.emergentagent.com/api"
+BASE_URL = "https://auto-me-debugger.preview.emergentagent.com/api"
 
 async def test_text_note_creation():
     """Test creating a text note"""

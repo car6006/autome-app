@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://pwa-integration-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://auto-me-debugger.preview.emergentagent.com/api"
 TEST_FILE_PATH = "/tmp/autome_storage/test_30s.wav"
 TEST_EMAIL = "test@expeditors.com"
 TEST_PASSWORD = "testpass123"

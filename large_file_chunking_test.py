@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://pwa-integration-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://auto-me-debugger.preview.emergentagent.com/api"
 LARGE_FILE_PATH = "/tmp/autome_storage/2b3bb42e-04c6-446d-8c8f-6f34fd5b5061_0639ab87-0315-42be-bb12-61a1f466adf9_Regional Meeting 21 August - Recap Session 1.mp3"
 
 class LargeFileChunkingTester:
