@@ -44,6 +44,100 @@ AUTO-ME is a production-ready PWA (Progressive Web App) featuring advanced voice
 - **User Dashboards**: Personal insights and usage patterns
 - **System Monitoring**: Performance metrics and health indicators
 
+## 🚨 **Error Handling & Troubleshooting**
+
+### **Batch Report Errors**
+
+When using the batch report functionality, you may encounter these specific error messages:
+
+#### **Authentication Errors**
+- **Error**: `"Authentication required. Please sign in again."`
+- **Cause**: JWT token expired or invalid
+- **Solution**: Sign out and sign back in to refresh your authentication token
+
+#### **Authorization Errors**
+- **Error**: `"Access denied. You can only create reports with your own notes."`
+- **Cause**: Attempting to batch notes from different users or notes you don't own
+- **Solution**: Only select notes that you created. Check note ownership in the interface
+
+#### **Content Validation Errors**
+- **Error**: `"Invalid request. Please check your selected notes."`
+- **Cause**: Selected notes may lack sufficient content for processing
+- **Solutions**: 
+  - Ensure selected notes have completed processing (status: "ready" or "completed")
+  - Verify notes contain transcript or text content
+  - Try with different note combinations
+
+#### **Server Errors**
+- **Error**: `"Server error. Please try again in a few moments. Status: 500"`
+- **Cause**: Backend processing failure or temporary service unavailability
+- **Solutions**:
+  - Wait 1-2 minutes and try again
+  - Check if OpenAI API services are operational
+  - Reduce number of notes in batch (try 2-3 notes instead of more)
+
+#### **Network Errors**
+- **Error**: `"Network error. Please check your connection and try again."`
+- **Cause**: Internet connectivity issues or request timeout
+- **Solutions**:
+  - Check your internet connection
+  - Try refreshing the page
+  - Ensure stable network connection for large report generation
+
+### **Large File Upload Errors**
+
+#### **Job Loading Issues**
+- **Error**: `"Error loading jobs"` or `"Could not fetch your transcription jobs"`
+- **Cause**: Frontend-backend communication issues or temporary network problems
+- **Solutions**:
+  - Refresh the page and try again
+  - Check network connectivity
+  - Clear browser cache and cookies
+  - These errors are often temporary and resolve automatically
+
+#### **Upload Failures**
+- **Error**: Various upload-related messages
+- **Cause**: File size, format, or network issues
+- **Solutions**:
+  - Ensure file is under 500MB
+  - Use supported formats (MP3, WAV, M4A, WebM, OGG for audio)
+  - Try chunked upload for very large files
+
+### **OCR Processing Errors**
+
+#### **Image Validation Errors**
+- **Error**: `"Invalid image file. Please upload a valid PNG or JPG image."`
+- **Cause**: Corrupted, invalid, or unsupported image format
+- **Solutions**:
+  - Use supported formats: PNG, JPG, JPEG, WebP
+  - Ensure file is not corrupted
+  - Try converting image to PNG format
+
+#### **Processing Failures**
+- **Error**: Various OCR-related error messages
+- **Cause**: OpenAI Vision API issues or image quality problems
+- **Solutions**:
+  - Ensure image has clear, readable text
+  - Try with higher resolution images
+  - Check if image contains actual text content
+
+### **General Troubleshooting Tips**
+
+1. **Clear Browser Cache**: Often resolves authentication and loading issues
+2. **Check Network**: Ensure stable internet connection for large operations
+3. **Retry After Delay**: Many errors are temporary - wait 1-2 minutes and retry
+4. **Note Ownership**: Only work with notes you created
+5. **Content Requirements**: Ensure notes have processed content before batch operations
+6. **Browser Compatibility**: Use modern browsers (Chrome, Firefox, Safari, Edge)
+
+### **Getting Help**
+
+If errors persist after trying the above solutions:
+
+1. **Check Console**: Open browser developer tools to see detailed error messages
+2. **Note Error Details**: Record the exact error message and steps to reproduce
+3. **Contact Support**: Provide error details and context for faster resolution
+
 ## 🏗️ **Technical Architecture**
 
 ### **Frontend Stack**
