@@ -1966,8 +1966,27 @@ async def generate_comprehensive_batch_report(
         
         # Combine everything into comprehensive report
         if format == "ai":
-            # Full AI-enhanced format
-            session_appendix = "\n".join([f"\nSESSION: {item['title']}\n{'-' * 50}\n{item['content']}" for item in all_transcripts])
+            # Clean session content by removing speaker labels and unnecessary formatting
+            clean_sessions = []
+            for item in all_transcripts:
+                # Remove speaker labels and clean up content
+                content = item['content']
+                
+                # Remove speaker labels (Speaker 1:, Speaker 2:, etc.)
+                import re
+                content = re.sub(r'Speaker \d+:\s*', '', content)
+                content = re.sub(r'Speaker:\s*', '', content)
+                
+                # Remove excessive whitespace and empty lines
+                lines = [line.strip() for line in content.split('\n') if line.strip()]
+                clean_content = '\n'.join(lines)
+                
+                # Only include if there's substantial content
+                if len(clean_content) > 100:
+                    clean_sessions.append(f"\nSESSION: {item['title']}\n{'-' * 50}\n{clean_content}")
+            
+            session_appendix = "\n".join(clean_sessions) if clean_sessions else "Session transcripts were processed but contained limited actionable content."
+            
             final_content = f"""COMPREHENSIVE MULTI-SESSION REPORT
 {title}
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -1981,7 +2000,7 @@ Sessions: {len(all_transcripts)}
 
 ---
 
-APPENDIX: SESSION TRANSCRIPTS
+APPENDIX: CLEANED SESSION SUMMARIES
 {session_appendix}
 """
         
