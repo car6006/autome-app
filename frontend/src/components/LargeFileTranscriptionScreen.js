@@ -54,7 +54,8 @@ const LargeFileTranscriptionScreen = () => {
       const response = await axios.get(`${API}/transcriptions/`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        timeout: 10000 // 10 second timeout to prevent hanging requests
       });
       const jobs = response.data.jobs || [];
       
