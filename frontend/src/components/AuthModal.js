@@ -185,14 +185,15 @@ const AuthModal = ({ isOpen, onClose }) => {
         setForgotPasswordStep('verify');
         setForgotPasswordData({ email: '', newPassword: '', confirmPassword: '' });
       } else {
-        const error = await response.json();
+        const errorData = await response.json();
         toast({
           title: "Password reset failed",
-          description: error.detail || "Failed to reset password. Please try again.",
+          description: errorData?.detail || "Failed to reset password. Please try again.",
           variant: "destructive"
         });
       }
     } catch (error) {
+      console.error('Reset error:', error);
       toast({
         title: "Reset failed",
         description: "Please check your connection and try again",
