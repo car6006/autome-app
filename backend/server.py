@@ -2298,6 +2298,10 @@ async def generate_batch_report(
                 ai_response = response.json()
                 report_content = ai_response["choices"][0]["message"]["content"]
                 
+                # Add source notes section to the report content
+                source_notes_section = f"\n\nSOURCE NOTES:\n" + "\n".join([f"• {note_title}" for note_title in note_titles])
+                report_content += source_notes_section
+                
                 # Add Expeditors branding if applicable
                 if is_expeditors_user:
                     report_content = logo_header + report_content
