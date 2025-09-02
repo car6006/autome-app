@@ -108,6 +108,26 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
+  // Manual refresh function to clear any cached stuck jobs
+  const forceRefreshJobs = async () => {
+    setLoading(true);
+    setActiveJobs([]);
+    setCompletedJobs([]);
+    setIsRequestInProgress(false); // Reset the debouncing flag
+    
+    // Clear any existing timeouts
+    clearTimeout(timeoutId);
+    
+    // Force reload jobs
+    await loadJobs();
+    
+    toast({
+      title: "Jobs refreshed",
+      description: "Transcription jobs list has been refreshed",
+      variant: "default"
+    });
+  };
+
   // Smart polling with single interval to prevent race conditions
   useEffect(() => {
     if (user) {
