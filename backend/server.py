@@ -285,6 +285,73 @@ async def reset_password(request: dict):
     else:
         raise HTTPException(status_code=500, detail="Failed to update password")
 
+@api_router.post("/auth/validate-email")
+async def validate_email_for_reset(request: dict):
+    """Validate if email exists in the system for password reset"""
+    try:
+        email = request.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
+        
+        email_exists = await AuthService.validate_email_exists(email)
+        
+        if email_exists:
+            return {
+                "message": "Email validated successfully",
+                "email_exists": True
+            }
+        else:
+            raise HTTPException(
+                status_code=404, 
+                detail="Email not found in our system"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Email validation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Email validation failed")
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: dict):
+    """Reset password using email validation"""
+    try:
+        email = request.get("email")
+        new_password = request.get("new_password")
+        
+        if not email or not new_password:
+            raise HTTPException(
+                status_code=400, 
+                detail="Email and new password are required"
+            )
+        
+        # Validate password strength
+        if len(new_password) < 6:
+            raise HTTPException(
+                status_code=400, 
+                detail="Password must be at least 6 characters long"
+            )
+        
+        # Reset password
+        success = await AuthService.reset_password_by_email(email, new_password)
+        
+        if success:
+            return {
+                "message": "Password reset successfully",
+                "success": True
+            }
+        else:
+            raise HTTPException(
+                status_code=404, 
+                detail="Email not found or password reset failed"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Password reset error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Password reset failed")
+
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserCreate):
     """Register a new user"""
