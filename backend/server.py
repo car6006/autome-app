@@ -2050,6 +2050,11 @@ async def generate_comprehensive_batch_report(
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 Sessions: {len(all_transcripts)}
 
+SOURCE NOTES:
+{chr(10).join([f"• {item['title']}" for item in all_transcripts])}
+
+---
+
 {meeting_minutes_result}
 
 ---
