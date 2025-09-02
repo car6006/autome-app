@@ -381,6 +381,7 @@ class TranscriptionTester:
                 
                 # Step 3: Finalize upload
                 finalize_request = {
+                    "upload_id": upload_id,
                     "sha256": None  # Optional
                 }
                 
