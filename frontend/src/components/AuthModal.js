@@ -597,6 +597,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 </form>
               </TabsContent>
             </Tabs>
+            )}
             
             <Separator className="my-6" />
             
