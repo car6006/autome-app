@@ -31,7 +31,7 @@ class BatchReportAITester:
             test_email = f"batch_test_{int(time.time())}@example.com"
             user_data = {
                 "email": test_email,
-                "password": "testpassword123",
+                "password": "TestPassword123",
                 "username": "BatchTestUser",
                 "profile": {
                     "first_name": "Batch",
