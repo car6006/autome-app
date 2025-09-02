@@ -13,6 +13,12 @@ import { useToast } from '../hooks/use-toast';
 const AuthModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState('verify'); // 'verify' or 'reset'
+  const [forgotPasswordData, setForgotPasswordData] = useState({
+    email: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({
     email: '',
