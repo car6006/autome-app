@@ -1926,29 +1926,28 @@ async def generate_comprehensive_batch_report(
         
         # Generate consolidated action items table
         action_items_prompt = f"""
-        Based on these multi-session meeting transcripts, create a comprehensive action items table:
+        Based on these multi-session meeting transcripts, create a clean, structured action items table:
 
         TRANSCRIPTS:
         {combined_transcript}
 
-        Create a consolidated action items table with this format:
+        Create a properly formatted action items table:
 
-        CONSOLIDATED ACTION ITEMS - MULTI-SESSION REPORT
+        CONSOLIDATED ACTION ITEMS
 
-        No. | Action Item | Session Source | Start Date | End Date | Priority | Responsible Person
-        1   | [Detailed action description] | [Session name] | | | | |
-        2   | [Detailed action description] | [Session name] | | | | |
-        [etc.]
+        No. | Action Item | Session Source | Priority | Status
+        1   | [Clear, actionable description] | [Session name] | High/Medium/Low | Pending
+        2   | [Clear, actionable description] | [Session name] | High/Medium/Low | Pending
 
-        Extract ALL actionable items from ALL sessions. Include:
-        - Cross-session dependencies and connections
-        - Strategic priorities that span multiple sessions  
-        - Follow-up items from previous sessions
-        - New commitments and deliverables
-        - Resource allocation and planning items
-
-        Leave Date, Priority, and Responsible Person columns empty for manual completion.
-        Use professional language. NO markdown formatting.
+        Requirements:
+        - Extract ONLY clear, actionable items (not vague discussions)
+        - Remove any speaker references (Speaker 1, Speaker 2, etc.)
+        - Focus on concrete tasks and deliverables
+        - Use professional business language
+        - Assign logical priority levels based on business impact
+        - Keep descriptions concise but specific
+        - NO markdown formatting or special characters
+        - Maximum 20 action items to keep focused
         """
         
         async with httpx.AsyncClient(timeout=120) as client:
