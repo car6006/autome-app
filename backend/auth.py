@@ -251,6 +251,36 @@ class AuthService:
         return False
     
     @staticmethod
+    async def reset_password_by_email(email: str, new_password: str) -> bool:
+        """Reset password for user by email validation"""
+        # Check if user exists
+        user = await AuthService.get_user_by_email(email)
+        if not user:
+            return False
+        
+        # Hash new password
+        hashed_password = AuthService.hash_password(new_password)
+        
+        # Update password in database
+        result = await db()["users"].update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "hashed_password": hashed_password,
+                    "password_updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        return result.modified_count > 0
+    
+    @staticmethod
+    async def validate_email_exists(email: str) -> bool:
+        """Validate if email exists in the system"""
+        user = await AuthService.get_user_by_email(email)
+        return user is not None
+    
+    @staticmethod
     async def update_user_password(user_id: str, new_password: str) -> bool:
         """Update user password"""
         hashed_password = AuthService.hash_password(new_password)
