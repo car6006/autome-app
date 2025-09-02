@@ -178,6 +178,17 @@ const AuthModal = ({ isOpen, onClose }) => {
                       </>
                     )}
                   </Button>
+                  
+                  {/* Forgot Password Link */}
+                  <div className="text-center mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-violet-600 hover:text-violet-800 underline font-medium"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
               
