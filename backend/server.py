@@ -772,6 +772,7 @@ async def get_professional_context(
     }
 
 from ai_context_processor import ai_context_processor
+import providers
 
 @api_router.post("/notes/{note_id}/ai-chat")
 async def ai_chat_with_note(
