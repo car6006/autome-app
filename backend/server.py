@@ -1972,9 +1972,10 @@ async def generate_comprehensive_batch_report(
                 # Remove speaker labels and clean up content
                 content = item['content']
                 
-                # Remove speaker labels (Speaker 1:, Speaker 2:, etc.)
+                # Remove speaker labels (Speaker 1:, Speaker 2:, Speaker A:, etc.)
                 import re
                 content = re.sub(r'Speaker \d+:\s*', '', content)
+                content = re.sub(r'Speaker [A-Z]:\s*', '', content)
                 content = re.sub(r'Speaker:\s*', '', content)
                 
                 # Remove excessive whitespace and empty lines
