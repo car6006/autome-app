@@ -2628,6 +2628,28 @@ const NotesScreen = () => {
                       <Download className="w-4 h-4 mr-1" />
                       Export RTF
                     </Button>
+                    
+                    {/* Ask AI button for batch reports */}
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        // Create a virtual note for batch report AI interaction
+                        const batchNote = {
+                          id: `batch-${Date.now()}`,
+                          title: currentReport.data.title || 'Batch Report',
+                          artifacts: {
+                            transcript: currentReport.data.report || currentReport.data.content
+                          }
+                        };
+                        setAiChatNote(batchNote);
+                        setShowReportModal(false);
+                        setShowAiChatModal(true);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-1" />
+                      Ask AI
+                    </Button>
                   </div>
                   <div className="flex gap-2">
                     <Button
