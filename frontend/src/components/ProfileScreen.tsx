@@ -26,6 +26,12 @@ interface ProfileFormData {
   avatar_url: string;
 }
 
+interface PasswordChangeData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 const ProfileScreen: React.FC = () => {
   const { user, updateProfile, logout } = useAuth();
   const { toast } = useToast();
