@@ -131,7 +131,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     try {
       await axios.post(`${API}/auth/reset-password`, {
         email: forgotPasswordData.email,
-        newPassword: forgotPasswordData.newPassword
+        new_password: forgotPasswordData.newPassword
       });
       
       toast({ 
