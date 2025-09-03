@@ -2837,6 +2837,10 @@ async def generate_batch_report(
             )
         
         elif format == "docx":
+            # Import required modules at the beginning
+            import os
+            import re
+            
             # Generate AI analysis first
             api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
             if not api_key:
