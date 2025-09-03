@@ -1561,8 +1561,15 @@ const NotesScreen = () => {
           if (format === 'pdf') {
             // Frontend PDF generation using jsPDF
             try {
-              // Dynamic import of jsPDF
-              const { jsPDF } = await import('jspdf');
+              // Check if jsPDF is available
+              let jsPDF;
+              try {
+                const jsPDFModule = await import('jspdf');
+                jsPDF = jsPDFModule.jsPDF;
+              } catch (importError) {
+                throw new Error('PDF library not available');
+              }
+              
               const doc = new jsPDF();
               
               // Set font and title
@@ -1579,7 +1586,8 @@ const NotesScreen = () => {
               doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 50);
               
               // Process content and add to PDF
-              const lines = doc.splitTextToSize(reportContent, 170);
+              const cleanContent = reportContent.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').trim();
+              const lines = doc.splitTextToSize(cleanContent, 170);
               let yPosition = 65;
               
               doc.setFont('helvetica', 'normal');
@@ -1600,7 +1608,7 @@ const NotesScreen = () => {
               toast({ title: "📄 PDF Export Complete", description: "Comprehensive batch report downloaded successfully" });
             } catch (error) {
               console.error('PDF generation error:', error);
-              toast({ title: "Export Error", description: "Failed to generate PDF", variant: "destructive" });
+              toast({ title: "Export Error", description: "Failed to generate PDF. Please try TXT format instead.", variant: "destructive" });
             }
             
           } else if (format === 'docx') {
