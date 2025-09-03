@@ -45,8 +45,10 @@ class ProfessionalReportExportTester:
                 # Register user
                 register_data = {
                     "email": test_email,
-                    "password": "testpass123",
-                    "full_name": f"Test User {unique_id}"
+                    "username": f"testuser{unique_id}",
+                    "password": "TestPass123!",
+                    "first_name": "Test",
+                    "last_name": "User"
                 }
                 
                 response = await client.post(f"{API_BASE}/auth/register", json=register_data)
