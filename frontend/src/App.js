@@ -37,6 +37,8 @@ import HelpGuide from "./components/HelpGuide";
 import ProfessionalContextSetup from "./components/ProfessionalContextSetup";
 import LargeFileTranscriptionScreen from "./components/LargeFileTranscriptionScreen";
 import { getThemeClasses, getBrandingElements, isExpeditorsUser } from "./utils/themeUtils";
+import jsPDF from 'jspdf';
+import * as docx from 'docx';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
