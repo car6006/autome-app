@@ -1623,6 +1623,7 @@ const NotesScreen = () => {
         }
       }
     } catch (error) {
+      console.error('Export error:', error);
       toast({ title: "Export Error", description: "Failed to export report", variant: "destructive" });
     }
   };
