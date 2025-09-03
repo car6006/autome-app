@@ -2647,6 +2647,22 @@ async def generate_batch_comprehensive_report(
         
         report_content = response.choices[0].message.content
         
+        # Clean any remaining markdown symbols from the AI response
+        import re
+        report_content = re.sub(r'\*\*\*', '', report_content)  # Remove triple asterisks
+        report_content = re.sub(r'\*\*', '', report_content)    # Remove double asterisks
+        report_content = re.sub(r'\*', '', report_content)      # Remove single asterisks
+        report_content = re.sub(r'###', '', report_content)     # Remove triple hashes
+        report_content = re.sub(r'##', '', report_content)      # Remove double hashes
+        report_content = re.sub(r'#', '', report_content)       # Remove single hashes
+        report_content = re.sub(r'__', '', report_content)      # Remove double underscores
+        report_content = re.sub(r'_', '', report_content)       # Remove single underscores
+        report_content = re.sub(r'`', '', report_content)       # Remove backticks
+        
+        # Clean up any extra whitespace that might result from symbol removal
+        report_content = re.sub(r'\n\s*\n\s*\n', '\n\n', report_content)  # Replace multiple newlines with double newlines
+        report_content = report_content.strip()
+        
         # Store the report in a temporary structure (similar to how individual reports work)
         comprehensive_report_data = {
             "report": report_content,
