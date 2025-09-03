@@ -1561,6 +1561,9 @@ async def export_ai_conversations(
                 # Question section
                 question_heading = doc.add_paragraph(f'Question {i}', style='AI Section Heading')
                 question_para = doc.add_paragraph(question, style='AI Body Text')
+                # Explicitly set spacing for body text
+                question_para.paragraph_format.space_after = Pt(12)
+                question_para.paragraph_format.space_before = Pt(3)
                 
                 # Add spacing between question and response
                 spacer = doc.add_paragraph()
