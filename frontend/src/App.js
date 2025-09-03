@@ -1554,25 +1554,45 @@ const NotesScreen = () => {
           return;
         }
 
-        // Call the batch report API with the requested format
-        const response = await axios.post(`${API}/notes/batch-report`, {
-          note_ids: noteIds,
-          title: reportData.data.title || `Batch Report - ${new Date().toLocaleDateString()}`,
-          format: format
-        });
+        // For PDF/DOCX formats, expect blob response from backend
+        if (format === 'pdf' || format === 'docx') {
+          const response = await axios.post(`${API}/notes/batch-report`, {
+            note_ids: noteIds,
+            title: reportData.data.title || `Batch Report - ${new Date().toLocaleDateString()}`,
+            format: format
+          }, {
+            responseType: 'blob'  // Important: expect blob response for binary formats
+          });
+          
+          const url = URL.createObjectURL(response.data);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${reportData.data.title.replace(/[^a-zA-Z0-9]/g, '_')}.${format}`;
+          a.click();
+          URL.revokeObjectURL(url);
+          
+          toast({ title: `📄 ${format.toUpperCase()} Export Complete`, description: "Professional batch report downloaded successfully" });
+        } else {
+          // For TXT/RTF formats, expect JSON response with content field
+          const response = await axios.post(`${API}/notes/batch-report`, {
+            note_ids: noteIds,
+            title: reportData.data.title || `Batch Report - ${new Date().toLocaleDateString()}`,
+            format: format
+          });
 
-        // Download the formatted content
-        const blob = new Blob([response.data.content], { 
-          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = response.data.filename;
-        a.click();
-        URL.revokeObjectURL(url);
+          // Download the formatted content
+          const blob = new Blob([response.data.content], { 
+            type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = response.data.filename;
+          a.click();
+          URL.revokeObjectURL(url);
 
-        toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Clean report downloaded successfully" });
+          toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Clean report downloaded successfully" });
+        }
       } else {
         // For individual note professional reports, use the enhanced backend export for Word/PDF
         if ((format === 'docx' || format === 'pdf') && reportData.data.note_id) {
