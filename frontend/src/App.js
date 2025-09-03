@@ -1614,8 +1614,18 @@ const NotesScreen = () => {
           } else if (format === 'docx') {
             // Frontend Word generation using docx library
             try {
-              // Dynamic import of docx
-              const { Document, Packer, Paragraph: DocxParagraph, TextRun, HeadingLevel } = await import('docx');
+              // Check if docx is available
+              let docxModule;
+              try {
+                docxModule = await import('docx');
+              } catch (importError) {
+                throw new Error('Word library not available');
+              }
+              
+              const { Document, Packer, Paragraph: DocxParagraph, TextRun, HeadingLevel } = docxModule;
+              
+              // Clean content for Word document
+              const cleanContent = reportContent.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').trim();
               
               // Create document
               const doc = new Document({
@@ -1641,7 +1651,7 @@ const NotesScreen = () => {
                     new DocxParagraph({
                       text: "",
                     }),
-                    ...reportContent.split('\n\n').map(paragraph => 
+                    ...cleanContent.split('\n\n').filter(p => p.trim()).map(paragraph => 
                       new DocxParagraph({
                         children: [
                           new TextRun({
@@ -1667,7 +1677,7 @@ const NotesScreen = () => {
               toast({ title: "📄 Word Export Complete", description: "Comprehensive batch report downloaded successfully" });
             } catch (error) {
               console.error('Word generation error:', error);
-              toast({ title: "Export Error", description: "Failed to generate Word document", variant: "destructive" });
+              toast({ title: "Export Error", description: "Failed to generate Word document. Please try RTF format instead.", variant: "destructive" });
             }
           }
           
