@@ -1493,22 +1493,17 @@ const NotesScreen = () => {
       console.error('Batch report generation error:', error);
       
       let errorMessage = "Failed to generate batch report. Please try again.";
-      let errorDetails = "";
       
       if (error.response) {
-        // Server responded with error status
-        const status = error.response.status;
-        const data = error.response.data;
-        
-        if (status === 401) {
-          errorMessage = "Authentication required. Please sign in again.";
-        } else if (status === 403) {
-          errorMessage = "Access denied. You can only create reports with your own notes.";
-        } else if (status === 400) {
-          errorMessage = data?.detail || "Invalid request. Please check your selected notes.";
-        } else if (status >= 500) {
-          errorMessage = "Server error. Please try again in a few moments.";
-          errorDetails = `Status: ${status}`;
+        // Backend returned an error
+        if (error.response.status === 401) {
+          errorMessage = "Authentication required. Please log in and try again.";
+        } else if (error.response.status === 400) {
+          errorMessage = "Invalid request. Please select some notes and try again.";
+        } else if (error.response.status === 403) {
+          errorMessage = "Access denied. You don't have permission to access these notes.";
+        } else if (error.response.data?.detail) {
+          errorMessage = error.response.data.detail;
         }
       } else if (error.request) {
         // Network error
@@ -1517,7 +1512,7 @@ const NotesScreen = () => {
       
       toast({ 
         title: "Batch Report Error", 
-        description: errorDetails ? `${errorMessage} ${errorDetails}` : errorMessage,
+        description: errorMessage, 
         variant: "destructive" 
       });
     } finally {
