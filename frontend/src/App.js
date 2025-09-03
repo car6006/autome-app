@@ -1612,7 +1612,7 @@ const NotesScreen = () => {
           
           toast({ 
             title: `📄 ${format.toUpperCase()} Export Complete`, 
-            description: `Professional report exported with enhanced formatting` 
+            description: `Comprehensive report exported with enhanced formatting` 
           });
         } else {
           // For TXT/RTF or when note_id is not available, use frontend processing
