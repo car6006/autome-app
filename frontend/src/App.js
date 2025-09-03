@@ -1661,11 +1661,22 @@ const NotesScreen = () => {
   };
 
   const openAiChat = (note) => {
-    setAiChatNote(note);
-    setAiConversations(note.artifacts?.ai_conversations || []);
-    setShowAiChatModal(true);
-    setAiQuestion("");
-    setAiResponse("");
+    console.log('openAiChat called with note:', note?.id, note?.title);
+    try {
+      setAiChatNote(note);
+      setAiConversations(note.artifacts?.ai_conversations || []);
+      setShowAiChatModal(true);
+      setAiQuestion("");
+      setAiResponse("");
+      console.log('AI Chat modal should be opening...');
+    } catch (error) {
+      console.error('Error opening AI chat:', error);
+      toast({ 
+        title: "AI Chat Error", 
+        description: "Failed to open AI chat. Please try again.", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const submitAiQuestion = async () => {
