@@ -1541,6 +1541,9 @@ async def export_ai_conversations(
             analysis_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
             doc_title = doc.add_paragraph(f'{content_title}', style='AI Body Text')
             doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            # Explicitly set spacing for body text
+            doc_title.paragraph_format.space_after = Pt(12)
+            doc_title.paragraph_format.space_before = Pt(3)
         else:
             main_title = doc.add_paragraph(f'AI Content Analysis Report', style='AI Report Title')
             doc_title = doc.add_paragraph(f'{content_title}', style='AI Section Heading')
