@@ -1561,16 +1561,9 @@ const NotesScreen = () => {
           }
           
           if (format === 'pdf') {
-            // Frontend PDF generation using jsPDF
+            // Frontend PDF generation using jsPDF (static import)
             try {
-              // Check if jsPDF is available
-              let jsPDF;
-              try {
-                const jsPDFModule = await import('jspdf');
-                jsPDF = jsPDFModule.jsPDF;
-              } catch (importError) {
-                throw new Error('PDF library not available');
-              }
+              console.log('Starting PDF generation with content:', reportContent.substring(0, 100) + '...');
               
               const doc = new jsPDF();
               
@@ -1589,6 +1582,8 @@ const NotesScreen = () => {
               
               // Process content and add to PDF
               const cleanContent = reportContent.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').trim();
+              console.log('Cleaned content length:', cleanContent.length);
+              
               const lines = doc.splitTextToSize(cleanContent, 170);
               let yPosition = 65;
               
@@ -1605,12 +1600,14 @@ const NotesScreen = () => {
               });
               
               // Save the PDF
-              doc.save(`${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+              const filename = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+              console.log('Saving PDF as:', filename);
+              doc.save(filename);
               
               toast({ title: "📄 PDF Export Complete", description: "Comprehensive batch report downloaded successfully" });
             } catch (error) {
               console.error('PDF generation error:', error);
-              toast({ title: "Export Error", description: "Failed to generate PDF. Please try TXT format instead.", variant: "destructive" });
+              toast({ title: "PDF Export Error", description: `Failed to generate PDF: ${error.message}`, variant: "destructive" });
             }
             
           } else if (format === 'docx') {
