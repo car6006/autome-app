@@ -1574,31 +1574,53 @@ const NotesScreen = () => {
 
         toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Clean report downloaded successfully" });
       } else {
-        // For individual note reports, clean the content manually
-        let content = reportData.data.report || '';
-        
-        // Clean formatting for txt/rtf
-        if (format !== 'professional') {
-          content = content.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').replace(/\*/g, '').replace(/_/g, '');
+        // For individual note professional reports, use the enhanced backend export for Word/PDF
+        if ((format === 'docx' || format === 'pdf') && reportData.data.note_id) {
+          // Use the new professional report export endpoint with enhanced formatting
+          const response = await axios.get(`${API}/notes/${reportData.data.note_id}/professional-report/export?format=${format}`, {
+            responseType: 'blob'
+          });
+          
+          const url = URL.createObjectURL(response.data);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Professional_Report_${reportData.data.note_title.substring(0, 30)}.${format}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          toast({ 
+            title: `📄 ${format.toUpperCase()} Export Complete`, 
+            description: `Professional report exported with enhanced formatting` 
+          });
+        } else {
+          // For TXT/RTF or when note_id is not available, use frontend processing
+          let content = reportData.data.report || '';
+          
+          // Clean formatting for txt/rtf
+          if (format !== 'professional') {
+            content = content.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').replace(/\*/g, '').replace(/_/g, '');
+          }
+
+          if (format === 'rtf') {
+            // Convert to RTF format
+            const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}`;
+            content = rtfContent;
+          }
+
+          const blob = new Blob([content], { 
+            type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `report-${Date.now()}.${format}`;
+          a.click();
+          URL.revokeObjectURL(url);
+
+          toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Report downloaded successfully" });
         }
-
-        if (format === 'rtf') {
-          // Convert to RTF format
-          const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}`;
-          content = rtfContent;
-        }
-
-        const blob = new Blob([content], { 
-          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `report-${Date.now()}.${format}`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        toast({ title: `📁 ${format.toUpperCase()} Export Complete`, description: "Report downloaded successfully" });
       }
     } catch (error) {
       toast({ title: "Export Error", description: "Failed to export report", variant: "destructive" });
