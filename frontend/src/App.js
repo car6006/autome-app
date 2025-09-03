@@ -1443,10 +1443,10 @@ const NotesScreen = () => {
     setGeneratingReport(prev => ({ ...prev, batch: true }));
     
     try {
-      const response = await axios.post(`${API}/notes/comprehensive-batch-report`, {
+      // Generate comprehensive batch report - using same approach as individual professional reports
+      const response = await axios.post(`${API}/notes/batch-comprehensive-report`, {
         note_ids: selectedNotesForBatch,
-        title: `Comprehensive Multi-Session Report - ${new Date().toLocaleDateString()}`,
-        format: format
+        title: `Comprehensive Business Analysis - ${new Date().toLocaleDateString()}`
       });
       
       if (format === 'txt' || format === 'rtf') {
