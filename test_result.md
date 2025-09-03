@@ -155,6 +155,21 @@ original_user_problem_statement: |
   10. The CROP function for scanned images is not working
   Additional: Time and efficiency scoring is inaccurate/dodgy, Frontend cache needs optimization
 
+  - task: "Apply Enhanced Formatting to Professional Reports"
+    implemented: true
+    working: true
+    file: "server.py, App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User requested to apply the same enhanced formatting improvements to the Professional Report export functionality under the actions dropdown menu"
+      - working: true
+        agent: "main"
+        comment: "PROFESSIONAL REPORT FORMATTING ENHANCEMENT COMPLETED: Successfully applied the same enhanced formatting improvements to professional reports as were implemented for AI analysis exports. BACKEND IMPROVEMENTS: 1. New Export Endpoint - Created /api/notes/{note_id}/professional-report/export endpoint supporting PDF, DOCX, TXT, and RTF formats with professional formatting. 2. Enhanced PDF Generation - Implemented custom ReportLab styles with proper typography (Title: 18pt, Section Headings: 14pt, Body: 11pt), Helvetica fonts, 1.2 line spacing, and 12pt paragraph spacing. 3. Professional Word Documents - Added custom Calibri styles, proper paragraph spacing (12pt after, 3pt before), intelligent content parsing for section headings, bullet points, and paragraphs. 4. Content Structure Preservation - Implemented format_report_content_pdf() and format_report_content_docx() functions that intelligently parse professional report content to identify section headings (CAPS), sub-headings, bullet points, and paragraphs. 5. Expeditors Branding - Logo integration, company headers, and confidential footers for @expeditors.com users. FRONTEND INTEGRATION: 1. Enhanced Export Logic - Updated downloadReportAs() function to use backend export endpoint for DOCX/PDF formats while maintaining frontend processing for TXT/RTF. 2. UI Improvements - Added Word and PDF export buttons to both desktop and mobile professional report modal interfaces. 3. Better User Experience - Enhanced toast messages indicating professional formatting and improved file naming conventions. TECHNICAL IMPLEMENTATION: The professional reports now match the AI analysis export quality with proper paragraph spacing (12pt after, 3pt before), enhanced typography, structured content organization, and business-ready formatting suitable for professional use."
+
 backend:
   - task: "Improve AI Report Word Document Formatting"
     implemented: true
