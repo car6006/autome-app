@@ -1858,6 +1858,416 @@ async def generate_professional_report(
         logger.error(f"Report generation error: {str(e)}")
         raise HTTPException(status_code=500, detail="Report generation temporarily unavailable")
 
+@api_router.get("/notes/{note_id}/professional-report/export")
+async def export_professional_report(
+    note_id: str,
+    format: str = Query("pdf", regex="^(pdf|docx|txt|rtf)$"),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Export professional report to PDF, Word DOC, TXT, or RTF format"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    professional_report = artifacts.get("professional_report", "")
+    
+    if not professional_report:
+        raise HTTPException(status_code=400, detail="No professional report found. Please generate a report first.")
+    
+    # Check if user is from Expeditors for branding
+    is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+    
+    # Content for export
+    content_title = note['title']
+    export_content = professional_report
+    
+    if format == "txt":
+        # Plain text format
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"Professional_Report_{clean_title}.txt"
+        
+        return Response(
+            content=export_content,
+            media_type="text/plain",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "rtf":
+        # RTF format
+        clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"Professional_Report_{clean_title}.rtf"
+        
+        # RTF header
+        rtf_content = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
+        
+        # Convert content to RTF
+        rtf_body = export_content.replace("\\", "\\\\").replace("\n", "\\par ")
+        rtf_content += rtf_body + "}"
+        
+        return Response(
+            content=rtf_content,
+            media_type="application/rtf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "pdf":
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.colors import Color, black
+        from io import BytesIO
+        import os
+        import re
+        
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        
+        # Create custom styles for professional report
+        styles = getSampleStyleSheet()
+        
+        # Title style
+        title_style = ParagraphStyle(
+            'Report Title',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=18,
+            spaceBefore=0,
+            alignment=1,  # Center
+            fontName='Helvetica-Bold',
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        # Section heading style  
+        section_heading_style = ParagraphStyle(
+            'Report Section Heading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            spaceBefore=12,
+            spaceAfter=6,
+            fontName='Helvetica-Bold',
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        # Sub-heading style for content within report sections
+        sub_heading_style = ParagraphStyle(
+            'Report Sub Heading',
+            parent=styles['Normal'],
+            fontSize=12,
+            spaceBefore=12,
+            spaceAfter=6,
+            fontName='Helvetica-Bold',
+            textColor=black
+        )
+        
+        # Body text style with improved spacing
+        body_style = ParagraphStyle(
+            'Report Body Text',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=12,  # Increased spacing between paragraphs
+            spaceBefore=3,  # Small space before paragraphs
+            leftIndent=0,
+            rightIndent=0,
+            fontName='Helvetica',
+            leading=13.2  # 1.2 line spacing
+        )
+        
+        # Bullet point style
+        bullet_style = ParagraphStyle(
+            'Report Bullet',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=6,
+            spaceBefore=3,
+            leftIndent=20,
+            fontName='Helvetica',
+            leading=13.2
+        )
+        
+        # Function to format professional report content for PDF
+        def format_report_content_pdf(content):
+            if not content:
+                return []
+            
+            # Split by double newlines to identify sections
+            sections = re.split(r'\n\s*\n', content)
+            formatted_elements = []
+            
+            for section in sections:
+                section = section.strip()
+                if not section:
+                    continue
+                
+                lines = section.split('\n')
+                
+                # Check if this is a section header (all caps, short line)
+                if len(lines) == 1 and len(section) < 100 and section.isupper():
+                    formatted_elements.append(('section_heading', section))
+                elif len(lines) == 1 and len(section) < 100 and not section.endswith('.') and not section.startswith('•'):
+                    # Likely a sub-heading
+                    formatted_elements.append(('sub_heading', section))
+                else:
+                    # Process as content section
+                    for line in lines:
+                        line = line.strip()
+                        if line:
+                            if line.startswith('•'):
+                                # Bullet point
+                                bullet_text = line[1:].strip()
+                                formatted_elements.append(('bullet', bullet_text))
+                            elif line.isupper() and len(line) < 100:
+                                # Section heading within content
+                                formatted_elements.append(('section_heading', line))
+                            else:
+                                # Regular paragraph
+                                formatted_elements.append(('paragraph', line))
+            
+            return formatted_elements
+        
+        story = []
+        
+        # Add logo if Expeditors user
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo = Image(logo_path, width=2*inch, height=0.8*inch)
+                    logo.hAlign = 'CENTER'
+                    story.append(logo)
+                    story.append(Spacer(1, 20))
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
+        # Title
+        if is_expeditors_user:
+            story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
+            story.append(Paragraph("Professional Business Report", section_heading_style))
+            story.append(Paragraph(f"{content_title}", body_style))
+        else:
+            story.append(Paragraph("Professional Business Report", title_style))
+            story.append(Paragraph(f"{content_title}", section_heading_style))
+        
+        story.append(Spacer(1, 20))
+        
+        # Format the report content with proper structure
+        formatted_content = format_report_content_pdf(export_content)
+        for content_type, content_text in formatted_content:
+            if content_type == 'section_heading':
+                story.append(Paragraph(content_text, section_heading_style))
+            elif content_type == 'sub_heading':
+                story.append(Paragraph(content_text, sub_heading_style))
+            elif content_type == 'bullet':
+                story.append(Paragraph(f"• {content_text}", bullet_style))
+            else:  # paragraph
+                story.append(Paragraph(content_text, body_style))
+        
+        # Footer
+        if is_expeditors_user:
+            story.append(Spacer(1, 30))
+            footer_style = ParagraphStyle(
+                'Footer', 
+                parent=styles['Normal'], 
+                fontSize=8, 
+                alignment=1, 
+                textColor=Color(0.5, 0.5, 0.5),
+                fontName='Helvetica-Oblique'
+            )
+            story.append(Paragraph("Confidential - Expeditors International", footer_style))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        
+        # Create filename
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"Professional_Report_{filename_base}.pdf"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "docx":
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.style import WD_STYLE_TYPE
+        from io import BytesIO
+        import os
+        import re
+        
+        doc = Document()
+        
+        # Set document margins
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+        
+        # Define custom styles for better formatting
+        styles = doc.styles
+        
+        # Main heading style
+        if 'Report Title' not in [s.name for s in styles]:
+            title_style = styles.add_style('Report Title', WD_STYLE_TYPE.PARAGRAPH)
+            title_font = title_style.font
+            title_font.name = 'Calibri'
+            title_font.size = Pt(18)
+            title_font.bold = True
+            title_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            title_style.paragraph_format.space_after = Pt(18)
+        
+        # Section heading style
+        if 'Report Section Heading' not in [s.name for s in styles]:
+            section_style = styles.add_style('Report Section Heading', WD_STYLE_TYPE.PARAGRAPH)
+            section_font = section_style.font
+            section_font.name = 'Calibri'
+            section_font.size = Pt(14)
+            section_font.bold = True
+            section_style.paragraph_format.space_before = Pt(12)
+            section_style.paragraph_format.space_after = Pt(6)
+        
+        # Body text style
+        if 'Report Body Text' not in [s.name for s in styles]:
+            body_style = styles.add_style('Report Body Text', WD_STYLE_TYPE.PARAGRAPH)
+            body_font = body_style.font
+            body_font.name = 'Calibri'
+            body_font.size = Pt(11)
+            body_style.paragraph_format.space_after = Pt(12)
+            body_style.paragraph_format.space_before = Pt(3)
+            body_style.paragraph_format.line_spacing = 1.15
+        
+        # Function to format professional report content for Word
+        def format_report_content_docx(content):
+            if not content:
+                return []
+            
+            # Split by double newlines to identify sections
+            sections = re.split(r'\n\s*\n', content)
+            formatted_elements = []
+            
+            for section in sections:
+                section = section.strip()
+                if not section:
+                    continue
+                
+                lines = section.split('\n')
+                
+                # Check if this is a section header (all caps, short line)
+                if len(lines) == 1 and len(section) < 100 and section.isupper():
+                    formatted_elements.append(('section_heading', section))
+                elif len(lines) == 1 and len(section) < 100 and not section.endswith('.') and not section.startswith('•'):
+                    # Likely a sub-heading
+                    formatted_elements.append(('sub_heading', section))
+                else:
+                    # Process as content section
+                    for line in lines:
+                        line = line.strip()
+                        if line:
+                            if line.startswith('•'):
+                                # Bullet point
+                                bullet_text = line[1:].strip()
+                                formatted_elements.append(('bullet', bullet_text))
+                            elif line.isupper() and len(line) < 100:
+                                # Section heading within content
+                                formatted_elements.append(('section_heading', line))
+                            else:
+                                # Regular paragraph
+                                formatted_elements.append(('paragraph', line))
+            
+            return formatted_elements
+        
+        # Add logo if Expeditors user
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo_para = doc.add_paragraph()
+                    logo_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = logo_para.runs[0] if logo_para.runs else logo_para.add_run()
+                    run.add_picture(logo_path, width=Inches(3))
+                    doc.add_paragraph()  # Spacer
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
+        # Title
+        if is_expeditors_user:
+            company_title = doc.add_paragraph('EXPEDITORS INTERNATIONAL', style='Report Title')
+            report_title = doc.add_paragraph(f'Professional Business Report', style='Report Section Heading')
+            report_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            doc_title = doc.add_paragraph(f'{content_title}', style='Report Body Text')
+            doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            # Explicitly set spacing for body text
+            doc_title.paragraph_format.space_after = Pt(12)
+            doc_title.paragraph_format.space_before = Pt(3)
+        else:
+            main_title = doc.add_paragraph(f'Professional Business Report', style='Report Title')
+            doc_title = doc.add_paragraph(f'{content_title}', style='Report Section Heading')
+            doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Add a horizontal line separator
+        doc.add_paragraph()
+        
+        # Format the report content with proper structure
+        formatted_content = format_report_content_docx(export_content)
+        for content_type, content_text in formatted_content:
+            if content_type == 'section_heading':
+                heading_para = doc.add_paragraph(content_text, style='Report Section Heading')
+            elif content_type == 'sub_heading':
+                # Sub-heading within the report
+                sub_heading = doc.add_paragraph(content_text)
+                sub_heading_run = sub_heading.runs[0]
+                sub_heading_run.font.name = 'Calibri'
+                sub_heading_run.font.size = Pt(12)
+                sub_heading_run.font.bold = True
+                sub_heading.paragraph_format.space_before = Pt(12)
+                sub_heading.paragraph_format.space_after = Pt(6)
+            elif content_type == 'bullet':
+                bullet_para = doc.add_paragraph(f'• {content_text}', style='Report Body Text')
+                # Explicitly set spacing for bullet points
+                bullet_para.paragraph_format.space_after = Pt(6)
+                bullet_para.paragraph_format.space_before = Pt(3)
+                bullet_para.paragraph_format.left_indent = Inches(0.25)
+            else:  # paragraph
+                para = doc.add_paragraph(content_text, style='Report Body Text')
+                # Explicitly set spacing to ensure it's applied
+                para.paragraph_format.space_after = Pt(12)
+                para.paragraph_format.space_before = Pt(3)
+        
+        # Footer
+        if is_expeditors_user:
+            doc.add_paragraph()
+            footer_para = doc.add_paragraph()
+            footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            footer_run = footer_para.add_run("Confidential - Expeditors International")
+            footer_run.font.name = 'Calibri'
+            footer_run.font.size = Pt(8)
+            footer_run.font.italic = True
+        
+        # Save to buffer
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        # Create filename
+        filename_base = note['title'][:30].replace(' ', '_').replace('/', '_').replace('\\', '_')
+        filename = f"Professional_Report_{filename_base}.docx"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+
 @api_router.post("/notes/comprehensive-batch-report")
 async def generate_comprehensive_batch_report(
     request: BatchReportRequest,
