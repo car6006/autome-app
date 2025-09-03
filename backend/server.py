@@ -1478,7 +1478,8 @@ async def export_ai_conversations(
             body_font = body_style.font
             body_font.name = 'Calibri'
             body_font.size = Pt(11)
-            body_style.paragraph_format.space_after = Pt(6)
+            body_style.paragraph_format.space_after = Pt(12)  # Increased from 6 to 12 for better spacing
+            body_style.paragraph_format.space_before = Pt(3)  # Added space before paragraphs
             body_style.paragraph_format.line_spacing = 1.15
         
         # Function to format AI content with proper paragraph structure
