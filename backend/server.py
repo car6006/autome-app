@@ -1581,6 +1581,9 @@ async def export_ai_conversations(
                     else:
                         # Regular paragraph
                         para = doc.add_paragraph(content_text, style='AI Body Text')
+                        # Explicitly set spacing to ensure it's applied (python-docx style issue workaround)
+                        para.paragraph_format.space_after = Pt(12)  # 12pt space_after for body text
+                        para.paragraph_format.space_before = Pt(3)   # 3pt space_before for body text
                 
                 # Add spacing between conversations
                 if i < len(ai_conversations):
