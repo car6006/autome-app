@@ -136,7 +136,7 @@ class NotesStore:
                         # Average typing speed looking at image: ~60 characters per minute
                         hand_typing_time = content_length / 60
                         time_saved = max(hand_typing_time, 5)  # minimum 5 minutes for any photo note
-                        estimated_minutes_saved += time_saved  # No artificial cap - show real value!
+                        estimated_minutes_saved += min(time_saved, 120)  # cap at 2 hours per photo (reasonable for complex documents)
                         
                     elif note_kind == "text":
                         # Text notes save time through AI analysis, formatting, and organization
