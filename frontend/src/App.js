@@ -1371,47 +1371,12 @@ const NotesScreen = () => {
         description: `Comprehensive business analysis generated from ${response.data.note_count} sessions` 
       });
       
-      if (format === 'txt' || format === 'rtf') {
-        // Direct download for clean formats
-        const blob = new Blob([response.data.content], { 
-          type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = response.data.filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        setSelectedNotesForBatch([]);
-        
-        toast({ 
-          title: `📁 ${format.toUpperCase()} Export Complete`, 
-          description: `Clean batch report exported from ${response.data.note_count} notes` 
-        });
-      } else {
-        // Show modal for professional report
-        setCurrentReport({
-          type: 'batch',
-          data: response.data,
-          selectedNotes: selectedNotesForBatch.slice() // Store a copy of the selected notes
-        });
-        setShowReportModal(true);
-        setSelectedNotesForBatch([]);
-        
-        toast({ 
-          title: "📊 Professional Report Generated", 
-          description: `AI analysis from ${response.data.note_count} notes is ready` 
-        });
-      }
-      
     } catch (error) {
-      console.error('Regular batch report generation error:', error);
+      console.error('Batch report generation error:', error);
       
-      let errorMessage = "Failed to generate batch report. Please try again.";
+      let errorMessage = "Failed to generate AI report. Please try again.";
       
       if (error.response) {
-        // Backend returned an error
         if (error.response.status === 401) {
           errorMessage = "Authentication required. Please log in and try again.";
         } else if (error.response.status === 400) {
@@ -1422,12 +1387,11 @@ const NotesScreen = () => {
           errorMessage = error.response.data.detail;
         }
       } else if (error.request) {
-        // Network error
         errorMessage = "Network error. Please check your connection and try again.";
       }
       
       toast({ 
-        title: "Batch Report Error", 
+        title: "AI Report Error", 
         description: errorMessage, 
         variant: "destructive" 
       });
