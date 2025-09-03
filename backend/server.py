@@ -17,6 +17,7 @@ import uuid
 import httpx
 import time
 from datetime import datetime, timedelta, timezone
+from openai import OpenAI
 
 from store import NotesStore
 from storage import store_file
