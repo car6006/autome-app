@@ -128,7 +128,7 @@ class NotesStore:
                         # Also factor in the convenience of not having to manually transcribe
                         hand_writing_time = (content_length / 80) + (content_length / 400) * 5  # slower for transcription + listening time
                         time_saved = max(hand_writing_time, 15)  # minimum 15 minutes for any audio note
-                        estimated_minutes_saved += time_saved  # No artificial cap - show real value!
+                        estimated_minutes_saved += min(time_saved, 480)  # cap at 8 hours per note (reasonable for full-day meetings)
                         
                     elif note_kind == "photo":
                         # OCR saves time vs manual typing from image
