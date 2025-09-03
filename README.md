@@ -31,12 +31,27 @@ AUTO-ME is a production-ready PWA (Progressive Web App) featuring advanced voice
 - **Advanced Search**: Filter by type, status, date, and content
 - **Batch Operations**: Multi-select for bulk actions and report generation
 
-### **🤖 AI-Powered Intelligence**
-- **Ask AI Feature**: Conversational interface for content analysis
-- **Professional Reports**: Auto-generated business documents from transcripts
-- **Meeting Minutes**: Structured minutes with action items and decisions
-- **Batch Analysis**: Process multiple notes for comprehensive insights
-- **Context-Aware Responses**: Industry-specific and role-based AI assistance
+### **📊 Enhanced Productivity Metrics (New Feature)**
+- **Content-Length Based Calculations**: Time saved now calculated based on actual note content size
+- **Realistic Hand-Writing Speeds**: Uses real-world typing/writing speeds for accurate estimates
+- **Note Type Intelligence**: Different algorithms for audio transcription, OCR processing, and text analysis
+- **Conservative Boundaries**: Minimum and maximum caps prevent unrealistic time savings claims
+- **Smart Content Analysis**: Automatically detects content from transcripts, OCR text, and note content
+- **AI Value Recognition**: Accounts for AI analysis, formatting, and organization benefits in text notes
+
+#### **Time Saving Algorithm Details**:
+- **Audio Notes**: Based on transcript length with realistic hand-transcription time (~80 chars/min + listening time)
+  - **Range**: 15 minutes (minimum) to 120 minutes (maximum) per note
+- **Photo Notes**: Based on OCR text length with image-to-text typing speed (~60 chars/min)
+  - **Range**: 5 minutes (minimum) to 60 minutes (maximum) per note  
+- **Text Notes**: Based on content length plus AI analysis value (~100 chars/min + 3 min AI benefit)
+  - **Range**: Content-based calculation up to 45 minutes maximum per note
+
+#### **Business Value**:
+- **Credible Metrics**: Time savings users can actually relate to and verify
+- **Scalable Calculations**: Longer content shows proportionally higher time savings
+- **Professional Reporting**: Realistic productivity metrics suitable for business presentations
+- **User Trust**: Conservative estimates build confidence in the platform's value proposition
 
 ### **📊 Analytics & Metrics**
 - **Enhanced Productivity Tracking**: Content-length based time saved calculations
