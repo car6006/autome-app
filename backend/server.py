@@ -2649,6 +2649,383 @@ async def generate_batch_report(
                 "source_notes": note_titles
             }
         
+        elif format == "pdf":
+            # Generate AI analysis first
+            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+            if not api_key:
+                raise HTTPException(status_code=500, detail="AI service not configured")
+            
+            full_content = "\n\n".join(combined_content)
+            
+            # Get user profile for professional context
+            user_profile = current_user.get("profile", {}) if current_user else {}
+            is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+            
+            # Generate AI analysis
+            batch_prompt = ai_context_processor.generate_dynamic_prompt(
+                content=full_content,
+                user_profile=user_profile,
+                analysis_type="strategic_planning"
+            )
+            
+            logo_header = ""
+            if is_expeditors_user:
+                logo_header = """
+==================================================
+           EXPEDITORS INTERNATIONAL
+        Comprehensive Business Analysis Report
+==================================================
+
+"""
+            
+            prompt = f"""
+            {logo_header}
+            You are a senior business analyst creating a comprehensive strategic report from multiple business documents.
+            
+            ANALYSIS REQUIREMENTS:
+            - Synthesize information across ALL provided documents
+            - Identify cross-cutting themes, patterns, and strategic insights
+            - Provide executive-level recommendations with clear rationale
+            - Structure the analysis professionally for C-level stakeholders
+            - Focus on actionable insights that drive business value
+            
+            DOCUMENTS TO ANALYZE:
+            {full_content}
+            
+            {batch_prompt}
+            
+            Provide a comprehensive business analysis that executives can immediately act upon. Structure with clear sections and actionable recommendations.
+            """
+            
+            # Generate AI analysis
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=4000,
+                temperature=0.7
+            )
+            
+            ai_analysis = response.choices[0].message.content
+            
+            # Generate PDF with enhanced formatting
+            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import inch
+            from reportlab.lib.colors import Color, black
+            from io import BytesIO
+            import os
+            import re
+            
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+            
+            # Create custom styles
+            styles = getSampleStyleSheet()
+            
+            # Title style
+            title_style = ParagraphStyle(
+                'Batch Report Title',
+                parent=styles['Heading1'],
+                fontSize=18,
+                spaceAfter=18,
+                spaceBefore=0,
+                alignment=1,  # Center
+                fontName='Helvetica-Bold',
+                textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+            )
+            
+            # Section heading style  
+            section_heading_style = ParagraphStyle(
+                'Batch Section Heading',
+                parent=styles['Heading2'],
+                fontSize=14,
+                spaceBefore=12,
+                spaceAfter=6,
+                fontName='Helvetica-Bold',
+                textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+            )
+            
+            # Body text style with improved spacing
+            body_style = ParagraphStyle(
+                'Batch Body Text',
+                parent=styles['Normal'],
+                fontSize=11,
+                spaceAfter=12,
+                spaceBefore=3,
+                leftIndent=0,
+                rightIndent=0,
+                fontName='Helvetica',
+                leading=13.2
+            )
+            
+            story = []
+            
+            # Add logo if Expeditors user
+            if is_expeditors_user:
+                logo_path = "/app/backend/expeditors-logo.png"
+                if os.path.exists(logo_path):
+                    try:
+                        logo = Image(logo_path, width=2*inch, height=0.8*inch)
+                        logo.hAlign = 'CENTER'
+                        story.append(logo)
+                        story.append(Spacer(1, 20))
+                    except Exception as e:
+                        print(f"Logo loading error: {e}")
+            
+            # Title
+            if is_expeditors_user:
+                story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
+                story.append(Paragraph("Comprehensive Business Analysis", section_heading_style))
+                story.append(Paragraph(f"{title}", body_style))
+            else:
+                story.append(Paragraph("Comprehensive Business Analysis", title_style))
+                story.append(Paragraph(f"{title}", section_heading_style))
+            
+            story.append(Spacer(1, 20))
+            
+            # Source notes section
+            story.append(Paragraph("Source Documents", section_heading_style))
+            for note_title in note_titles:
+                story.append(Paragraph(f"• {note_title}", body_style))
+            story.append(Spacer(1, 20))
+            
+            # AI Analysis content
+            story.append(Paragraph("Executive Analysis", section_heading_style))
+            
+            # Format AI analysis with proper paragraphs
+            paragraphs = re.split(r'\n\s*\n', ai_analysis)
+            for paragraph in paragraphs:
+                paragraph = paragraph.strip()
+                if paragraph:
+                    # Check if it looks like a heading
+                    if len(paragraph) < 100 and not paragraph.endswith('.') and paragraph.isupper():
+                        story.append(Paragraph(paragraph, section_heading_style))
+                    else:
+                        story.append(Paragraph(paragraph, body_style))
+            
+            # Footer
+            if is_expeditors_user:
+                story.append(Spacer(1, 30))
+                footer_style = ParagraphStyle(
+                    'Footer', 
+                    parent=styles['Normal'], 
+                    fontSize=8, 
+                    alignment=1, 
+                    textColor=Color(0.5, 0.5, 0.5),
+                    fontName='Helvetica-Oblique'
+                )
+                story.append(Paragraph("Confidential - Expeditors International", footer_style))
+            
+            # Build PDF
+            doc.build(story)
+            buffer.seek(0)
+            
+            # Mark all accessible notes as completed
+            for note_id in note_ids:
+                note = await NotesStore.get(note_id)
+                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                    await NotesStore.update_status(note_id, "completed")
+            
+            return Response(
+                content=buffer.getvalue(),
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename=\"{title.replace(' ', '_')}.pdf\""}
+            )
+        
+        elif format == "docx":
+            # Generate AI analysis first
+            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+            if not api_key:
+                raise HTTPException(status_code=500, detail="AI service not configured")
+            
+            full_content = "\n\n".join(combined_content)
+            
+            # Get user profile for professional context
+            user_profile = current_user.get("profile", {}) if current_user else {}
+            is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+            
+            # Generate AI analysis
+            batch_prompt = ai_context_processor.generate_dynamic_prompt(
+                content=full_content,
+                user_profile=user_profile,
+                analysis_type="strategic_planning"
+            )
+            
+            logo_header = ""
+            if is_expeditors_user:
+                logo_header = """
+==================================================
+           EXPEDITORS INTERNATIONAL
+        Comprehensive Business Analysis Report
+==================================================
+
+"""
+            
+            prompt = f"""
+            {logo_header}
+            You are a senior business analyst creating a comprehensive strategic report from multiple business documents.
+            
+            ANALYSIS REQUIREMENTS:
+            - Synthesize information across ALL provided documents
+            - Identify cross-cutting themes, patterns, and strategic insights
+            - Provide executive-level recommendations with clear rationale
+            - Structure the analysis professionally for C-level stakeholders
+            - Focus on actionable insights that drive business value
+            
+            DOCUMENTS TO ANALYZE:
+            {full_content}
+            
+            {batch_prompt}
+            
+            Provide a comprehensive business analysis that executives can immediately act upon. Structure with clear sections and actionable recommendations.
+            """
+            
+            # Generate AI analysis
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=4000,
+                temperature=0.7
+            )
+            
+            ai_analysis = response.choices[0].message.content
+            
+            # Generate Word document with enhanced formatting
+            from docx import Document
+            from docx.shared import Inches, Pt
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
+            from docx.enum.style import WD_STYLE_TYPE
+            from io import BytesIO
+            import os
+            import re
+            
+            doc = Document()
+            
+            # Set document margins
+            sections = doc.sections
+            for section in sections:
+                section.top_margin = Inches(1)
+                section.bottom_margin = Inches(1)
+                section.left_margin = Inches(1)
+                section.right_margin = Inches(1)
+            
+            # Define custom styles
+            styles = doc.styles
+            
+            # Main heading style
+            if 'Batch Report Title' not in [s.name for s in styles]:
+                title_style = styles.add_style('Batch Report Title', WD_STYLE_TYPE.PARAGRAPH)
+                title_font = title_style.font
+                title_font.name = 'Calibri'
+                title_font.size = Pt(18)
+                title_font.bold = True
+                title_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                title_style.paragraph_format.space_after = Pt(18)
+            
+            # Section heading style
+            if 'Batch Section Heading' not in [s.name for s in styles]:
+                section_style = styles.add_style('Batch Section Heading', WD_STYLE_TYPE.PARAGRAPH)
+                section_font = section_style.font
+                section_font.name = 'Calibri'
+                section_font.size = Pt(14)
+                section_font.bold = True
+                section_style.paragraph_format.space_before = Pt(12)
+                section_style.paragraph_format.space_after = Pt(6)
+            
+            # Body text style
+            if 'Batch Body Text' not in [s.name for s in styles]:
+                body_style = styles.add_style('Batch Body Text', WD_STYLE_TYPE.PARAGRAPH)
+                body_font = body_style.font
+                body_font.name = 'Calibri'
+                body_font.size = Pt(11)
+                body_style.paragraph_format.space_after = Pt(12)
+                body_style.paragraph_format.space_before = Pt(3)
+                body_style.paragraph_format.line_spacing = 1.15
+            
+            # Add logo if Expeditors user
+            if is_expeditors_user:
+                logo_path = "/app/backend/expeditors-logo.png"
+                if os.path.exists(logo_path):
+                    try:
+                        logo_para = doc.add_paragraph()
+                        logo_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        run = logo_para.runs[0] if logo_para.runs else logo_para.add_run()
+                        run.add_picture(logo_path, width=Inches(3))
+                        doc.add_paragraph()  # Spacer
+                    except Exception as e:
+                        print(f"Logo loading error: {e}")
+            
+            # Title
+            if is_expeditors_user:
+                company_title = doc.add_paragraph('EXPEDITORS INTERNATIONAL', style='Batch Report Title')
+                analysis_title = doc.add_paragraph(f'Comprehensive Business Analysis', style='Batch Section Heading')
+                analysis_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                doc_title = doc.add_paragraph(f'{title}', style='Batch Body Text')
+                doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                doc_title.paragraph_format.space_after = Pt(12)
+                doc_title.paragraph_format.space_before = Pt(3)
+            else:
+                main_title = doc.add_paragraph(f'Comprehensive Business Analysis', style='Batch Report Title')
+                doc_title = doc.add_paragraph(f'{title}', style='Batch Section Heading')
+                doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Add spacer
+            doc.add_paragraph()
+            
+            # Source notes section
+            source_heading = doc.add_paragraph('Source Documents', style='Batch Section Heading')
+            for note_title in note_titles:
+                bullet_para = doc.add_paragraph(f'• {note_title}', style='Batch Body Text')
+                bullet_para.paragraph_format.left_indent = Inches(0.25)
+            
+            doc.add_paragraph()  # Spacer
+            
+            # AI Analysis content
+            analysis_heading = doc.add_paragraph('Executive Analysis', style='Batch Section Heading')
+            
+            # Format AI analysis with proper paragraphs
+            paragraphs = re.split(r'\n\s*\n', ai_analysis)
+            for paragraph in paragraphs:
+                paragraph = paragraph.strip()
+                if paragraph:
+                    # Check if it looks like a heading
+                    if len(paragraph) < 100 and not paragraph.endswith('.') and paragraph.isupper():
+                        sub_heading = doc.add_paragraph(paragraph, style='Batch Section Heading')
+                    else:
+                        para = doc.add_paragraph(paragraph, style='Batch Body Text')
+                        para.paragraph_format.space_after = Pt(12)
+                        para.paragraph_format.space_before = Pt(3)
+            
+            # Footer
+            if is_expeditors_user:
+                doc.add_paragraph()
+                footer_para = doc.add_paragraph()
+                footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                footer_run = footer_para.add_run("Confidential - Expeditors International")
+                footer_run.font.name = 'Calibri'
+                footer_run.font.size = Pt(8)
+                footer_run.font.italic = True
+            
+            # Save to buffer
+            buffer = BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
+            
+            # Mark all accessible notes as completed
+            for note_id in note_ids:
+                note = await NotesStore.get(note_id)
+                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
+                    await NotesStore.update_status(note_id, "completed")
+            
+            return Response(
+                content=buffer.getvalue(),
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                headers={"Content-Disposition": f"attachment; filename=\"{title.replace(' ', '_')}.docx\""}
+            )
+        
         else:  # Professional AI report format (default)
             # Generate comprehensive AI report
             api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
