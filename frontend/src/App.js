@@ -2883,7 +2883,7 @@ const NotesScreen = () => {
                       onClick={() => downloadReportAs(currentReport, 'txt')}
                     >
                       <Download className="w-4 h-4 mr-1" />
-                      Export TXT
+                      TXT
                     </Button>
                     <Button
                       size="sm"
@@ -2891,7 +2891,25 @@ const NotesScreen = () => {
                       onClick={() => downloadReportAs(currentReport, 'rtf')}
                     >
                       <Download className="w-4 h-4 mr-1" />
-                      Export RTF
+                      RTF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadReportAs(currentReport, 'pdf')}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadReportAs(currentReport, 'docx')}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Word
                     </Button>
                     
                     {/* Ask AI button for batch reports */}
