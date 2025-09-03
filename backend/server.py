@@ -1613,6 +1613,9 @@ async def export_ai_conversations(
                     sub_heading.paragraph_format.space_after = Pt(6)
                 else:
                     para = doc.add_paragraph(content_text, style='AI Body Text')
+                    # Explicitly set spacing for body text
+                    para.paragraph_format.space_after = Pt(12)
+                    para.paragraph_format.space_before = Pt(3)
         
         # Footer
         if is_expeditors_user:
