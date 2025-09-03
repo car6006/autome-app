@@ -1574,8 +1574,8 @@ async def export_ai_conversations(
                         sub_heading_run.font.name = 'Calibri'
                         sub_heading_run.font.size = Pt(12)
                         sub_heading_run.font.bold = True
-                        sub_heading.paragraph_format.space_before = Pt(8)
-                        sub_heading.paragraph_format.space_after = Pt(4)
+                        sub_heading.paragraph_format.space_before = Pt(12)  # Increased from 8
+                        sub_heading.paragraph_format.space_after = Pt(6)    # Increased from 4
                     else:
                         # Regular paragraph
                         para = doc.add_paragraph(content_text, style='AI Body Text')
