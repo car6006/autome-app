@@ -1330,41 +1330,112 @@ async def export_ai_conversations(
         from reportlab.lib.colors import Color, black
         from io import BytesIO
         import os
+        import re
         
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
         
-        # Create custom styles
+        # Create custom styles for professional AI analysis
         styles = getSampleStyleSheet()
         
-        # Custom styles for professional AI analysis
+        # Title style
         title_style = ParagraphStyle(
-            'AnalysisTitle',
+            'AI Report Title',
             parent=styles['Heading1'],
-            fontSize=20,
-            spaceAfter=20,
+            fontSize=18,
+            spaceAfter=18,
+            spaceBefore=0,
             alignment=1,  # Center
+            fontName='Helvetica-Bold',
             textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
         )
         
-        heading_style = ParagraphStyle(
-            'SectionHeading',
+        # Section heading style  
+        section_heading_style = ParagraphStyle(
+            'AI Section Heading',
             parent=styles['Heading2'],
             fontSize=14,
-            spaceBefore=16,
-            spaceAfter=8,
-            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else Color(0.2, 0.2, 0.2)
+            spaceBefore=12,
+            spaceAfter=6,
+            fontName='Helvetica-Bold',
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
         )
         
+        # Sub-heading style for content within AI responses
+        sub_heading_style = ParagraphStyle(
+            'AI Sub Heading',
+            parent=styles['Normal'],
+            fontSize=12,
+            spaceBefore=12,
+            spaceAfter=6,
+            fontName='Helvetica-Bold',
+            textColor=black
+        )
+        
+        # Body text style with improved spacing
         body_style = ParagraphStyle(
-            'BodyText',
+            'AI Body Text',
             parent=styles['Normal'],
             fontSize=11,
-            spaceBefore=6,
-            spaceAfter=6,
+            spaceAfter=12,  # Increased spacing between paragraphs
+            spaceBefore=3,  # Small space before paragraphs
             leftIndent=0,
-            rightIndent=0
+            rightIndent=0,
+            fontName='Helvetica',
+            leading=13.2  # 1.2 line spacing
         )
+        
+        # Question style
+        question_style = ParagraphStyle(
+            'Question Text',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=12,
+            spaceBefore=3,
+            leftIndent=0,
+            rightIndent=0,
+            fontName='Helvetica',
+            leading=13.2
+        )
+        
+        # Function to format AI content for PDF with proper paragraph structure
+        def format_ai_content_pdf(content):
+            if not content:
+                return []
+            
+            # Split by double newlines first to identify major sections
+            sections = re.split(r'\n\s*\n', content)
+            formatted_paragraphs = []
+            
+            for section in sections:
+                section = section.strip()
+                if not section:
+                    continue
+                
+                # Check if this looks like a heading (short line, possibly with special formatting)
+                lines = section.split('\n')
+                if len(lines) == 1 and len(section) < 100 and not section.endswith('.'):
+                    # Likely a heading
+                    heading_text = section.replace('**', '').replace('*', '').replace('#', '').strip()
+                    if heading_text:
+                        formatted_paragraphs.append(('heading', heading_text))
+                else:
+                    # Process as content section
+                    for line in lines:
+                        line = line.strip()
+                        if line:
+                            # Clean formatting but preserve structure
+                            clean_line = line.replace('**', '').replace('*', '').replace('#', '').strip()
+                            # Remove bullet points and numbering for cleaner look
+                            if clean_line.startswith(('•', '-', '*')):
+                                clean_line = clean_line[1:].strip()
+                            elif re.match(r'^\d+\.', clean_line):
+                                clean_line = re.sub(r'^\d+\.\s*', '', clean_line)
+                            
+                            if clean_line:
+                                formatted_paragraphs.append(('paragraph', clean_line))
+            
+            return formatted_paragraphs
         
         story = []
         
@@ -1373,16 +1444,22 @@ async def export_ai_conversations(
             logo_path = "/app/backend/expeditors-logo.png"
             if os.path.exists(logo_path):
                 try:
-                    img = Image(logo_path, width=3*inch, height=1*inch)
-                    img.hAlign = 'CENTER'
-                    story.append(img)
+                    logo = Image(logo_path, width=2*inch, height=0.8*inch)
+                    logo.hAlign = 'CENTER'
+                    story.append(logo)
                     story.append(Spacer(1, 20))
                 except Exception as e:
                     print(f"Logo loading error: {e}")
         
         # Title
-        title_text = f"AI Content Analysis: {content_title}"
-        story.append(Paragraph(title_text, title_style))
+        if is_expeditors_user:
+            story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
+            story.append(Paragraph("AI Content Analysis Report", section_heading_style))
+            story.append(Paragraph(f"{content_title}", body_style))
+        else:
+            story.append(Paragraph("AI Content Analysis Report", title_style))
+            story.append(Paragraph(f"{content_title}", section_heading_style))
+        
         story.append(Spacer(1, 20))
         
         # Content
@@ -1391,29 +1468,52 @@ async def export_ai_conversations(
                 question = conv.get("question", "")
                 response = conv.get("response", "")
                 
-                # Question
-                story.append(Paragraph(f"Question {i}:", heading_style))
-                story.append(Paragraph(question, body_style))
-                story.append(Spacer(1, 12))
+                # Question section
+                story.append(Paragraph(f"Question {i}", section_heading_style))
+                story.append(Paragraph(question, question_style))
                 
-                # Response
-                story.append(Paragraph("AI Analysis:", heading_style))
-                # Clean and process response
-                clean_response = clean_content(response)
-                story.append(Paragraph(clean_response, body_style))
+                # Small spacer between question and response
+                story.append(Spacer(1, 6))
                 
+                # Response section
+                story.append(Paragraph("Analysis & Response", section_heading_style))
+                
+                # Format the AI response with proper paragraphs
+                formatted_content = format_ai_content_pdf(response)
+                for content_type, content_text in formatted_content:
+                    if content_type == 'heading':
+                        # Sub-heading within the response
+                        story.append(Paragraph(content_text, sub_heading_style))
+                    else:
+                        # Regular paragraph
+                        story.append(Paragraph(content_text, body_style))
+                
+                # Add spacing between conversations
                 if i < len(ai_conversations):
                     story.append(Spacer(1, 20))
+        
         elif meeting_minutes:
-            clean_minutes = clean_content(meeting_minutes)
-            story.append(Paragraph(clean_minutes, body_style))
+            # Format meeting minutes with proper structure
+            story.append(Paragraph("Meeting Minutes", section_heading_style))
+            formatted_content = format_ai_content_pdf(meeting_minutes)
+            for content_type, content_text in formatted_content:
+                if content_type == 'heading':
+                    story.append(Paragraph(content_text, sub_heading_style))
+                else:
+                    story.append(Paragraph(content_text, body_style))
         
         # Footer
         if is_expeditors_user:
             story.append(Spacer(1, 30))
-            story.append(Paragraph("Confidential - Expeditors International", 
-                                 ParagraphStyle('Footer', parent=styles['Normal'], 
-                                               fontSize=8, alignment=1, textColor=Color(0.5, 0.5, 0.5))))
+            footer_style = ParagraphStyle(
+                'Footer', 
+                parent=styles['Normal'], 
+                fontSize=8, 
+                alignment=1, 
+                textColor=Color(0.5, 0.5, 0.5),
+                fontName='Helvetica-Oblique'
+            )
+            story.append(Paragraph("Confidential - Expeditors International", footer_style))
         
         # Build PDF
         doc.build(story)
