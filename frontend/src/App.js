@@ -1352,10 +1352,23 @@ const NotesScreen = () => {
     setGeneratingReport(prev => ({ ...prev, batch: true }));
     
     try {
-      const response = await axios.post(`${API}/notes/batch-report`, {
+      // Use the new batch comprehensive report endpoint
+      const response = await axios.post(`${API}/notes/batch-comprehensive-report`, {
         note_ids: selectedNotesForBatch,
-        title: `Batch Analysis Report - ${new Date().toLocaleDateString()}`,
-        format: format
+        title: `Comprehensive Business Analysis - ${new Date().toLocaleDateString()}`
+      });
+      
+      setCurrentReport({
+        type: 'batch',
+        data: response.data,
+        selectedNotes: selectedNotesForBatch.slice()
+      });
+      setShowReportModal(true);
+      setSelectedNotesForBatch([]);
+      
+      toast({ 
+        title: "📋 AI Report Complete", 
+        description: `Comprehensive business analysis generated from ${response.data.note_count} sessions` 
       });
       
       if (format === 'txt' || format === 'rtf') {
