@@ -155,8 +155,8 @@ class NotesStore:
                     elif note_kind == "text":
                         estimated_minutes_saved += 2
             
-            # Round to reasonable precision
-            estimated_minutes_saved = round(estimated_minutes_saved, 1)
+            # Round to integer precision for database storage and API compatibility
+            estimated_minutes_saved = round(estimated_minutes_saved)
             
             # Calculate processing metrics
             processing_times = []
