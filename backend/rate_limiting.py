@@ -136,7 +136,7 @@ class RateLimiter:
         self.default_limits = {
             "api_general": RateLimit(100, 60, RateLimitType.PER_MINUTE),
             "api_upload": RateLimit(10, 60, RateLimitType.PER_MINUTE),
-            "api_transcription": RateLimit(20, 3600, RateLimitType.PER_HOUR),
+            "api_transcription": RateLimit(200, 3600, RateLimitType.PER_HOUR),  # 200 transcription calls per hour
             "concurrent_jobs": RateLimit(5, 0, RateLimitType.CONCURRENT)
         }
     
