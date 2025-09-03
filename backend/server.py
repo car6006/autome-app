@@ -2605,7 +2605,15 @@ async def generate_batch_comprehensive_report(
         Documents to analyze:
         {full_content}
 
-        Create a comprehensive professional report with these sections. Use clean formatting with clear headings and bullet points - NO MARKDOWN SYMBOLS like ### or **. Format as clean text with proper structure:
+        CRITICAL FORMATTING REQUIREMENTS:
+        - Use ONLY plain text with NO markdown symbols
+        - NO asterisks (*), NO hash symbols (#), NO underscores (_)
+        - Use CAPITAL LETTERS for section headings
+        - Use bullet points with • symbol only
+        - Write in clean, professional business language
+        - Structure with clear paragraph breaks
+
+        Create a comprehensive professional report with these sections:
 
         EXECUTIVE SUMMARY
         Write 2-3 sentences highlighting the main themes and strategic insights across all documents
@@ -2625,7 +2633,7 @@ async def generate_batch_comprehensive_report(
         CONCLUSION
         Write 2-3 sentences summarizing the overall strategic outlook and next steps
 
-        Make this analysis comprehensive and strategic, suitable for executive leadership review. Focus on cross-cutting themes and strategic insights that emerge from analyzing multiple documents together.
+        Remember: Use ONLY plain text formatting. NO markdown symbols whatsoever.
         """
         
         # Generate AI analysis using same method as individual reports
