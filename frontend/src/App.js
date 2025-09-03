@@ -1448,14 +1448,21 @@ const NotesScreen = () => {
       });
       
       if (format === 'txt' || format === 'rtf') {
-        // Direct download for clean formats
-        const blob = new Blob([response.data.content], { 
+        // Use export endpoint for all formats consistently
+        const exportRequest = {
+          report: response.data.report,
+          title: response.data.title
+        };
+        
+        const exportResponse = await axios.post(`${API}/notes/batch-comprehensive-report/export?format=${format}`, exportRequest);
+        
+        const blob = new Blob([exportResponse.data], { 
           type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = response.data.filename;
+        a.download = `Comprehensive_Report_${response.data.title.replace(/[^a-zA-Z0-9]/g, '_')}.${format}`;
         a.click();
         URL.revokeObjectURL(url);
         
@@ -1463,7 +1470,7 @@ const NotesScreen = () => {
         
         toast({ 
           title: `📋 Comprehensive ${format.toUpperCase()} Report Complete`, 
-          description: `Report with Meeting Minutes & Action Items exported from ${response.data.note_count} sessions` 
+          description: `Report with comprehensive analysis exported from ${response.data.note_count} sessions` 
         });
       } else {
         // Show modal for AI format
