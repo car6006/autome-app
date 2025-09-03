@@ -41,7 +41,7 @@ class BatchReportExportTester:
         try:
             response = await self.session.post(f"{API_BASE}/auth/register", json={
                 "email": self.test_user_email,
-                "username": f"batchuser_{uuid.uuid4().hex[:8]}",
+                "username": f"batchuser{uuid.uuid4().hex[:8]}",
                 "password": self.test_user_password,
                 "name": "Batch Test User"
             })
