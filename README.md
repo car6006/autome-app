@@ -31,6 +31,13 @@ AUTO-ME is a production-ready PWA (Progressive Web App) featuring advanced voice
 - **Advanced Search**: Filter by type, status, date, and content
 - **Batch Operations**: Multi-select for bulk actions and report generation
 
+### **🤖 AI-Powered Intelligence**
+- **Ask AI Feature**: Conversational interface for content analysis
+- **Professional Reports**: Auto-generated business documents from transcripts
+- **Meeting Minutes**: Structured minutes with action items and decisions
+- **Batch Analysis**: Process multiple notes for comprehensive insights
+- **Context-Aware Responses**: Industry-specific and role-based AI assistance
+
 ### **📊 Enhanced Productivity Metrics (New Feature)**
 - **Content-Length Based Calculations**: Time saved now calculated based on actual note content size
 - **Realistic Hand-Writing Speeds**: Uses real-world typing/writing speeds for accurate estimates
