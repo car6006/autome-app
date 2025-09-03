@@ -2715,7 +2715,6 @@ async def generate_batch_report(
             from reportlab.lib.units import inch
             from reportlab.lib.colors import Color, black
             from io import BytesIO
-            import os
             import re
             
             buffer = BytesIO()
