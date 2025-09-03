@@ -1547,159 +1547,40 @@ const NotesScreen = () => {
         return;
       }
 
-      // For batch reports, we need to regenerate in the requested format
+      // For batch reports, use the same approach as individual professional reports
       if (reportData.type === 'batch' && reportData.selectedNotes) {
         
-        // For PDF/DOCX formats, generate on frontend using the displayed content
+        // For all formats, use the new backend export endpoint (same as individual reports)
+        const exportRequest = {
+          report: reportData.data.report,
+          title: reportData.data.title
+        };
+        
         if (format === 'pdf' || format === 'docx') {
-          const reportContent = reportData.data.report || reportData.data.content || '';
-          const reportTitle = reportData.data.title || `Batch Report - ${new Date().toLocaleDateString()}`;
-          
-          if (!reportContent.trim()) {
-            toast({ title: "Error", description: "No report content available for export", variant: "destructive" });
-            return;
-          }
-          
-          if (format === 'pdf') {
-            // Frontend PDF generation using jsPDF (static import)
-            try {
-              console.log('Starting PDF generation with content:', reportContent.substring(0, 100) + '...');
-              
-              const doc = new jsPDF();
-              
-              // Set font and title
-              doc.setFont('helvetica', 'bold');
-              doc.setFontSize(18);
-              doc.text('Comprehensive Business Report', 20, 20);
-              
-              doc.setFontSize(14);
-              doc.text(reportTitle, 20, 35);
-              
-              // Add generation date
-              doc.setFont('helvetica', 'normal');
-              doc.setFontSize(11);
-              doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 50);
-              
-              // Process content and add to PDF
-              const cleanContent = reportContent.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').trim();
-              console.log('Cleaned content length:', cleanContent.length);
-              
-              const lines = doc.splitTextToSize(cleanContent, 170);
-              let yPosition = 65;
-              
-              doc.setFont('helvetica', 'normal');
-              doc.setFontSize(11);
-              
-              lines.forEach(line => {
-                if (yPosition > 280) {
-                  doc.addPage();
-                  yPosition = 20;
-                }
-                doc.text(line, 20, yPosition);
-                yPosition += 6;
-              });
-              
-              // Save the PDF
-              const filename = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-              console.log('Saving PDF as:', filename);
-              doc.save(filename);
-              
-              toast({ title: "📄 PDF Export Complete", description: "Comprehensive batch report downloaded successfully" });
-            } catch (error) {
-              console.error('PDF generation error:', error);
-              toast({ title: "PDF Export Error", description: `Failed to generate PDF: ${error.message}`, variant: "destructive" });
-            }
-            
-          } else if (format === 'docx') {
-            // Frontend Word generation using docx library (static import)
-            try {
-              console.log('Starting Word generation with content:', reportContent.substring(0, 100) + '...');
-              
-              const { Document, Packer, Paragraph: DocxParagraph, TextRun, HeadingLevel } = docx;
-              
-              // Clean content for Word document
-              const cleanContent = reportContent.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').trim();
-              console.log('Cleaned content length:', cleanContent.length);
-              
-              // Create document
-              const doc = new Document({
-                sections: [{
-                  children: [
-                    new DocxParagraph({
-                      text: "Comprehensive Business Report",
-                      heading: HeadingLevel.TITLE,
-                    }),
-                    new DocxParagraph({
-                      text: reportTitle,
-                      heading: HeadingLevel.HEADING_1,
-                    }),
-                    new DocxParagraph({
-                      children: [
-                        new TextRun({
-                          text: `Generated: ${new Date().toLocaleString()}`,
-                          italics: true,
-                          size: 20,
-                        }),
-                      ],
-                    }),
-                    new DocxParagraph({
-                      text: "",
-                    }),
-                    ...cleanContent.split('\n\n').filter(p => p.trim()).map(paragraph => 
-                      new DocxParagraph({
-                        children: [
-                          new TextRun({
-                            text: paragraph.trim(),
-                            size: 22,
-                          }),
-                        ],
-                      })
-                    ),
-                  ],
-                }],
-              });
-              
-              // Generate and download
-              console.log('Generating Word document...');
-              const blob = await Packer.toBlob(doc);
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              const filename = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
-              a.download = filename;
-              console.log('Downloading Word document as:', filename);
-              a.click();
-              URL.revokeObjectURL(url);
-              
-              toast({ title: "📄 Word Export Complete", description: "Comprehensive batch report downloaded successfully" });
-            } catch (error) {
-              console.error('Word generation error:', error);
-              toast({ title: "Word Export Error", description: `Failed to generate Word document: ${error.message}`, variant: "destructive" });
-            }
-          }
-          
-        } else {
-          // For TXT/RTF formats, use backend as they work fine
-          const noteIds = reportData.selectedNotes || [];
-          if (noteIds.length === 0) {
-            toast({ title: "Error", description: "Cannot export - note IDs not available", variant: "destructive" });
-            return;
-          }
-
-          const response = await axios.post(`${API}/notes/batch-report`, {
-            note_ids: noteIds,
-            title: reportData.data.title || `Batch Report - ${new Date().toLocaleDateString()}`,
-            format: format
+          // Use blob response for binary formats
+          const response = await axios.post(`${API}/notes/batch-comprehensive-report/export?format=${format}`, exportRequest, {
+            responseType: 'blob'
           });
-
-          // Download the formatted content
-          const blob = new Blob([response.data.content], { 
+          
+          const url = URL.createObjectURL(response.data);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Comprehensive_Report_${reportData.data.title.replace(/[^a-zA-Z0-9]/g, '_')}.${format}`;
+          a.click();
+          URL.revokeObjectURL(url);
+          
+          toast({ title: `📄 ${format.toUpperCase()} Export Complete`, description: "Comprehensive batch report downloaded successfully" });
+        } else {
+          // Use text response for TXT/RTF formats
+          const response = await axios.post(`${API}/notes/batch-comprehensive-report/export?format=${format}`, exportRequest);
+          
+          const blob = new Blob([response.data], { 
             type: format === 'rtf' ? 'application/rtf' : 'text/plain' 
           });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = response.data.filename;
+          a.download = `Comprehensive_Report_${reportData.data.title.replace(/[^a-zA-Z0-9]/g, '_')}.${format}`;
           a.click();
           URL.revokeObjectURL(url);
 
