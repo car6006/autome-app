@@ -12,7 +12,7 @@ import sys
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://auto-me-debugger.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://autome-fix.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class ComprehensiveBatchReportTester:

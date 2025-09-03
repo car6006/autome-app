@@ -17,7 +17,7 @@ def create_test_image():
 
 def test_rtf_export_functionality():
     """Test RTF export functionality by creating content and AI conversations"""
-    api_url = 'https://auto-me-debugger.preview.emergentagent.com/api'
+    api_url = 'https://autome-fix.preview.emergentagent.com/api'
     
     print("🚀 Final RTF Export Test")
     print("   Creating content and testing professional RTF/TXT export")

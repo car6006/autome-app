@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://auto-me-debugger.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://autome-fix.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 TEST_FILE_PATH = "/tmp/test_pipeline_30s.wav"
 

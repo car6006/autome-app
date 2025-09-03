@@ -55,7 +55,7 @@ def test_large_file_upload():
             data = {'title': 'Large File Chunking Test'}
             
             response = requests.post(
-                "https://auto-me-debugger.preview.emergentagent.com/api/upload-file",
+                "https://autome-fix.preview.emergentagent.com/api/upload-file",
                 data=data,
                 files=files,
                 timeout=600  # 10 minutes
@@ -72,7 +72,7 @@ def test_large_file_upload():
                     time.sleep(10)
                     
                     status_response = requests.get(
-                        f"https://auto-me-debugger.preview.emergentagent.com/api/notes/{note_id}",
+                        f"https://autome-fix.preview.emergentagent.com/api/notes/{note_id}",
                         timeout=30
                     )
                     

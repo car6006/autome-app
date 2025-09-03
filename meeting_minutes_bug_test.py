@@ -7,7 +7,7 @@ import requests
 import time
 
 def test_meeting_minutes_bug():
-    base_url = "https://auto-me-debugger.preview.emergentagent.com"
+    base_url = "https://autome-fix.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Register user

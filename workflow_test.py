@@ -9,7 +9,7 @@ import os
 import time
 
 def test_complete_workflow():
-    api_url = 'https://auto-me-debugger.preview.emergentagent.com/api'
+    api_url = 'https://autome-fix.preview.emergentagent.com/api'
     
     print('🎵 Testing Complete Audio Upload Workflow...')
     

@@ -14,7 +14,7 @@ def log(message):
     print(f"[{timestamp}] {message}")
 
 def test_security():
-    base_url = "https://auto-me-debugger.preview.emergentagent.com"
+    base_url = "https://autome-fix.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     tests_run = 0

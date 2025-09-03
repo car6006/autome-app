@@ -9,7 +9,7 @@ import json
 import time
 
 class SecurityHeadersTester:
-    def __init__(self, base_url="https://auto-me-debugger.preview.emergentagent.com"):
+    def __init__(self, base_url="https://autome-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.test_results = []

@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 class LargeAudioTester:
-    def __init__(self, base_url="https://auto-me-debugger.preview.emergentagent.com"):
+    def __init__(self, base_url="https://autome-fix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.test_file_path = "/tmp/test_audio.mp3"

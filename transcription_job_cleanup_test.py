@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://auto-me-debugger.preview.emergentagent.com/api"
+BACKEND_URL = "https://autome-fix.preview.emergentagent.com/api"
 
 class TranscriptionJobCleanupTester:
     def __init__(self):

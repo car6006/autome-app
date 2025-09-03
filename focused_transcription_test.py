@@ -13,7 +13,7 @@ from datetime import datetime
 
 class FocusedTranscriptionTester:
     def __init__(self):
-        self.base_url = "https://auto-me-debugger.preview.emergentagent.com"
+        self.base_url = "https://autome-fix.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.tests_run = 0
         self.tests_passed = 0

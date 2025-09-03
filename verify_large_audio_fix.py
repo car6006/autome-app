@@ -9,7 +9,7 @@ import json
 def verify_note_processing(note_id):
     """Verify a processed note"""
     try:
-        response = requests.get(f"https://auto-me-debugger.preview.emergentagent.com/api/notes/{note_id}")
+        response = requests.get(f"https://autome-fix.preview.emergentagent.com/api/notes/{note_id}")
         if response.status_code == 200:
             data = response.json()
             status = data.get('status')

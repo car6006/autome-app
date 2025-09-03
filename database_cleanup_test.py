@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://auto-me-debugger.preview.emergentagent.com/api"
+BACKEND_URL = "https://autome-fix.preview.emergentagent.com/api"
 
 class DatabaseCleanupTester:
     def __init__(self):
