@@ -95,15 +95,68 @@ class NotesStore:
             photo_notes = [n for n in completed_notes if n.get("kind") == "photo"]
             text_notes = [n for n in completed_notes if n.get("kind") == "text"]
             
-            # Calculate estimated time saved (realistic estimates)
-            # Audio: Assume 3x time saved (15 min transcription vs 45 min manual typing)
-            # Photo: Assume OCR saves 10 minutes vs manual typing
-            # Text: Assume 5 minutes saved with AI analysis/formatting
-            estimated_minutes_saved = (
-                len(audio_notes) * 30 +  # 30 minutes saved per audio note
-                len(photo_notes) * 10 +  # 10 minutes saved per photo note  
-                len(text_notes) * 5      # 5 minutes saved per text note
-            )
+            # Calculate estimated time saved based on content length (more realistic approach)
+            estimated_minutes_saved = 0
+            
+            for note in completed_notes:
+                artifacts = note.get("artifacts", {})
+                note_kind = note.get("kind", "")
+                
+                # Get the actual content length
+                content_length = 0
+                content_text = ""
+                
+                if note_kind == "audio":
+                    # For audio notes, use transcript length
+                    content_text = artifacts.get("transcript", "")
+                elif note_kind == "photo":
+                    # For photo notes, use OCR extracted text length
+                    content_text = artifacts.get("text", "")
+                elif note_kind == "text":
+                    # For text notes, use the original text content
+                    content_text = artifacts.get("text", "")
+                
+                content_length = len(content_text.strip())
+                
+                if content_length > 0:
+                    # Calculate time saved based on content length and note type
+                    if note_kind == "audio":
+                        # Audio transcription saves significant time vs manual transcription
+                        # Assume average person writes 15-20 words per minute by hand
+                        # Average word length is ~5 characters, so ~100 characters per minute by hand
+                        # Add extra time for listening and pausing audio to transcribe
+                        # Also factor in the convenience of not having to manually transcribe
+                        hand_writing_time = (content_length / 80) + (content_length / 400) * 5  # slower for transcription + listening time
+                        time_saved = max(hand_writing_time, 15)  # minimum 15 minutes for any audio note
+                        estimated_minutes_saved += min(time_saved, 120)  # cap at 2 hours per note
+                        
+                    elif note_kind == "photo":
+                        # OCR saves time vs manual typing from image
+                        # Assume slower typing when looking at image and typing
+                        # Average typing speed looking at image: ~60 characters per minute
+                        hand_typing_time = content_length / 60
+                        time_saved = max(hand_typing_time, 5)  # minimum 5 minutes for any photo note
+                        estimated_minutes_saved += min(time_saved, 60)  # cap at 1 hour per note
+                        
+                    elif note_kind == "text":
+                        # Text notes save time through AI analysis, formatting, and organization
+                        # Assume time saved through AI processing, formatting, and insights
+                        # Base calculation on content length but add value from AI features
+                        base_writing_time = content_length / 100  # hand writing speed
+                        ai_value_added = max(content_length / 200, 3)  # AI analysis and formatting value
+                        time_saved = base_writing_time + ai_value_added
+                        estimated_minutes_saved += min(time_saved, 45)  # cap at 45 minutes per note
+                else:
+                    # Fallback for notes without content (shouldn't happen, but just in case)
+                    if note_kind == "audio":
+                        estimated_minutes_saved += 10
+                    elif note_kind == "photo":
+                        estimated_minutes_saved += 3
+                    elif note_kind == "text":
+                        estimated_minutes_saved += 2
+            
+            # Round to reasonable precision
+            estimated_minutes_saved = round(estimated_minutes_saved, 1)
             
             # Calculate processing metrics
             processing_times = []
