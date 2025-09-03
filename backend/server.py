@@ -2541,592 +2541,397 @@ SESSION: {item['title']}
         logger.error(f"Comprehensive batch report generation error: {str(e)}")
         raise HTTPException(status_code=500, detail="Comprehensive report generation temporarily unavailable")
 
-@api_router.post("/notes/batch-report")
-async def generate_batch_report(
-    request: BatchReportRequest,
+@api_router.post("/notes/batch-comprehensive-report")
+async def generate_batch_comprehensive_report(
+    request: dict,
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
-    """Generate a combined report from multiple notes in multiple formats"""
-    note_ids = request.note_ids
-    title = request.title
-    format = request.format
+    """Generate a comprehensive business report from multiple notes - same as individual professional reports"""
+    note_ids = request.get("note_ids", [])
+    title = request.get("title", f"Comprehensive Business Analysis - {datetime.now(timezone.utc).strftime('%B %d, %Y')}")
     
     if not note_ids:
         raise HTTPException(status_code=400, detail="No notes provided")
     
+    # Collect content from all notes
+    combined_content = []
+    note_titles = []
+    
+    for note_id in note_ids:
+        note = await NotesStore.get(note_id)
+        if not note:
+            continue
+            
+        # Check access permission  
+        if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+            continue
+            
+        artifacts = note.get("artifacts", {})
+        content = artifacts.get("transcript") or artifacts.get("text", "")
+        
+        if content:
+            note_titles.append(note['title'])
+            combined_content.append(f"=== {note['title']} ===\n{content}")
+    
+    if not combined_content:
+        raise HTTPException(status_code=400, detail="No accessible content found in the selected notes")
+    
     try:
-        combined_content = []
-        note_titles = []
+        # Use OpenAI to generate professional analysis - same as individual reports
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
         
-        # Collect content from all notes
-        for note_id in note_ids:
-            note = await NotesStore.get(note_id)
-            if not note:
-                continue
-                
-            # Check user permissions
-            if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
-                continue
-                
-            artifacts = note.get("artifacts", {})
-            content = artifacts.get("transcript") or artifacts.get("text", "")
-            
-            if content:
-                note_titles.append(note["title"])
-                if format in ["txt", "rtf"]:
-                    # Clean content for raw formats
-                    clean_content = content.replace("**", "").replace("###", "").replace("##", "").replace("#", "").replace("*", "").replace("_", "")
-                    lines = clean_content.split('\n')
-                    clean_lines = []
-                    for line in lines:
-                        line = line.strip()
-                        if line:
-                            line = line.lstrip('•-*1234567890. ')
-                            if not any(header in line.upper() for header in ['ATTENDEES:', 'APOLOGIES:', 'MEETING MINUTES:', 'ACTION ITEMS:', 'KEY INSIGHTS:', 'ASSESSMENTS:', 'RISK ASSESSMENT:', 'NEXT STEPS:']):
-                                if line:
-                                    clean_lines.append(line)
-                    combined_content.append(f"{note['title']}\n{chr(61)*len(note['title'])}\n\n{chr(10).join(clean_lines)}")
-                else:
-                    combined_content.append(f"## {note['title']}\n{content}")
+        # Check if user is from Expeditors
+        is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
         
-        if not combined_content:
-            raise HTTPException(status_code=400, detail="You can only create batch reports with your own notes. Please select notes you created.")
+        # Combine all content
+        full_content = "\n\n".join(combined_content)
         
-        # Handle different export formats
-        if format == "txt":
-            # Plain text format - completely clean
-            content_text = f"{title}\n{'='*len(title)}\n\n"
-            content_text += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-            content_text += f"Notes included: {len(note_titles)}\n\n"
-            content_text += "SOURCE NOTES:\n"
-            content_text += "\n".join([f"• {note_title}" for note_title in note_titles]) + "\n\n"
-            content_text += "\n\n".join(combined_content)
-            
-            # Mark all accessible notes as completed
-            for note_id in note_ids:
-                note = await NotesStore.get(note_id)
-                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
-                    await NotesStore.update_status(note_id, "completed")
-            
-            return {
-                "format": "txt",
-                "content": content_text,
-                "filename": f"{title.replace(' ', '_')}.txt",
-                "note_count": len(note_titles),
-                "source_notes": note_titles
-            }
-        
-        elif format == "rtf":
-            # RTF format - clean and professional
-            content_text = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
-            content_text += f"\\b\\fs32 {title}\\b0\\fs24\\par\\par "
-            content_text += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\\par "
-            content_text += f"Notes included: {len(note_titles)}\\par\\par "
-            content_text += "\\b SOURCE NOTES:\\b0\\par "
-            
-            for note_title in note_titles:
-                content_text += f"\\bullet {note_title}\\par "
-            content_text += "\\par "
-            
-            for section in combined_content:
-                # Convert to RTF format
-                rtf_section = section.replace("\\", "\\\\").replace("\n", "\\par ")
-                content_text += rtf_section + "\\par\\par "
-            
-            content_text += "}"
-            
-            # Mark all accessible notes as completed
-            for note_id in note_ids:
-                note = await NotesStore.get(note_id)
-                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
-                    await NotesStore.update_status(note_id, "completed")
-            
-            return {
-                "format": "rtf", 
-                "content": content_text,
-                "filename": f"{title.replace(' ', '_')}.rtf",
-                "note_count": len(note_titles),
-                "source_notes": note_titles
-            }
-        
-        elif format == "pdf":
-            # Import required modules at the beginning
-            import os
-            import re
-            
-            # Generate AI analysis first
-            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
-            if not api_key:
-                raise HTTPException(status_code=500, detail="AI service not configured")
-            
-            full_content = "\n\n".join(combined_content)
-            
-            # Get user profile for professional context
-            user_profile = current_user.get("profile", {}) if current_user else {}
-            is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
-            
-            # Generate AI analysis
-            batch_prompt = ai_context_processor.generate_dynamic_prompt(
-                content=full_content,
-                user_profile=user_profile,
-                analysis_type="strategic_planning"
-            )
-            
-            logo_header = ""
-            if is_expeditors_user:
-                logo_header = """
+        # Add logo header for Expeditors users
+        logo_header = ""
+        if is_expeditors_user:
+            logo_header = """
 ==================================================
            EXPEDITORS INTERNATIONAL
         Comprehensive Business Analysis Report
 ==================================================
 
 """
-            
-            prompt = f"""
-            {logo_header}
-            You are a senior business analyst creating a comprehensive strategic report from multiple business documents.
-            
-            ANALYSIS REQUIREMENTS:
-            - Synthesize information across ALL provided documents
-            - Identify cross-cutting themes, patterns, and strategic insights
-            - Provide executive-level recommendations with clear rationale
-            - Structure the analysis professionally for C-level stakeholders
-            - Focus on actionable insights that drive business value
-            
-            DOCUMENTS TO ANALYZE:
-            {full_content}
-            
-            {batch_prompt}
-            
-            Provide a comprehensive business analysis that executives can immediately act upon. Structure with clear sections and actionable recommendations.
-            """
-            
-            # Generate AI analysis
-            client = OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=4000,
-                temperature=0.7
-            )
-            
-            ai_analysis = response.choices[0].message.content
-            
-            # Generate PDF with enhanced formatting
-            from reportlab.lib.pagesizes import letter, A4
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.units import inch
-            from reportlab.lib.colors import Color, black
-            from io import BytesIO
-            
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
-            
-            # Create custom styles
-            styles = getSampleStyleSheet()
-            
-            # Title style
-            title_style = ParagraphStyle(
-                'Batch Report Title',
-                parent=styles['Heading1'],
-                fontSize=18,
-                spaceAfter=18,
-                spaceBefore=0,
-                alignment=1,  # Center
-                fontName='Helvetica-Bold',
-                textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
-            )
-            
-            # Section heading style  
-            section_heading_style = ParagraphStyle(
-                'Batch Section Heading',
-                parent=styles['Heading2'],
-                fontSize=14,
-                spaceBefore=12,
-                spaceAfter=6,
-                fontName='Helvetica-Bold',
-                textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
-            )
-            
-            # Body text style with improved spacing
-            body_style = ParagraphStyle(
-                'Batch Body Text',
-                parent=styles['Normal'],
-                fontSize=11,
-                spaceAfter=12,
-                spaceBefore=3,
-                leftIndent=0,
-                rightIndent=0,
-                fontName='Helvetica',
-                leading=13.2
-            )
-            
-            story = []
-            
-            # Add logo if Expeditors user
-            if is_expeditors_user:
-                logo_path = "/app/backend/expeditors-logo.png"
-                if os.path.exists(logo_path):
-                    try:
-                        logo = Image(logo_path, width=2*inch, height=0.8*inch)
-                        logo.hAlign = 'CENTER'
-                        story.append(logo)
-                        story.append(Spacer(1, 20))
-                    except Exception as e:
-                        print(f"Logo loading error: {e}")
-            
-            # Title
-            if is_expeditors_user:
-                story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
-                story.append(Paragraph("Comprehensive Business Analysis", section_heading_style))
-                story.append(Paragraph(f"{title}", body_style))
-            else:
-                story.append(Paragraph("Comprehensive Business Analysis", title_style))
-                story.append(Paragraph(f"{title}", section_heading_style))
-            
-            story.append(Spacer(1, 20))
-            
-            # Source notes section
-            story.append(Paragraph("Source Documents", section_heading_style))
-            for note_title in note_titles:
-                story.append(Paragraph(f"• {note_title}", body_style))
-            story.append(Spacer(1, 20))
-            
-            # AI Analysis content
-            story.append(Paragraph("Executive Analysis", section_heading_style))
-            
-            # Format AI analysis with proper paragraphs
-            paragraphs = re.split(r'\n\s*\n', ai_analysis)
-            for paragraph in paragraphs:
-                paragraph = paragraph.strip()
-                if paragraph:
-                    # Check if it looks like a heading
-                    if len(paragraph) < 100 and not paragraph.endswith('.') and paragraph.isupper():
-                        story.append(Paragraph(paragraph, section_heading_style))
-                    else:
-                        story.append(Paragraph(paragraph, body_style))
-            
-            # Footer
-            if is_expeditors_user:
-                story.append(Spacer(1, 30))
-                footer_style = ParagraphStyle(
-                    'Footer', 
-                    parent=styles['Normal'], 
-                    fontSize=8, 
-                    alignment=1, 
-                    textColor=Color(0.5, 0.5, 0.5),
-                    fontName='Helvetica-Oblique'
-                )
-                story.append(Paragraph("Confidential - Expeditors International", footer_style))
-            
-            # Build PDF
-            doc.build(story)
-            buffer.seek(0)
-            
-            # Mark all accessible notes as completed
-            for note_id in note_ids:
-                note = await NotesStore.get(note_id)
-                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
-                    await NotesStore.update_status(note_id, "completed")
-            
-            return Response(
-                content=buffer.getvalue(),
-                media_type="application/pdf",
-                headers={"Content-Disposition": f"attachment; filename=\"{title.replace(' ', '_')}.pdf\""}
-            )
         
-        elif format == "docx":
-            # Import required modules at the beginning
-            import os
-            import re
-            
-            # Generate AI analysis first
-            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
-            if not api_key:
-                raise HTTPException(status_code=500, detail="AI service not configured")
-            
-            full_content = "\n\n".join(combined_content)
-            
-            # Get user profile for professional context
-            user_profile = current_user.get("profile", {}) if current_user else {}
-            is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
-            
-            # Generate AI analysis
-            batch_prompt = ai_context_processor.generate_dynamic_prompt(
-                content=full_content,
-                user_profile=user_profile,
-                analysis_type="strategic_planning"
-            )
-            
-            logo_header = ""
-            if is_expeditors_user:
-                logo_header = """
-==================================================
-           EXPEDITORS INTERNATIONAL
-        Comprehensive Business Analysis Report
-==================================================
+        prompt = f"""
+        You are a senior business analyst creating a comprehensive strategic report{" for Expeditors International" if is_expeditors_user else ""} from multiple business documents. Based on the following content from {len(note_titles)} documents, create a clean, well-formatted comprehensive business analysis.
 
-"""
-            
-            prompt = f"""
-            {logo_header}
-            You are a senior business analyst creating a comprehensive strategic report from multiple business documents.
-            
-            ANALYSIS REQUIREMENTS:
-            - Synthesize information across ALL provided documents
-            - Identify cross-cutting themes, patterns, and strategic insights
-            - Provide executive-level recommendations with clear rationale
-            - Structure the analysis professionally for C-level stakeholders
-            - Focus on actionable insights that drive business value
-            
-            DOCUMENTS TO ANALYZE:
-            {full_content}
-            
-            {batch_prompt}
-            
-            Provide a comprehensive business analysis that executives can immediately act upon. Structure with clear sections and actionable recommendations.
-            """
-            
-            # Generate AI analysis
-            client = OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=4000,
-                temperature=0.7
-            )
-            
-            ai_analysis = response.choices[0].message.content
-            
-            # Generate Word document with enhanced formatting
-            from docx import Document
-            from docx.shared import Inches, Pt
-            from docx.enum.text import WD_ALIGN_PARAGRAPH
-            from docx.enum.style import WD_STYLE_TYPE
-            from io import BytesIO
-            
-            doc = Document()
-            
-            # Set document margins
-            sections = doc.sections
-            for section in sections:
-                section.top_margin = Inches(1)
-                section.bottom_margin = Inches(1)
-                section.left_margin = Inches(1)
-                section.right_margin = Inches(1)
-            
-            # Define custom styles
-            styles = doc.styles
-            
-            # Main heading style
-            if 'Batch Report Title' not in [s.name for s in styles]:
-                title_style = styles.add_style('Batch Report Title', WD_STYLE_TYPE.PARAGRAPH)
-                title_font = title_style.font
-                title_font.name = 'Calibri'
-                title_font.size = Pt(18)
-                title_font.bold = True
-                title_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                title_style.paragraph_format.space_after = Pt(18)
-            
-            # Section heading style
-            if 'Batch Section Heading' not in [s.name for s in styles]:
-                section_style = styles.add_style('Batch Section Heading', WD_STYLE_TYPE.PARAGRAPH)
-                section_font = section_style.font
-                section_font.name = 'Calibri'
-                section_font.size = Pt(14)
-                section_font.bold = True
-                section_style.paragraph_format.space_before = Pt(12)
-                section_style.paragraph_format.space_after = Pt(6)
-            
-            # Body text style
-            if 'Batch Body Text' not in [s.name for s in styles]:
-                body_style = styles.add_style('Batch Body Text', WD_STYLE_TYPE.PARAGRAPH)
-                body_font = body_style.font
-                body_font.name = 'Calibri'
-                body_font.size = Pt(11)
-                body_style.paragraph_format.space_after = Pt(12)
-                body_style.paragraph_format.space_before = Pt(3)
-                body_style.paragraph_format.line_spacing = 1.15
-            
-            # Add logo if Expeditors user
-            if is_expeditors_user:
-                logo_path = "/app/backend/expeditors-logo.png"
-                if os.path.exists(logo_path):
-                    try:
-                        logo_para = doc.add_paragraph()
-                        logo_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        run = logo_para.runs[0] if logo_para.runs else logo_para.add_run()
-                        run.add_picture(logo_path, width=Inches(3))
-                        doc.add_paragraph()  # Spacer
-                    except Exception as e:
-                        print(f"Logo loading error: {e}")
-            
-            # Title
-            if is_expeditors_user:
-                company_title = doc.add_paragraph('EXPEDITORS INTERNATIONAL', style='Batch Report Title')
-                analysis_title = doc.add_paragraph(f'Comprehensive Business Analysis', style='Batch Section Heading')
-                analysis_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                doc_title = doc.add_paragraph(f'{title}', style='Batch Body Text')
-                doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                doc_title.paragraph_format.space_after = Pt(12)
-                doc_title.paragraph_format.space_before = Pt(3)
-            else:
-                main_title = doc.add_paragraph(f'Comprehensive Business Analysis', style='Batch Report Title')
-                doc_title = doc.add_paragraph(f'{title}', style='Batch Section Heading')
-                doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            
-            # Add spacer
-            doc.add_paragraph()
-            
-            # Source notes section
-            source_heading = doc.add_paragraph('Source Documents', style='Batch Section Heading')
-            for note_title in note_titles:
-                bullet_para = doc.add_paragraph(f'• {note_title}', style='Batch Body Text')
-                bullet_para.paragraph_format.left_indent = Inches(0.25)
-            
-            doc.add_paragraph()  # Spacer
-            
-            # AI Analysis content
-            analysis_heading = doc.add_paragraph('Executive Analysis', style='Batch Section Heading')
-            
-            # Format AI analysis with proper paragraphs
-            paragraphs = re.split(r'\n\s*\n', ai_analysis)
-            for paragraph in paragraphs:
-                paragraph = paragraph.strip()
-                if paragraph:
-                    # Check if it looks like a heading
-                    if len(paragraph) < 100 and not paragraph.endswith('.') and paragraph.isupper():
-                        sub_heading = doc.add_paragraph(paragraph, style='Batch Section Heading')
-                    else:
-                        para = doc.add_paragraph(paragraph, style='Batch Body Text')
-                        para.paragraph_format.space_after = Pt(12)
-                        para.paragraph_format.space_before = Pt(3)
-            
-            # Footer
-            if is_expeditors_user:
-                doc.add_paragraph()
-                footer_para = doc.add_paragraph()
-                footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                footer_run = footer_para.add_run("Confidential - Expeditors International")
-                footer_run.font.name = 'Calibri'
-                footer_run.font.size = Pt(8)
-                footer_run.font.italic = True
-            
-            # Save to buffer
-            buffer = BytesIO()
-            doc.save(buffer)
-            buffer.seek(0)
-            
-            # Mark all accessible notes as completed
-            for note_id in note_ids:
-                note = await NotesStore.get(note_id)
-                if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
-                    await NotesStore.update_status(note_id, "completed")
-            
-            return Response(
-                content=buffer.getvalue(),
-                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                headers={"Content-Disposition": f"attachment; filename=\"{title.replace(' ', '_')}.docx\""}
-            )
+        Documents to analyze:
+        {full_content}
+
+        Create a comprehensive professional report with these sections. Use clean formatting with clear headings and bullet points - NO MARKDOWN SYMBOLS like ### or **. Format as clean text with proper structure:
+
+        EXECUTIVE SUMMARY
+        Write 2-3 sentences highlighting the main themes and strategic insights across all documents
+
+        KEY INSIGHTS
+        List 6-8 important findings that emerge from analyzing all documents together as bullet points starting with •
+
+        STRATEGIC RECOMMENDATIONS  
+        List 4-6 high-impact strategic recommendations based on the collective analysis as bullet points starting with •
+
+        RISK ASSESSMENT
+        List 3-5 potential risks or challenges identified across the documents as bullet points starting with •
+
+        IMPLEMENTATION PRIORITIES
+        List 3-5 priority actions for immediate implementation as bullet points starting with •
+
+        CONCLUSION
+        Write 2-3 sentences summarizing the overall strategic outlook and next steps
+
+        Make this analysis comprehensive and strategic, suitable for executive leadership review. Focus on cross-cutting themes and strategic insights that emerge from analyzing multiple documents together.
+        """
         
-        else:  # Professional AI report format (default)
-            # Generate comprehensive AI report
-            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
-            if not api_key:
-                raise HTTPException(status_code=500, detail="AI service not configured")
-            
-            full_content = "\n\n".join(combined_content)
-            
-            # Get user profile for professional context
-            user_profile = current_user.get("profile", {}) if current_user else {}
-            
-            # Check if user is from Expeditors
-            is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
-            
-            # Add logo header for Expeditors users
-            logo_header = ""
-            if is_expeditors_user:
-                logo_header = """
-==================================================
-           EXPEDITORS INTERNATIONAL
-        Comprehensive Business Analysis Report
-==================================================
-
-"""
-            
-            # Generate professional context-aware prompt for batch report
-            batch_prompt = ai_context_processor.generate_dynamic_prompt(
-                content=full_content,
-                user_profile=user_profile,
-                analysis_type="strategic_planning"
-            )
-            
-            prompt = f"""
-            {logo_header}
-            You are a senior business analyst creating a comprehensive strategic report from multiple business documents.
-            
-            ANALYSIS REQUIREMENTS:
-            - Synthesize information across ALL provided documents
-            - Identify cross-cutting themes, patterns, and strategic insights
-            - Provide executive-level recommendations with clear rationale
-            - Structure the analysis professionally for C-level stakeholders
-            - Focus on actionable insights that drive business value
-            
-            DOCUMENTS TO ANALYZE:
-            {full_content}
-            
-            {batch_prompt}
-            
-            Provide a comprehensive business analysis that executives can immediately act upon. Structure with clear sections and actionable recommendations.
-            """
-            
-            async with httpx.AsyncClient(timeout=120) as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "You are a senior business analyst and strategic advisor."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "max_tokens": 4000,
-                        "temperature": 0.3
-                    },
-                    headers={"Authorization": f"Bearer {api_key}"}
-                )
-                response.raise_for_status()
-                
-                ai_response = response.json()
-                report_content = ai_response["choices"][0]["message"]["content"]
-                
-                # Add source notes section to the report content
-                source_notes_section = f"\n\nSOURCE NOTES:\n" + "\n".join([f"• {note_title}" for note_title in note_titles])
-                report_content += source_notes_section
-                
-                # Add Expeditors branding if applicable
-                if is_expeditors_user:
-                    report_content = logo_header + report_content
-                
-                # Mark all accessible notes as completed
-                for note_id in note_ids:
-                    note = await NotesStore.get(note_id)
-                    if note and (not current_user or not note.get("user_id") or note.get("user_id") == current_user["id"]):
-                        await NotesStore.update_status(note_id, "completed")
-                
-                return {
-                    "format": "professional",
-                    "report": report_content,
-                    "title": title,
-                    "generated_at": datetime.now().isoformat(),
-                    "note_count": len(note_titles),
-                    "source_notes": note_titles,
-                    "user_profile": user_profile
-                }
+        # Generate AI analysis using same method as individual reports
+        client = OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=4000,
+            temperature=0.7
+        )
+        
+        report_content = response.choices[0].message.content
+        
+        # Store the report in a temporary structure (similar to how individual reports work)
+        comprehensive_report_data = {
+            "report": report_content,
+            "title": title,
+            "note_count": len(note_titles),
+            "source_notes": note_titles,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "is_expeditors_user": is_expeditors_user
+        }
+        
+        return {
+            "report": report_content,
+            "title": title,
+            "note_count": len(note_titles),
+            "source_notes": note_titles,
+            "note_ids": note_ids  # Include for export reference
+        }
         
     except Exception as e:
-        logger.error(f"Batch report generation error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Batch report generation temporarily unavailable")
+        logger.error(f"Batch comprehensive report generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Report generation temporarily unavailable")
+
+@api_router.post("/notes/batch-comprehensive-report/export")
+async def export_batch_comprehensive_report(
+    request: dict,
+    format: str = Query("pdf", regex="^(pdf|docx|txt|rtf)$"),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Export batch comprehensive report - same as individual professional report export"""
+    
+    # Get the report data that was just generated
+    report_content = request.get("report", "")
+    report_title = request.get("title", "Comprehensive Business Analysis")
+    
+    if not report_content:
+        raise HTTPException(status_code=400, detail="No report content provided")
+    
+    # Check if user is from Expeditors for branding
+    is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
+    
+    if format == "txt":
+        # Plain text format - same as individual reports
+        content = report_content
+        if is_expeditors_user:
+            content = "EXPEDITORS INTERNATIONAL\n" + "="*50 + "\n\n" + content + "\n\n" + "="*50 + "\nConfidential - Expeditors International"
+        
+        filename = f"Comprehensive_Report_{report_title.replace(' ', '_')[:30]}.txt"
+        
+        return Response(
+            content=content,
+            media_type="text/plain",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "rtf":
+        # RTF format - same as individual reports  
+        rtf_content = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
+        rtf_body = report_content.replace("\\", "\\\\").replace("\n", "\\par ")
+        rtf_content += rtf_body + "}"
+        
+        filename = f"Comprehensive_Report_{report_title.replace(' ', '_')[:30]}.rtf"
+        
+        return Response(
+            content=rtf_content,
+            media_type="application/rtf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "pdf":
+        # Use the SAME PDF generation as individual professional reports
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.colors import Color, black
+        from io import BytesIO
+        import os
+        import re
+        
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        
+        # Create custom styles - SAME as individual reports
+        styles = getSampleStyleSheet()
+        
+        title_style = ParagraphStyle(
+            'Report Title',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=18,
+            spaceBefore=0,
+            alignment=1,  # Center
+            fontName='Helvetica-Bold',
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        section_heading_style = ParagraphStyle(
+            'Report Section Heading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            spaceBefore=12,
+            spaceAfter=6,
+            fontName='Helvetica-Bold',
+            textColor=Color(234/255, 10/255, 42/255) if is_expeditors_user else black
+        )
+        
+        body_style = ParagraphStyle(
+            'Report Body Text',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=12,
+            spaceBefore=3,
+            leftIndent=0,
+            rightIndent=0,
+            fontName='Helvetica',
+            leading=13.2
+        )
+        
+        story = []
+        
+        # Add logo if Expeditors user - SAME as individual reports
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo = Image(logo_path, width=2*inch, height=0.8*inch)
+                    logo.hAlign = 'CENTER'
+                    story.append(logo)
+                    story.append(Spacer(1, 20))
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
+        # Title - SAME structure as individual reports
+        if is_expeditors_user:
+            story.append(Paragraph("EXPEDITORS INTERNATIONAL", title_style))
+            story.append(Paragraph("Comprehensive Business Analysis", section_heading_style))
+            story.append(Paragraph(f"{report_title}", body_style))
+        else:
+            story.append(Paragraph("Comprehensive Business Analysis", title_style))
+            story.append(Paragraph(f"{report_title}", section_heading_style))
+        
+        story.append(Spacer(1, 20))
+        
+        # Format report content - SAME as individual reports
+        paragraphs = re.split(r'\n\s*\n', report_content)
+        for paragraph in paragraphs:
+            paragraph = paragraph.strip()
+            if paragraph:
+                # Check if it looks like a heading
+                if len(paragraph) < 100 and not paragraph.endswith('.') and paragraph.isupper():
+                    story.append(Paragraph(paragraph, section_heading_style))
+                else:
+                    story.append(Paragraph(paragraph, body_style))
+        
+        # Footer - SAME as individual reports
+        if is_expeditors_user:
+            story.append(Spacer(1, 30))
+            footer_style = ParagraphStyle(
+                'Footer', 
+                parent=styles['Normal'], 
+                fontSize=8, 
+                alignment=1, 
+                textColor=Color(0.5, 0.5, 0.5),
+                fontName='Helvetica-Oblique'
+            )
+            story.append(Paragraph("Confidential - Expeditors International", footer_style))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        
+        filename = f"Comprehensive_Report_{report_title.replace(' ', '_')[:30]}.pdf"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "docx":
+        # Use the SAME Word generation as individual professional reports
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.style import WD_STYLE_TYPE
+        from io import BytesIO
+        import os
+        import re
+        
+        doc = Document()
+        
+        # Set document margins - SAME as individual reports
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+        
+        # Define custom styles - SAME as individual reports
+        styles = doc.styles
+        
+        if 'Report Title' not in [s.name for s in styles]:
+            title_style = styles.add_style('Report Title', WD_STYLE_TYPE.PARAGRAPH)
+            title_font = title_style.font
+            title_font.name = 'Calibri'
+            title_font.size = Pt(18)
+            title_font.bold = True
+            title_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            title_style.paragraph_format.space_after = Pt(18)
+        
+        if 'Report Section Heading' not in [s.name for s in styles]:
+            section_style = styles.add_style('Report Section Heading', WD_STYLE_TYPE.PARAGRAPH)
+            section_font = section_style.font
+            section_font.name = 'Calibri'
+            section_font.size = Pt(14)
+            section_font.bold = True
+            section_style.paragraph_format.space_before = Pt(12)
+            section_style.paragraph_format.space_after = Pt(6)
+        
+        if 'Report Body Text' not in [s.name for s in styles]:
+            body_style = styles.add_style('Report Body Text', WD_STYLE_TYPE.PARAGRAPH)
+            body_font = body_style.font
+            body_font.name = 'Calibri'
+            body_font.size = Pt(11)
+            body_style.paragraph_format.space_after = Pt(12)
+            body_style.paragraph_format.space_before = Pt(3)
+            body_style.paragraph_format.line_spacing = 1.15
+        
+        # Add logo if Expeditors user - SAME as individual reports
+        if is_expeditors_user:
+            logo_path = "/app/backend/expeditors-logo.png"
+            if os.path.exists(logo_path):
+                try:
+                    logo_para = doc.add_paragraph()
+                    logo_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = logo_para.runs[0] if logo_para.runs else logo_para.add_run()
+                    run.add_picture(logo_path, width=Inches(3))
+                    doc.add_paragraph()  # Spacer
+                except Exception as e:
+                    print(f"Logo loading error: {e}")
+        
+        # Title - SAME structure as individual reports
+        if is_expeditors_user:
+            company_title = doc.add_paragraph('EXPEDITORS INTERNATIONAL', style='Report Title')
+            analysis_title = doc.add_paragraph(f'Comprehensive Business Analysis', style='Report Section Heading')
+            analysis_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            doc_title = doc.add_paragraph(f'{report_title}', style='Report Body Text')
+            doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            doc_title.paragraph_format.space_after = Pt(12)
+            doc_title.paragraph_format.space_before = Pt(3)
+        else:
+            main_title = doc.add_paragraph(f'Comprehensive Business Analysis', style='Report Title')
+            doc_title = doc.add_paragraph(f'{report_title}', style='Report Section Heading')
+            doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        doc.add_paragraph()
+        
+        # Format report content - SAME as individual reports
+        paragraphs = re.split(r'\n\s*\n', report_content)
+        for paragraph in paragraphs:
+            paragraph = paragraph.strip()
+            if paragraph:
+                # Check if it looks like a heading
+                if len(paragraph) < 100 and not paragraph.endswith('.') and paragraph.isupper():
+                    heading_para = doc.add_paragraph(paragraph, style='Report Section Heading')
+                else:
+                    para = doc.add_paragraph(paragraph, style='Report Body Text')
+                    para.paragraph_format.space_after = Pt(12)
+                    para.paragraph_format.space_before = Pt(3)
+        
+        # Footer - SAME as individual reports
+        if is_expeditors_user:
+            doc.add_paragraph()
+            footer_para = doc.add_paragraph()
+            footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            footer_run = footer_para.add_run("Confidential - Expeditors International")
+            footer_run.font.name = 'Calibri'
+            footer_run.font.size = Pt(8)
+            footer_run.font.italic = True
+        
+        # Save to buffer
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        filename = f"Comprehensive_Report_{report_title.replace(' ', '_')[:30]}.docx"
+        
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
 
 @api_router.get("/notes/{note_id}/export")
 async def export_note(
