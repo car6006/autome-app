@@ -1434,8 +1434,10 @@ async def export_ai_conversations(
         from docx.shared import Inches, Pt
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml.shared import OxmlElement, qn
+        from docx.enum.style import WD_STYLE_TYPE
         from io import BytesIO
         import os
+        import re
         
         doc = Document()
         
@@ -1446,6 +1448,77 @@ async def export_ai_conversations(
             section.bottom_margin = Inches(1)
             section.left_margin = Inches(1)
             section.right_margin = Inches(1)
+        
+        # Define custom styles for better formatting
+        styles = doc.styles
+        
+        # Main heading style
+        if 'AI Report Title' not in [s.name for s in styles]:
+            title_style = styles.add_style('AI Report Title', WD_STYLE_TYPE.PARAGRAPH)
+            title_font = title_style.font
+            title_font.name = 'Calibri'
+            title_font.size = Pt(18)
+            title_font.bold = True
+            title_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            title_style.paragraph_format.space_after = Pt(18)
+        
+        # Section heading style
+        if 'AI Section Heading' not in [s.name for s in styles]:
+            section_style = styles.add_style('AI Section Heading', WD_STYLE_TYPE.PARAGRAPH)
+            section_font = section_style.font
+            section_font.name = 'Calibri'
+            section_font.size = Pt(14)
+            section_font.bold = True
+            section_style.paragraph_format.space_before = Pt(12)
+            section_style.paragraph_format.space_after = Pt(6)
+        
+        # Body text style
+        if 'AI Body Text' not in [s.name for s in styles]:
+            body_style = styles.add_style('AI Body Text', WD_STYLE_TYPE.PARAGRAPH)
+            body_font = body_style.font
+            body_font.name = 'Calibri'
+            body_font.size = Pt(11)
+            body_style.paragraph_format.space_after = Pt(6)
+            body_style.paragraph_format.line_spacing = 1.15
+        
+        # Function to format AI content with proper paragraph structure
+        def format_ai_content(content):
+            if not content:
+                return []
+            
+            # Split by double newlines first to identify major sections
+            sections = re.split(r'\n\s*\n', content)
+            formatted_paragraphs = []
+            
+            for section in sections:
+                section = section.strip()
+                if not section:
+                    continue
+                
+                # Check if this looks like a heading (short line, possibly with special formatting)
+                lines = section.split('\n')
+                if len(lines) == 1 and len(section) < 100 and not section.endswith('.'):
+                    # Likely a heading
+                    heading_text = section.replace('**', '').replace('*', '').replace('#', '').strip()
+                    if heading_text:
+                        formatted_paragraphs.append(('heading', heading_text))
+                else:
+                    # Process as content section
+                    for line in lines:
+                        line = line.strip()
+                        if line:
+                            # Clean formatting but preserve structure
+                            clean_line = line.replace('**', '').replace('*', '').replace('#', '').strip()
+                            # Remove bullet points and numbering for cleaner look
+                            if clean_line.startswith(('•', '-', '*')):
+                                clean_line = clean_line[1:].strip()
+                            elif re.match(r'^\d+\.', clean_line):
+                                clean_line = re.sub(r'^\d+\.\s*', '', clean_line)
+                            
+                            if clean_line:
+                                formatted_paragraphs.append(('paragraph', clean_line))
+            
+            return formatted_paragraphs
         
         # Add logo if Expeditors user
         if is_expeditors_user:
@@ -1462,13 +1535,18 @@ async def export_ai_conversations(
         
         # Title
         if is_expeditors_user:
-            title = doc.add_heading('EXPEDITORS INTERNATIONAL', 0)
-            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            subtitle = doc.add_heading(f'AI Content Analysis: {content_title}', level=1)
-            subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            company_title = doc.add_paragraph('EXPEDITORS INTERNATIONAL', style='AI Report Title')
+            analysis_title = doc.add_paragraph(f'AI Content Analysis Report', style='AI Section Heading')
+            analysis_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            doc_title = doc.add_paragraph(f'{content_title}', style='AI Body Text')
+            doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         else:
-            title = doc.add_heading(f'AI Content Analysis: {content_title}', 0)
-            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            main_title = doc.add_paragraph(f'AI Content Analysis Report', style='AI Report Title')
+            doc_title = doc.add_paragraph(f'{content_title}', style='AI Section Heading')
+            doc_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Add a horizontal line separator
+        doc.add_paragraph()
         
         # Content
         if ai_conversations:
@@ -1476,27 +1554,61 @@ async def export_ai_conversations(
                 question = conv.get("question", "")
                 response = conv.get("response", "")
                 
-                # Question
-                doc.add_heading(f'Question {i}:', level=2)
-                doc.add_paragraph(question)
+                # Question section
+                question_heading = doc.add_paragraph(f'Question {i}', style='AI Section Heading')
+                question_para = doc.add_paragraph(question, style='AI Body Text')
                 
-                # Response
-                doc.add_heading('AI Analysis:', level=2)
-                clean_response = clean_content(response)
-                doc.add_paragraph(clean_response)
+                doc.add_paragraph()  # Small spacer
                 
+                # Response section
+                response_heading = doc.add_paragraph('Analysis & Response', style='AI Section Heading')
+                
+                # Format the AI response with proper paragraphs
+                formatted_content = format_ai_content(response)
+                for content_type, content_text in formatted_content:
+                    if content_type == 'heading':
+                        # Sub-heading within the response
+                        sub_heading = doc.add_paragraph(content_text)
+                        sub_heading_run = sub_heading.runs[0]
+                        sub_heading_run.font.name = 'Calibri'
+                        sub_heading_run.font.size = Pt(12)
+                        sub_heading_run.font.bold = True
+                        sub_heading.paragraph_format.space_before = Pt(8)
+                        sub_heading.paragraph_format.space_after = Pt(4)
+                    else:
+                        # Regular paragraph
+                        para = doc.add_paragraph(content_text, style='AI Body Text')
+                
+                # Add spacing between conversations
                 if i < len(ai_conversations):
-                    doc.add_paragraph()  # Spacer
+                    doc.add_paragraph()
+                    doc.add_paragraph()
+        
         elif meeting_minutes:
-            clean_minutes = clean_content(meeting_minutes)
-            doc.add_paragraph(clean_minutes)
+            # Format meeting minutes with proper structure
+            minutes_heading = doc.add_paragraph('Meeting Minutes', style='AI Section Heading')
+            formatted_content = format_ai_content(meeting_minutes)
+            for content_type, content_text in formatted_content:
+                if content_type == 'heading':
+                    sub_heading = doc.add_paragraph(content_text)
+                    sub_heading_run = sub_heading.runs[0]
+                    sub_heading_run.font.name = 'Calibri'
+                    sub_heading_run.font.size = Pt(12)
+                    sub_heading_run.font.bold = True
+                    sub_heading.paragraph_format.space_before = Pt(8)
+                    sub_heading.paragraph_format.space_after = Pt(4)
+                else:
+                    para = doc.add_paragraph(content_text, style='AI Body Text')
         
         # Footer
         if is_expeditors_user:
+            doc.add_paragraph()
             footer_para = doc.add_paragraph()
             footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             footer_run = footer_para.add_run("Confidential - Expeditors International")
+            footer_run.font.name = 'Calibri'
             footer_run.font.size = Pt(8)
+            footer_run.font.italic = True
         
         # Save to buffer
         buffer = BytesIO()
