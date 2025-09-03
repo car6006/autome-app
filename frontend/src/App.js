@@ -2811,6 +2811,26 @@ const NotesScreen = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => downloadReportAs(currentReport, 'pdf')}
+                      className="text-xs text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadReportAs(currentReport, 'docx')}
+                      className="text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      Word
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => downloadReportAs(currentReport, 'txt')}
                       className="text-xs"
                     >
