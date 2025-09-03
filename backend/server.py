@@ -1582,8 +1582,10 @@ async def export_ai_conversations(
                 
                 # Add spacing between conversations
                 if i < len(ai_conversations):
+                    # Add more spacing between different Q&A pairs
                     doc.add_paragraph()
-                    doc.add_paragraph()
+                    spacer_para = doc.add_paragraph()
+                    spacer_para.paragraph_format.space_after = Pt(12)
         
         elif meeting_minutes:
             # Format meeting minutes with proper structure
