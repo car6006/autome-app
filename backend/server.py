@@ -2719,8 +2719,6 @@ async def generate_batch_report(
             from reportlab.lib.units import inch
             from reportlab.lib.colors import Color, black
             from io import BytesIO
-            import os
-            import re
             
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
