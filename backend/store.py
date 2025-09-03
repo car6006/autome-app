@@ -145,7 +145,7 @@ class NotesStore:
                         base_writing_time = content_length / 100  # hand writing speed
                         ai_value_added = max(content_length / 200, 3)  # AI analysis and formatting value
                         time_saved = base_writing_time + ai_value_added
-                        estimated_minutes_saved += time_saved  # No artificial cap - show real value!
+                        estimated_minutes_saved += min(time_saved, 180)  # cap at 3 hours per text note (reasonable for long documents)
                 else:
                     # Fallback for notes without content (shouldn't happen, but just in case)
                     if note_kind == "audio":
