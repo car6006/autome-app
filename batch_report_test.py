@@ -422,7 +422,7 @@ class BatchReportExportTester:
             # Register Expeditors user
             response = await self.session.post(f"{API_BASE}/auth/register", json={
                 "email": expeditors_email,
-                "username": f"expuser_{uuid.uuid4().hex[:8]}",
+                "username": f"expuser{uuid.uuid4().hex[:8]}",
                 "password": expeditors_password,
                 "name": "Expeditors Test User"
             })
