@@ -1611,20 +1611,15 @@ const NotesScreen = () => {
             }
             
           } else if (format === 'docx') {
-            // Frontend Word generation using docx library
+            // Frontend Word generation using docx library (static import)
             try {
-              // Check if docx is available
-              let docxModule;
-              try {
-                docxModule = await import('docx');
-              } catch (importError) {
-                throw new Error('Word library not available');
-              }
+              console.log('Starting Word generation with content:', reportContent.substring(0, 100) + '...');
               
-              const { Document, Packer, Paragraph: DocxParagraph, TextRun, HeadingLevel } = docxModule;
+              const { Document, Packer, Paragraph: DocxParagraph, TextRun, HeadingLevel } = docx;
               
               // Clean content for Word document
               const cleanContent = reportContent.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').trim();
+              console.log('Cleaned content length:', cleanContent.length);
               
               // Create document
               const doc = new Document({
@@ -1665,18 +1660,21 @@ const NotesScreen = () => {
               });
               
               // Generate and download
+              console.log('Generating Word document...');
               const blob = await Packer.toBlob(doc);
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
+              const filename = `${reportTitle.replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
+              a.download = filename;
+              console.log('Downloading Word document as:', filename);
               a.click();
               URL.revokeObjectURL(url);
               
               toast({ title: "📄 Word Export Complete", description: "Comprehensive batch report downloaded successfully" });
             } catch (error) {
               console.error('Word generation error:', error);
-              toast({ title: "Export Error", description: "Failed to generate Word document. Please try RTF format instead.", variant: "destructive" });
+              toast({ title: "Word Export Error", description: `Failed to generate Word document: ${error.message}`, variant: "destructive" });
             }
           }
           
