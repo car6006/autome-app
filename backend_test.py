@@ -77,13 +77,17 @@ class BackendTester:
     def test_user_registration(self):
         """Test user registration"""
         try:
-            # Generate unique email for this test
-            unique_email = f"testuser_{uuid.uuid4().hex[:8]}@example.com"
+            # Generate unique email and username for this test
+            unique_id = uuid.uuid4().hex[:8]
+            unique_email = f"testuser_{unique_id}@example.com"
+            unique_username = f"testuser{unique_id}"
             
             user_data = {
                 "email": unique_email,
+                "username": unique_username,
                 "password": TEST_USER_PASSWORD,
-                "name": TEST_USER_NAME
+                "first_name": "Test",
+                "last_name": "User"
             }
             
             response = self.session.post(
@@ -97,10 +101,12 @@ class BackendTester:
                 if data.get("access_token") and data.get("user"):
                     self.auth_token = data["access_token"]
                     self.user_id = data["user"]["id"]
+                    self.registered_email = unique_email
                     self.session.headers.update({"Authorization": f"Bearer {self.auth_token}"})
                     self.log_result("User Registration", True, "User registered successfully", {
                         "user_id": self.user_id,
-                        "email": unique_email
+                        "email": unique_email,
+                        "username": unique_username
                     })
                 else:
                     self.log_result("User Registration", False, "Missing token or user data", data)
