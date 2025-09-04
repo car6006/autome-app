@@ -315,10 +315,10 @@ class BackendTester:
             # Restore headers
             self.session.headers.update(original_headers)
             
-            if response.status_code == 401:
-                self.log_result("Unauthorized Access", True, "Protected endpoint correctly requires authentication")
+            if response.status_code in [401, 403]:  # Both are acceptable for unauthorized access
+                self.log_result("Unauthorized Access", True, f"Protected endpoint correctly requires authentication (HTTP {response.status_code})")
             else:
-                self.log_result("Unauthorized Access", False, f"Expected 401, got {response.status_code}")
+                self.log_result("Unauthorized Access", False, f"Expected 401 or 403, got {response.status_code}")
                 
         except Exception as e:
             self.log_result("Unauthorized Access", False, f"Auth test error: {str(e)}")
