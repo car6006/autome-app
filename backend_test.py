@@ -14,8 +14,9 @@ import uuid
 # Configuration
 BACKEND_URL = "https://autome-ai.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "testuser@example.com"
-TEST_USER_PASSWORD = "testpassword123"
+TEST_USER_PASSWORD = "TestPassword123"  # Updated to meet requirements
 TEST_USER_NAME = "Test User"
+TEST_USERNAME = "testuser123"
 
 class BackendTester:
     def __init__(self):
