@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://autome-fix.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://autome-ai.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def recover_meeting_files():

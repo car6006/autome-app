@@ -7,7 +7,7 @@ from docx import Document
 from docx.shared import Pt
 
 # Backend URL
-BACKEND_URL = "https://autome-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://autome-ai.preview.emergentagent.com/api"
 
 async def debug_spacing():
     """Debug the actual spacing values in the generated Word document"""
