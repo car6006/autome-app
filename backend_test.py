@@ -118,14 +118,14 @@ class BackendTester:
     
     def test_user_login(self):
         """Test user login with existing credentials"""
-        if not self.user_id:
+        if not hasattr(self, 'registered_email'):
             self.log_result("User Login", False, "Skipped - no registered user available")
             return
             
         try:
             # Use the email from registration
             login_data = {
-                "email": f"testuser_{uuid.uuid4().hex[:8]}@example.com",  # This will fail intentionally
+                "email": self.registered_email,
                 "password": TEST_USER_PASSWORD
             }
             
@@ -135,13 +135,16 @@ class BackendTester:
                 timeout=10
             )
             
-            # We expect this to fail since we're using a different email
-            if response.status_code == 401:
-                self.log_result("User Login", True, "Login correctly rejected invalid credentials")
-            elif response.status_code == 200:
-                self.log_result("User Login", False, "Login should have failed with invalid credentials")
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("access_token"):
+                    self.log_result("User Login", True, "Login successful with valid credentials", {
+                        "user_id": data.get("user", {}).get("id")
+                    })
+                else:
+                    self.log_result("User Login", False, "Missing access token in response", data)
             else:
-                self.log_result("User Login", False, f"Unexpected response: HTTP {response.status_code}")
+                self.log_result("User Login", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
             self.log_result("User Login", False, f"Login error: {str(e)}")
