@@ -21,6 +21,9 @@ const ProfileScreen = () => {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [archiveStatus, setArchiveStatus] = useState(null);
+  const [archiveDays, setArchiveDays] = useState(30);
   const [formData, setFormData] = useState({
     first_name: user?.profile?.first_name || '',
     last_name: user?.profile?.last_name || '',
@@ -30,6 +33,8 @@ const ProfileScreen = () => {
     bio: user?.profile?.bio || '',
     avatar_url: user?.profile?.avatar_url || ''
   });
+
+  const API = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
   const handleSave = async () => {
     setLoading(true);
