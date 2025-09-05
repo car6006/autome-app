@@ -251,9 +251,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Mobile Responsive UI Testing"
-    - "Dialog/Modal Responsiveness"
-    - "Touch Target Verification"
+    - "ProfileScreen Runtime Error Fix"
+    - "Archive Management Testing"
+    - "Profile Functionality Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
