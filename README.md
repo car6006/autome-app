@@ -210,21 +210,53 @@ FastAPI + Python 3.9+ + MongoDB + Redis
 /app/
 ├── frontend/                  # React TypeScript application
 │   ├── src/
-│   │   ├── App.js            # Main router with responsive design
+│   │   ├── App.js            # Main router with mobile-first responsive design
+│   │   ├── App.css           # Mobile-optimized CSS with PWA enhancements
 │   │   ├── components/
-│   │   │   ├── ui/           # Shadcn/UI component library
+│   │   │   ├── ui/           # Shadcn/UI component library (mobile-enhanced)
+│   │   │   │   ├── dialog.tsx    # Mobile-responsive modal system
+│   │   │   │   ├── button.tsx    # Touch-friendly button components
+│   │   │   │   ├── input.tsx     # Mobile-optimized form elements
+│   │   │   │   └── textarea.tsx  # Touch-enhanced text inputs
 │   │   │   ├── AuthModal.tsx # JWT authentication interface
 │   │   │   └── LargeFileTranscriptionScreen.js
 │   │   └── contexts/
 │   │       └── AuthContext.tsx
+│   └── public/
+│       └── index.html        # PWA-optimized with mobile viewport configuration
 ├── backend/                   # FastAPI Python server
-│   ├── server.py             # Main application with security middleware
-│   ├── providers.py          # OpenAI/GCV integrations (recently enhanced)
+│   ├── server.py             # Main application with enhanced action items exports
+│   ├── providers.py          # OpenAI integrations with retry logic for server errors
 │   ├── tasks.py             # Background processing pipeline
 │   ├── auth.py              # JWT authentication & user management
 │   ├── store.py             # MongoDB data layer
 │   └── rate_limiting.py     # API protection and throttling
 └── tests/                    # Comprehensive test suite
+```
+
+### **Mobile Responsiveness Features**
+```
+Mobile-First Design Implementation:
+├── PWA Viewport Configuration
+│   ├── viewport-fit=cover for modern browsers
+│   ├── user-scalable=no for consistent experience
+│   └── mobile-web-app-capable for PWA behavior
+├── Touch-Optimized Components
+│   ├── Minimum 44px touch targets
+│   ├── Active state feedback (scale transforms)
+│   └── Touch manipulation CSS properties
+├── Responsive Modal System
+│   ├── max-w-[95vw] for mobile screens
+│   ├── Sticky headers and footers
+│   └── Proper overflow handling and scrolling
+├── Cross-Device Compatibility
+│   ├── iOS Safari optimizations (zoom prevention)
+│   ├── Android Chrome touch improvements
+│   └── Tablet and desktop breakpoints
+└── Enhanced CSS Framework
+    ├── Mobile-first breakpoints (sm:, md:, lg:, xl:)
+    ├── Hardware acceleration for smooth animations
+    └── Comprehensive responsive utility classes
 ```
 
 ## 🔧 **Installation & Setup**
