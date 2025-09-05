@@ -10,10 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { 
   User, Mail, Phone, Briefcase, Building, FileText, 
   Settings, LogOut, Save, Clock, Zap, Award, 
-  Calendar, Loader2, Camera
+  Calendar, Loader2, Camera, Archive, HardDrive, Trash2, Play
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
+import axios from 'axios';
 
 const ProfileScreen = () => {
   const { user, updateProfile, logout } = useAuth();
