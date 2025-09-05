@@ -34,7 +34,7 @@ const ProfileScreen = () => {
     avatar_url: user?.profile?.avatar_url || ''
   });
 
-  const API = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+  const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
   const handleSave = async () => {
     setLoading(true);
