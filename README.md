@@ -21,6 +21,15 @@ AUTO-ME is a production-ready PWA (Progressive Web App) featuring advanced voice
 - **Copy-Ready Output**: Clean formatting suitable for meeting minutes and business documents
 - **Mobile-Optimized Display**: Touch-friendly action items preview and export on mobile devices
 
+### **🗂️ Automated Archive System (New Feature)**
+- **Smart Disk Management**: Automatically deletes old audio/image files while preserving database records and transcriptions
+- **Configurable Retention**: Set custom retention periods (1-365 days) via environment variables (default: 30 days)
+- **Pattern-Based Cleanup**: Intelligent file categorization - archives large files, deletes temporary files completely
+- **API Management**: Admin endpoints for archive status, execution, and configuration
+- **Automated Scheduling**: Cron job setup for daily, weekly, or monthly cleanup operations
+- **Disk Space Optimization**: Significant storage savings while maintaining all transcribed content and metadata
+- **Safe Operations**: Dry-run mode for testing, comprehensive logging, and database preservation
+
 ### **🔧 Enhanced Transcription Reliability (New Feature)**
 - **Automatic Retry System**: Handles OpenAI 500 server errors with intelligent retry logic (3 attempts)
 - **Exponential Backoff**: Smart waiting periods (3s, 6s, 12s) for server error recovery
