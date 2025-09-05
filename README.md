@@ -6,6 +6,27 @@ AUTO-ME is a production-ready PWA (Progressive Web App) featuring advanced voice
 
 ## ⭐ **Key Features**
 
+### **📱 Mobile-First Responsive Design (New Feature)**
+- **PWA-Optimized Interface**: Enhanced viewport configuration with `viewport-fit=cover` for modern mobile browsers
+- **Touch-Friendly Interactions**: Minimum 44px touch targets for all buttons and interactive elements
+- **Cross-Device Compatibility**: Tested and optimized for iOS Safari, Android Chrome, tablets, and desktop
+- **Mobile-Specific Optimizations**: iOS Safari input zoom prevention, Android touch feedback improvements
+- **Responsive Modal System**: Complete redesign of dialogs and modals for mobile screens without text cutoff
+- **Professional Mobile Experience**: Clean layouts, proper text wrapping, and touch-optimized navigation
+
+### **🎯 Enhanced Action Items System (New Feature)**
+- **Clean Professional Format**: Removed cluttered pipe characters (|) for structured numbered lists
+- **Multiple Export Formats**: Dedicated export options in TXT, RTF, and DOCX formats  
+- **Improved AI Generation**: Professional business language with clear, actionable items
+- **Copy-Ready Output**: Clean formatting suitable for meeting minutes and business documents
+- **Mobile-Optimized Display**: Touch-friendly action items preview and export on mobile devices
+
+### **🔧 Enhanced Transcription Reliability (New Feature)**
+- **Automatic Retry System**: Handles OpenAI 500 server errors with intelligent retry logic (3 attempts)
+- **Exponential Backoff**: Smart waiting periods (3s, 6s, 12s) for server error recovery
+- **Improved Success Rate**: Significantly reduced transcription failures due to temporary API issues
+- **Separate Error Handling**: Different retry strategies for rate limits (429) vs server errors (500)
+
 ### **🎤 Advanced Audio Transcription**
 - **Large File Support**: Process files up to 500MB with resumable uploads
 - **Real-time Processing**: Live progress tracking through 10-stage pipeline
