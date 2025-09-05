@@ -1167,34 +1167,40 @@ async def generate_action_items(
         if not api_key:
             raise HTTPException(status_code=503, detail="AI service configuration error")
         
-        # Generate action items in table format
+        # Generate action items in clean, structured format
         prompt = f"""
-        Based on the following meeting transcript, extract and create a comprehensive action items table.
+        Based on the following meeting transcript, extract and create comprehensive action items in a professional format.
 
         TRANSCRIPT:
         {transcript}
 
         INSTRUCTIONS:
-        Create a structured action items table with the following format:
+        Create structured action items with the following format:
 
-        Consolidated Action Items
+        ACTION ITEMS FOR: ZA DM MEETING 5 SEPTEMBER 2025
 
-        No. | Action Item | Start Date | End Date | Status | Responsible Person
-        1   | [Detailed action description] | | | |
-        2   | [Detailed action description] | | | |
-        [etc.]
+        1. Schedule weekly meetings for all four participants to discuss ongoing topics and ensure alignment.
+
+        2. Monitor and manage annual leave usage to prevent carryover beyond five days, ensuring compliance with legal requirements.
+
+        3. Review and address any discrepancies in work-from-home reporting to ensure productivity is maintained.
+
+        4. Check with Elaine and Garth regarding the dashboard for monitoring work-from-home days and ensure proper logging of attendance.
+
+        5. Prepare for budget discussions by analyzing growth expectations and aligning team goals with corporate directives.
 
         REQUIREMENTS:
         - Extract ALL actionable items, decisions, and commitments mentioned
-        - Write clear, specific action descriptions
-        - Number each item sequentially
-        - Leave Start Date, End Date, Status, and Responsible Person columns empty for manual completion
-        - Focus on concrete, measurable actions
-        - Include both explicit action items and implied commitments from discussions
+        - Write clear, specific action descriptions in complete sentences
+        - Number each item sequentially (1, 2, 3, etc.)
         - Use professional business language
+        - Each action item should be a complete paragraph
+        - NO pipe characters or table formatting
         - NO markdown formatting, just clean text
+        - Focus on concrete, measurable actions
+        - Include both explicit action items and implied commitments
 
-        Format the response as a simple table that can be easily copied into a document.
+        Provide clean, readable text that can be easily copied into documents.
         """
         
         async with httpx.AsyncClient(timeout=60) as client:
