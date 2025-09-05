@@ -3060,44 +3060,47 @@ const NotesScreen = () => {
         
         {/* Action Items Modal */}
         {showActionItemsModal && currentActionItems && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden mb-16 sm:mb-0">
-              <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
-                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-orange-600" />
+          <div className="fixed inset-0 bg-black/50 flex items-start sm:items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+            <div className="bg-white rounded-lg w-full max-w-[95vw] sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden my-4 sm:my-0">
+              <div className="p-3 sm:p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div className="flex-1 min-w-0 pr-4">
+                  <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-800 flex items-center">
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2 sm:mr-3 text-orange-600 flex-shrink-0" />
                     <span className="truncate">Action Items Table</span>
                   </h2>
-                  <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
+                  <p className="text-gray-600 mt-1 text-xs sm:text-sm md:text-base truncate">
                     Structured action items for: {currentActionItems.note_title}
                   </p>
                 </div>
                 <Button
                   variant="ghost"
+                  size="sm"
                   onClick={() => setShowActionItemsModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 flex-shrink-0 h-8 w-8 p-0"
                 >
                   ✕
                 </Button>
               </div>
               
-              <div className="p-3 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[70vh]">
+              <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-180px)] sm:max-h-[70vh]">
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-6">
-                  <div className="whitespace-pre-wrap text-gray-800 font-mono text-xs sm:text-sm leading-relaxed break-words">
+                  <div className="whitespace-pre-wrap text-gray-800 font-mono text-xs sm:text-sm leading-relaxed break-words overflow-wrap-anywhere">
                     {currentActionItems.data.action_items}
                   </div>
                 </div>
               </div>
               
-              <div className="p-3 sm:p-6 border-t border-gray-200 bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-600">
+              <div className="p-3 sm:p-6 border-t border-gray-200 bg-gray-50 sticky bottom-0">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                     Ready to copy and customize your action items table
                   </p>
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3 sm:gap-0">
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => setShowActionItemsModal(false)}
+                      className="order-2 sm:order-1"
                     >
                       Close
                     </Button>
@@ -3106,11 +3109,12 @@ const NotesScreen = () => {
                         navigator.clipboard.writeText(currentActionItems.data.action_items);
                         toast({ title: "📋 Copied!", description: "Action items copied to clipboard" });
                       }}
+                      size="sm"
                       className={`${
                         theme.isExpeditors 
                           ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white'
                           : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                      }`}
+                      } order-1 sm:order-2`}
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Copy to Clipboard
