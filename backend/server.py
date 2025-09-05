@@ -1236,6 +1236,158 @@ async def generate_action_items(
         logger.error(f"Action items generation error: {str(e)}")
         raise HTTPException(status_code=500, detail="Action items generation temporarily unavailable")
 
+@api_router.get("/notes/{note_id}/action-items/export")
+async def export_action_items(
+    note_id: str,
+    format: str = Query("txt", regex="^(txt|docx|rtf)$"),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Export action items in clean formats (TXT, DOC, RTF)"""
+    note = await NotesStore.get(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Check if user owns this note (if authenticated)
+    if current_user and note.get("user_id") and note.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this note")
+    
+    artifacts = note.get("artifacts", {})
+    action_items = artifacts.get("action_items", "")
+    
+    if not action_items:
+        raise HTTPException(status_code=400, detail="No action items available. Generate action items first.")
+    
+    # Clean title for filename
+    clean_title = note['title'].replace(' ', '_').replace('/', '_').replace('\\', '_')
+    
+    if format == "txt":
+        # Clean TXT format with proper spacing
+        content = f"ACTION ITEMS\n"
+        content += "=" * 12 + "\n\n"
+        content += f"Meeting: {note['title']}\n"
+        content += f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %I:%M %p UTC')}\n\n"
+        
+        # Clean up the action items text - remove pipe characters and improve formatting
+        clean_action_items = action_items.replace("|", "").replace("  ", " ")
+        
+        # Split into lines and reformat
+        lines = clean_action_items.split('\n')
+        formatted_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith('No.') and not line.startswith('---'):
+                # If line starts with a number, it's an action item
+                if line[0].isdigit():
+                    formatted_lines.append(f"\n{line}")
+                else:
+                    # Continuation of previous item
+                    formatted_lines.append(line)
+        
+        content += '\n'.join(formatted_lines)
+        content += "\n\n" + "=" * 50 + "\n"
+        content += "Ready to copy and customize for your meeting minutes\n"
+        
+        filename = f"{clean_title}_Action_Items.txt"
+        
+        return Response(
+            content=content,
+            media_type="text/plain",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "rtf":
+        # RTF format with proper formatting
+        filename = f"{clean_title}_Action_Items.rtf"
+        
+        # RTF Header
+        rtf_content = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 "
+        
+        # Title
+        rtf_content += f"\\b\\fs32 ACTION ITEMS\\b0\\fs24\\par\\par "
+        rtf_content += f"\\b Meeting:\\b0 {note['title']}\\par "
+        rtf_content += f"\\b Generated:\\b0 {datetime.now(timezone.utc).strftime('%B %d, %Y at %I:%M %p UTC')}\\par\\par "
+        
+        # Clean and format action items
+        clean_action_items = action_items.replace("|", "").replace("  ", " ")
+        lines = clean_action_items.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith('No.') and not line.startswith('---'):
+                if line[0].isdigit():
+                    rtf_content += f"\\par\\b {line.split('.')[0]}.\\b0 {'.'.join(line.split('.')[1:]).strip()}\\par "
+                else:
+                    rtf_content += f"{line} "
+        
+        rtf_content += "\\par\\par }"
+        
+        return Response(
+            content=rtf_content,
+            media_type="application/rtf",
+            headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        )
+    
+    elif format == "docx":
+        # Word document format
+        try:
+            from docx import Document
+            from docx.shared import Inches
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
+            from io import BytesIO
+            
+            doc = Document()
+            
+            # Title
+            title = doc.add_heading('ACTION ITEMS', 0)
+            title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Meeting info
+            doc.add_paragraph(f"Meeting: {note['title']}")
+            doc.add_paragraph(f"Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y at %I:%M %p UTC')}")
+            doc.add_paragraph("")  # Empty line
+            
+            # Clean and format action items
+            clean_action_items = action_items.replace("|", "").replace("  ", " ")
+            lines = clean_action_items.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('No.') and not line.startswith('---'):
+                    if line[0].isdigit():
+                        p = doc.add_paragraph()
+                        # Add number in bold
+                        num_part = line.split('.')[0] + '.'
+                        desc_part = '.'.join(line.split('.')[1:]).strip()
+                        
+                        run = p.add_run(num_part)
+                        run.bold = True
+                        p.add_run(f" {desc_part}")
+                    else:
+                        # Continuation line
+                        doc.add_paragraph(line, style='List Continue')
+            
+            # Add footer
+            doc.add_paragraph("")  # Empty line
+            footer_p = doc.add_paragraph("Ready to copy and customize for your meeting minutes")
+            footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Save to BytesIO
+            buffer = BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
+            
+            filename = f"{clean_title}_Action_Items.docx"
+            
+            return Response(
+                content=buffer.getvalue(),
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+            )
+            
+        except ImportError:
+            raise HTTPException(status_code=503, detail="DOCX export temporarily unavailable")
+
 @api_router.get("/notes/{note_id}/ai-conversations/export")
 async def export_ai_conversations(
     note_id: str,
