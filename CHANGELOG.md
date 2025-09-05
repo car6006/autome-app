@@ -6,6 +6,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
+## [3.2.0] - 2025-09-05 - **MOBILE-FIRST RESPONSIVE DESIGN & ACTION ITEMS ENHANCEMENT**
+
+### 🚀 **NEW FEATURES**
+
+#### **📱 Mobile-First Responsive Design**
+- **PWA-Optimized Viewport**: Enhanced meta tags with `viewport-fit=cover` for modern mobile browsers
+- **Touch-Friendly Interface**: Minimum 44px touch targets for all interactive elements
+- **Cross-Device Compatibility**: Tested and optimized for iOS Safari, Android Chrome, and tablets
+- **Mobile-Specific Optimizations**: iOS Safari input zoom prevention, Android touch feedback improvements
+- **Responsive Modal System**: Complete redesign of dialogs and modals for mobile screens
+
+#### **🎯 Enhanced Action Items System**
+- **Clean Format Generation**: Removed cluttered pipe characters (|) for professional numbered lists
+- **Multiple Export Formats**: New dedicated export endpoint supporting TXT, RTF, and DOCX formats
+- **Improved AI Generation**: Better prompting for clear, actionable business language
+- **Professional Formatting**: Clean paragraph structure with proper spacing and numbering
+
+#### **🔧 Transcription Reliability Improvements**
+- **Enhanced Retry Logic**: Automatic retry system for OpenAI 500 server errors (3 attempts with exponential backoff)
+- **Better Error Handling**: Separate retry strategies for rate limits (429) and server errors (500)
+- **Improved Success Rate**: Significantly reduced transcription failures due to temporary API issues
+
+### 🔧 **ENHANCED FEATURES**
+
+#### **Mobile Responsive Components**
+- **Dialog Components**: 
+  - **Previous**: Fixed `max-w-lg` causing text cutoff on mobile
+  - **New**: Dynamic `max-w-[95vw]` with mobile-first breakpoints
+  - **Improvements**: Sticky headers, proper scrolling, touch-optimized close buttons
+- **Button System**:
+  - **Touch Targets**: Minimum 44px height/width with larger tap areas
+  - **Visual Feedback**: Active states with `scale-95` transform for better touch feedback
+  - **Responsive Sizing**: Adaptive sizing across mobile, tablet, and desktop breakpoints
+- **Form Elements**:
+  - **Input Fields**: 44px minimum height, 16px font size to prevent iOS zoom
+  - **Textarea**: Enhanced sizing with proper mobile touch targets
+  - **Touch Manipulation**: CSS `touch-manipulation` for responsive touch handling
+
+#### **Action Items Export System**
+- **TXT Format**: Clean numbered lists with proper paragraph spacing
+- **RTF Format**: Rich text with bold numbering and professional formatting  
+- **DOCX Format**: Microsoft Word compatible with structured headings and bullet points
+- **Improved Content**: Professional business language instead of table-formatted output
+
+#### **Modal System Enhancements**
+- **Meeting Minutes Preview**: Mobile-optimized layout with responsive buttons and text
+- **Action Items Modal**: Touch-friendly design with improved copy functionality
+- **AI Chat Modal**: Enhanced mobile interaction with proper touch targets
+
+### 📈 **PERFORMANCE IMPROVEMENTS**
+- **Mobile Performance**: Optimized CSS with hardware acceleration for smooth animations
+- **Touch Response**: Improved touch feedback and interaction responsiveness
+- **Loading Optimization**: Better mobile resource management and faster initial load
+
+### 🐛 **BUG FIXES**
+- **Transcription Failures**: Fixed OpenAI 500 server error handling with automatic retry system
+- **Mobile Text Cutoff**: Resolved dialog text truncation issues on small screens
+- **Horizontal Scrolling**: Eliminated unwanted horizontal scroll on mobile devices
+- **Touch Target Issues**: Fixed small buttons and links that were difficult to tap on mobile
+- **Modal Overflow**: Resolved modal content overflow issues on mobile screens
+
+---
+
 ## [3.1.0] - 2025-09-03 - **ENHANCED PRODUCTIVITY METRICS & DOCUMENT FORMATTING**
 
 ### 🚀 **NEW FEATURES**
