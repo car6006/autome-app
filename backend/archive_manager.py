@@ -300,13 +300,19 @@ async def main():
     archive_manager = ArchiveManager()
     result = await archive_manager.run_archive_process(dry_run=args.dry_run)
     
-    if result.get('success'):
-        print(f"\n🎉 Archive completed successfully!")
-        if not args.dry_run:
-            print(f"📊 Files processed: {result['total_processed']}")
-            print(f"💾 Disk space freed: {result['disk_space_freed_formatted']}")
+    if result.get('success', True):  # Default to True for dry runs
+        print(f"\n🎉 Archive process completed!")
+        if args.dry_run:
+            print(f"📊 DRY RUN - Files that would be processed:")
+            print(f"   - Archive files: {result.get('archive_files', 0)}")
+            print(f"   - Delete files: {result.get('delete_files', 0)}")
+            print(f"   - Total size to free: {result.get('total_size_to_free', 0)} bytes")
+        else:
+            print(f"📊 Files processed: {result.get('total_processed', 0)}")
+            print(f"💾 Disk space freed: {result.get('disk_space_freed_formatted', '0B')}")
     else:
         print(f"\n❌ Archive failed: {result.get('error', 'Unknown error')}")
+        exit(1)
 
 if __name__ == "__main__":
     asyncio.run(main())
