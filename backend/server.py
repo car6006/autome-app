@@ -817,6 +817,97 @@ async def get_system_metrics(current_user: Optional[dict] = Depends(get_current_
             }
         )
 
+# ================================
+# ARCHIVE MANAGEMENT ENDPOINTS
+# ================================
+
+@api_router.get("/admin/archive/status")
+async def get_archive_status(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get current archive configuration and statistics"""
+    try:
+        from .archive_manager import ArchiveManager
+        
+        archive_manager = ArchiveManager()
+        
+        # Get current configuration
+        config = {
+            "archive_days": archive_manager.ARCHIVE_DAYS,
+            "storage_paths": archive_manager.STORAGE_PATHS,
+            "archive_patterns": archive_manager.ARCHIVE_PATTERNS,
+            "delete_patterns": archive_manager.DELETE_PATTERNS
+        }
+        
+        # Run dry run to get statistics
+        result = await archive_manager.run_archive_process(dry_run=True)
+        
+        return {
+            "config": config,
+            "statistics": result,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get archive status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get archive status: {str(e)}")
+
+@api_router.post("/admin/archive/run")
+async def run_archive_process(
+    dry_run: bool = Query(False, description="Run in dry-run mode without deleting files"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Run the archive process to clean up old files"""
+    try:
+        from .archive_manager import ArchiveManager
+        
+        logger.info(f"Archive process started by user: {current_user.get('email', 'unknown')}")
+        
+        archive_manager = ArchiveManager()
+        result = await archive_manager.run_archive_process(dry_run=dry_run)
+        
+        # Log the archive action for audit
+        if not dry_run and result.get('success'):
+            logger.info(f"🏛️ Archive completed by {current_user.get('email')}: "
+                       f"freed {result.get('disk_space_freed_formatted', '0B')} "
+                       f"({result.get('total_processed', 0)} files)")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Archive process failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Archive process failed: {str(e)}")
+
+@api_router.post("/admin/archive/configure")
+async def configure_archive_settings(
+    archive_days: int = Body(..., description="Number of days after which files should be archived"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Configure archive settings"""
+    try:
+        if archive_days < 1:
+            raise HTTPException(status_code=400, detail="Archive days must be at least 1")
+        
+        if archive_days > 365:
+            raise HTTPException(status_code=400, detail="Archive days cannot exceed 365")
+        
+        # Update environment variable (would need restart to take effect)
+        os.environ['ARCHIVE_DAYS'] = str(archive_days)
+        
+        logger.info(f"Archive settings updated by {current_user.get('email')}: {archive_days} days")
+        
+        return {
+            "success": True,
+            "archive_days": archive_days,
+            "message": "Archive settings updated. Restart required for changes to take full effect.",
+            "updated_by": current_user.get('email'),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to configure archive settings: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to configure archive settings: {str(e)}")
+
 @api_router.get("/user/professional-context")
 async def get_professional_context(
     current_user: dict = Depends(get_current_user)
