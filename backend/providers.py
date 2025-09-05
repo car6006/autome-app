@@ -193,6 +193,11 @@ async def stt_transcribe(file_url: str):
                             logger.warning(f"Rate limit hit for small file, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
                             await asyncio.sleep(wait_time)
                             continue
+                        elif e.response.status_code == 500:  # Server error - retry
+                            wait_time = (2 ** attempt) * 3  # Exponential backoff: 3s, 6s, 12s
+                            logger.warning(f"OpenAI server error for small file, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                            await asyncio.sleep(wait_time)
+                            continue
                         else:
                             logger.error(f"HTTP error transcribing small file: {e.response.status_code} - {e.response.text}")
                             return {"text": "", "summary": "", "actions": [], "note": f"Transcription failed: HTTP {e.response.status_code}"}
