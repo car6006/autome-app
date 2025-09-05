@@ -65,6 +65,88 @@ const ProfileScreen = () => {
     });
   };
 
+  // Archive Management Functions
+  const fetchArchiveStatus = async () => {
+    try {
+      const token = localStorage.getItem('auto_me_token');
+      const response = await axios.get(`${API}/admin/archive/status`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setArchiveStatus(response.data);
+      setArchiveDays(response.data.config.archive_days);
+    } catch (error) {
+      if (error.response?.status === 403) {
+        // User doesn't have admin access - that's okay
+        return;
+      }
+      console.error('Failed to fetch archive status:', error);
+    }
+  };
+
+  const runArchiveProcess = async (dryRun = true) => {
+    setArchiveLoading(true);
+    try {
+      const token = localStorage.getItem('auto_me_token');
+      const response = await axios.post(`${API}/admin/archive/run?dry_run=${dryRun}`, {}, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (dryRun) {
+        toast({
+          title: "🔍 Archive Preview",
+          description: `Would process ${response.data.archive_files || 0} files (${response.data.delete_files || 0} temp files)`
+        });
+      } else {
+        toast({
+          title: "🗂️ Archive Completed!",
+          description: `Processed ${response.data.total_processed || 0} files, freed ${response.data.disk_space_freed_formatted || '0B'}`
+        });
+      }
+      
+      // Refresh status after running
+      fetchArchiveStatus();
+    } catch (error) {
+      console.error('Archive process failed:', error);
+      toast({
+        title: "❌ Archive Failed",
+        description: error.response?.data?.detail || "Archive process failed",
+        variant: "destructive"
+      });
+    }
+    setArchiveLoading(false);
+  };
+
+  const updateArchiveSettings = async () => {
+    setArchiveLoading(true);
+    try {
+      const token = localStorage.getItem('auto_me_token');
+      await axios.post(`${API}/admin/archive/configure`, 
+        { archive_days: archiveDays },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      
+      toast({
+        title: "✅ Settings Updated",
+        description: `Archive retention set to ${archiveDays} days`
+      });
+      
+      fetchArchiveStatus();
+    } catch (error) {
+      console.error('Failed to update archive settings:', error);
+      toast({
+        title: "❌ Update Failed",
+        description: error.response?.data?.detail || "Failed to update settings",
+        variant: "destructive"
+      });
+    }
+    setArchiveLoading(false);
+  };
+
+  // Load archive status on component mount
+  React.useEffect(() => {
+    fetchArchiveStatus();
+  }, []);
+
   const getInitials = () => {
     const first = user?.profile?.first_name || user?.username || '';
     const last = user?.profile?.last_name || '';
