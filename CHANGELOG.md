@@ -23,10 +23,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - **Improved AI Generation**: Better prompting for clear, actionable business language
 - **Professional Formatting**: Clean paragraph structure with proper spacing and numbering
 
-#### **🔧 Transcription Reliability Improvements**
-- **Enhanced Retry Logic**: Automatic retry system for OpenAI 500 server errors (3 attempts with exponential backoff)
-- **Better Error Handling**: Separate retry strategies for rate limits (429) and server errors (500)
-- **Improved Success Rate**: Significantly reduced transcription failures due to temporary API issues
+#### **🗂️ Automated Archive System (NEW)**
+- **Smart File Management**: Automatically deletes old audio/image files while preserving database records and transcriptions
+- **Configurable Retention**: Set custom retention periods (1-365 days) via environment variables (default: 30 days)
+- **Pattern-Based Cleanup**: Intelligent file categorization - archives large files, deletes temporary files
+- **API Management**: Admin endpoints for archive status, execution, and configuration
+- **Automated Scheduling**: Cron job setup for daily, weekly, or monthly cleanup
+- **Disk Space Optimization**: Significant storage savings while maintaining all transcribed content
+
+#### **🧹 System Cleanup (NEW)**
+- **Test File Removal**: Cleaned up 100+ unnecessary test files freeing 124.8 MB of disk space
+- **Organized File Structure**: Moved development tools to dedicated directories
+- **Streamlined Maintenance**: Automated cleanup scripts for ongoing system maintenance
 
 ### 🔧 **ENHANCED FEATURES**
 
