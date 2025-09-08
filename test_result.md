@@ -398,10 +398,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "ProfileScreen Runtime Error Fix"
-    - "Archive Management Testing"
-    - "Profile Functionality Verification"
-  stuck_tasks: []
+    - "Upload System Diagnostics"
+    - "OpenAI Integration"
+  stuck_tasks: 
+    - "OpenAI Integration"
   test_all: false
   test_priority: "high_first"
 
