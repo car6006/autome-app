@@ -473,8 +473,8 @@ const ProfileScreen = () => {
             </CardContent>
           </Card>
 
-          {/* Archive Management - Show for authenticated users */}
-          {user && (
+          {/* Archive Management - Show for authenticated users (debug version) */}
+          {(user || localStorage.getItem('auto_me_token')) && (
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
