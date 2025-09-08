@@ -413,13 +413,13 @@ async def ocr_read(file_url: str):
                 "max_tokens": 1000
             }
             
-            # Enhanced retry logic for OCR with exponential backoff
+            # Optimized retry logic for OCR with faster backoff
             import random
-            max_retries = 5
+            max_retries = 3  # Reduced retries for faster processing
             
             for attempt in range(max_retries):
                 try:
-                    async with httpx.AsyncClient(timeout=90) as client:
+                    async with httpx.AsyncClient(timeout=60) as client:  # Reduced timeout
                         r = await client.post(
                             "https://api.openai.com/v1/chat/completions",
                             json=payload,
@@ -447,27 +447,26 @@ async def ocr_read(file_url: str):
                                 # Get retry-after header if available
                                 retry_after = r.headers.get('retry-after')
                                 if retry_after:
-                                    wait_time = int(retry_after)
+                                    wait_time = min(int(retry_after), 30)  # Cap at 30 seconds
                                     logger.warning(f"🚦 OpenAI OCR rate limit (retry-after: {wait_time}s) (attempt {attempt + 1}/{max_retries})")
                                 else:
-                                    # Enhanced exponential backoff with jitter for rate limits
-                                    base_wait = (2 ** attempt) * 15  # 15s, 30s, 60s, 120s, 240s
-                                    jitter = random.uniform(0.1, 0.3) * base_wait  # Add 10-30% jitter
-                                    wait_time = base_wait + jitter
-                                    logger.warning(f"🚦 OpenAI OCR rate limit (exponential backoff: {wait_time:.1f}s) (attempt {attempt + 1}/{max_retries})")
+                                    # Faster exponential backoff for OCR - OCR is typically quicker than transcription
+                                    base_wait = (2 ** attempt) * 5  # 5s, 10s, 20s (much faster than transcription)
+                                    jitter = random.uniform(0.1, 0.2) * base_wait  # Less jitter
+                                    wait_time = min(base_wait + jitter, 30)  # Cap at 30 seconds
+                                    logger.warning(f"🚦 OpenAI OCR rate limit (fast backoff: {wait_time:.1f}s) (attempt {attempt + 1}/{max_retries})")
                                 
                                 if attempt < max_retries - 1:
-                                    # Notify user about delay for longer waits
-                                    if wait_time > 30:
-                                        logger.info(f"📧 OCR processing delayed due to rate limits, waiting {wait_time:.0f} seconds")
+                                    # Always notify user about OCR delays since they're shorter
+                                    logger.info(f"⏳ OCR processing delayed due to rate limits, retrying in {wait_time:.0f} seconds")
                                     await asyncio.sleep(wait_time)
                                     continue
                                 else:
                                     logger.error(f"❌ OpenAI OCR rate limit exceeded after {max_retries} attempts")
-                                    raise ValueError("OCR service experiencing high demand. Please try again in a few minutes.")
+                                    raise ValueError("OCR service is currently busy. Please try again in a moment.")
                             elif r.status_code == 500:
                                 # Server error - retry with shorter backoff
-                                wait_time = (2 ** attempt) * 3  # 3s, 6s, 12s, 24s, 48s
+                                wait_time = (2 ** attempt) * 2  # 2s, 4s, 8s (faster than before)
                                 logger.warning(f"🔧 OpenAI OCR server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
                                 if attempt < max_retries - 1:
                                     await asyncio.sleep(wait_time)
@@ -480,11 +479,11 @@ async def ocr_read(file_url: str):
                 except httpx.TimeoutException:
                     logger.error(f"OCR request timed out (attempt {attempt + 1}/{max_retries})")
                     if attempt < max_retries - 1:
-                        wait_time = (2 ** attempt) * 2  # 2s, 4s, 8s, 16s, 32s
+                        wait_time = (2 ** attempt) * 1  # 1s, 2s, 4s (very fast for timeouts)
                         await asyncio.sleep(wait_time)
                         continue
                     else:
-                        raise ValueError("OCR processing timed out after multiple attempts. Please try with a smaller image.")
+                        raise ValueError("OCR processing timed out. Please try with a smaller or clearer image.")
                 except ValueError:
                     # Re-raise ValueError as-is (these are our custom validation errors)
                     raise
