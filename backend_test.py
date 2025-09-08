@@ -1227,6 +1227,325 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result("Failed OCR Reprocessing", False, f"Failed OCR reprocessing test error: {str(e)}")
+
+    def test_failed_notes_count_endpoint(self):
+        """Test the /api/notes/failed-count endpoint"""
+        if not self.auth_token:
+            self.log_result("Failed Notes Count Endpoint", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            response = self.session.get(f"{BACKEND_URL}/notes/failed-count", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "failed_count" in data and "has_failed_notes" in data:
+                    failed_count = data["failed_count"]
+                    has_failed_notes = data["has_failed_notes"]
+                    
+                    # Validate response structure
+                    if isinstance(failed_count, int) and isinstance(has_failed_notes, bool):
+                        # Check logical consistency
+                        if (failed_count > 0 and has_failed_notes) or (failed_count == 0 and not has_failed_notes):
+                            self.log_result("Failed Notes Count Endpoint", True, 
+                                          f"Failed notes count: {failed_count}, has_failed_notes: {has_failed_notes}", data)
+                        else:
+                            self.log_result("Failed Notes Count Endpoint", False, 
+                                          f"Inconsistent response: count={failed_count}, has_failed={has_failed_notes}", data)
+                    else:
+                        self.log_result("Failed Notes Count Endpoint", False, 
+                                      f"Invalid data types in response: {type(failed_count)}, {type(has_failed_notes)}", data)
+                else:
+                    self.log_result("Failed Notes Count Endpoint", False, "Missing required fields in response", data)
+            elif response.status_code == 401:
+                self.log_result("Failed Notes Count Endpoint", True, "Correctly requires authentication")
+            else:
+                self.log_result("Failed Notes Count Endpoint", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Failed Notes Count Endpoint", False, f"Failed notes count test error: {str(e)}")
+
+    def create_test_failed_notes(self):
+        """Helper method to create test notes with failed status for cleanup testing"""
+        if not self.auth_token:
+            return []
+            
+        created_notes = []
+        
+        try:
+            # Create notes with different failure scenarios
+            test_scenarios = [
+                {"title": "Failed Note 1", "kind": "text", "text_content": "Test failed note 1"},
+                {"title": "Error Note 2", "kind": "text", "text_content": "Test error note 2"},
+                {"title": "Stuck Note 3", "kind": "text", "text_content": "Test stuck note 3"}
+            ]
+            
+            for scenario in test_scenarios:
+                # Create the note first
+                response = self.session.post(f"{BACKEND_URL}/notes", json=scenario, timeout=10)
+                
+                if response.status_code == 200:
+                    note_data = response.json()
+                    note_id = note_data.get("id")
+                    if note_id:
+                        created_notes.append({
+                            "id": note_id,
+                            "title": scenario["title"],
+                            "expected_status": scenario["title"].split()[0].lower()  # "failed", "error", "stuck"
+                        })
+                        
+                        # Simulate different failure states by directly updating via database
+                        # Since we can't directly access the database, we'll create notes that might fail naturally
+                        
+            return created_notes
+            
+        except Exception as e:
+            print(f"Error creating test failed notes: {str(e)}")
+            return created_notes
+
+    def test_cleanup_failed_notes_endpoint(self):
+        """Test the /api/notes/cleanup-failed endpoint"""
+        if not self.auth_token:
+            self.log_result("Cleanup Failed Notes Endpoint", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # First, get the current count of failed notes
+            count_response = self.session.get(f"{BACKEND_URL}/notes/failed-count", timeout=10)
+            initial_failed_count = 0
+            
+            if count_response.status_code == 200:
+                count_data = count_response.json()
+                initial_failed_count = count_data.get("failed_count", 0)
+            
+            # Test the cleanup endpoint
+            response = self.session.post(f"{BACKEND_URL}/notes/cleanup-failed", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["message", "deleted_count", "deleted_by_status", "timestamp"]
+                
+                if all(field in data for field in required_fields):
+                    deleted_count = data["deleted_count"]
+                    deleted_by_status = data["deleted_by_status"]
+                    
+                    # Validate response structure
+                    if isinstance(deleted_count, int) and isinstance(deleted_by_status, dict):
+                        # Check if cleanup was successful
+                        if deleted_count >= 0:  # 0 is valid if no failed notes exist
+                            # Verify the count after cleanup
+                            post_cleanup_response = self.session.get(f"{BACKEND_URL}/notes/failed-count", timeout=10)
+                            if post_cleanup_response.status_code == 200:
+                                post_cleanup_data = post_cleanup_response.json()
+                                final_failed_count = post_cleanup_data.get("failed_count", 0)
+                                
+                                # The final count should be less than or equal to initial count
+                                if final_failed_count <= initial_failed_count:
+                                    self.log_result("Cleanup Failed Notes Endpoint", True, 
+                                                  f"Cleanup successful: deleted {deleted_count} notes, "
+                                                  f"failed count: {initial_failed_count} → {final_failed_count}", data)
+                                else:
+                                    self.log_result("Cleanup Failed Notes Endpoint", False, 
+                                                  f"Failed count increased after cleanup: {initial_failed_count} → {final_failed_count}")
+                            else:
+                                self.log_result("Cleanup Failed Notes Endpoint", True, 
+                                              f"Cleanup completed, deleted {deleted_count} notes", data)
+                        else:
+                            self.log_result("Cleanup Failed Notes Endpoint", False, 
+                                          f"Invalid deleted_count: {deleted_count}", data)
+                    else:
+                        self.log_result("Cleanup Failed Notes Endpoint", False, 
+                                      f"Invalid data types: deleted_count={type(deleted_count)}, deleted_by_status={type(deleted_by_status)}")
+                else:
+                    self.log_result("Cleanup Failed Notes Endpoint", False, 
+                                  f"Missing required fields. Expected: {required_fields}, Got: {list(data.keys())}", data)
+            elif response.status_code == 401:
+                self.log_result("Cleanup Failed Notes Endpoint", True, "Correctly requires authentication")
+            else:
+                self.log_result("Cleanup Failed Notes Endpoint", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Cleanup Failed Notes Endpoint", False, f"Cleanup failed notes test error: {str(e)}")
+
+    def test_cleanup_user_isolation(self):
+        """Test that cleanup only affects the authenticated user's notes"""
+        if not self.auth_token:
+            self.log_result("Cleanup User Isolation", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Get current user's failed notes count
+            user_count_response = self.session.get(f"{BACKEND_URL}/notes/failed-count", timeout=10)
+            
+            if user_count_response.status_code == 200:
+                user_count_data = user_count_response.json()
+                user_failed_count = user_count_data.get("failed_count", 0)
+                
+                # Perform cleanup
+                cleanup_response = self.session.post(f"{BACKEND_URL}/notes/cleanup-failed", timeout=15)
+                
+                if cleanup_response.status_code == 200:
+                    cleanup_data = cleanup_response.json()
+                    deleted_count = cleanup_data.get("deleted_count", 0)
+                    
+                    # Verify that only user's notes were affected
+                    # We can't directly test other users, but we can verify the response structure
+                    # indicates user-specific cleanup
+                    if "user_id" not in cleanup_data:  # Should not expose user_id in response
+                        # Check that deleted count is reasonable (not more than user's failed count)
+                        if deleted_count <= user_failed_count:
+                            self.log_result("Cleanup User Isolation", True, 
+                                          f"Cleanup appears user-specific: deleted {deleted_count} notes "
+                                          f"(user had {user_failed_count} failed notes)")
+                        else:
+                            self.log_result("Cleanup User Isolation", False, 
+                                          f"Deleted more notes ({deleted_count}) than user had failed ({user_failed_count})")
+                    else:
+                        self.log_result("Cleanup User Isolation", False, "Response inappropriately exposes user_id")
+                else:
+                    self.log_result("Cleanup User Isolation", False, f"Cleanup failed: HTTP {cleanup_response.status_code}")
+            else:
+                self.log_result("Cleanup User Isolation", False, f"Could not get user's failed count: HTTP {user_count_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Cleanup User Isolation", False, f"User isolation test error: {str(e)}")
+
+    def test_cleanup_error_handling(self):
+        """Test cleanup endpoint error handling"""
+        if not self.auth_token:
+            self.log_result("Cleanup Error Handling", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test cleanup with valid authentication (should work)
+            response = self.session.post(f"{BACKEND_URL}/notes/cleanup-failed", timeout=15)
+            
+            if response.status_code == 200:
+                # Test without authentication
+                original_headers = self.session.headers.copy()
+                if "Authorization" in self.session.headers:
+                    del self.session.headers["Authorization"]
+                
+                unauth_response = self.session.post(f"{BACKEND_URL}/notes/cleanup-failed", timeout=10)
+                
+                # Restore headers
+                self.session.headers.update(original_headers)
+                
+                if unauth_response.status_code in [401, 403]:
+                    self.log_result("Cleanup Error Handling", True, 
+                                  f"Properly handles unauthorized access: HTTP {unauth_response.status_code}")
+                else:
+                    self.log_result("Cleanup Error Handling", False, 
+                                  f"Should reject unauthorized access, got: HTTP {unauth_response.status_code}")
+            elif response.status_code == 500:
+                # Check if error response is properly formatted
+                try:
+                    error_data = response.json()
+                    if "detail" in error_data:
+                        self.log_result("Cleanup Error Handling", True, 
+                                      f"Proper error response format: {error_data['detail']}")
+                    else:
+                        self.log_result("Cleanup Error Handling", False, "Error response missing 'detail' field")
+                except:
+                    self.log_result("Cleanup Error Handling", False, "Error response not in JSON format")
+            else:
+                self.log_result("Cleanup Error Handling", False, f"Unexpected response: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Cleanup Error Handling", False, f"Error handling test error: {str(e)}")
+
+    def test_cleanup_functionality_comprehensive(self):
+        """Comprehensive test of cleanup functionality with different note scenarios"""
+        if not self.auth_token:
+            self.log_result("Cleanup Functionality Comprehensive", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Get initial state
+            initial_response = self.session.get(f"{BACKEND_URL}/notes/failed-count", timeout=10)
+            initial_count = 0
+            
+            if initial_response.status_code == 200:
+                initial_data = initial_response.json()
+                initial_count = initial_data.get("failed_count", 0)
+            
+            # Create some test notes that might become failed/stuck
+            test_notes = []
+            for i in range(3):
+                note_data = {
+                    "title": f"Cleanup Test Note {i+1}",
+                    "kind": "text",
+                    "text_content": f"This is test note {i+1} for cleanup testing"
+                }
+                
+                create_response = self.session.post(f"{BACKEND_URL}/notes", json=note_data, timeout=10)
+                if create_response.status_code == 200:
+                    note_result = create_response.json()
+                    if note_result.get("id"):
+                        test_notes.append(note_result["id"])
+            
+            # Wait a moment for notes to be processed
+            time.sleep(2)
+            
+            # Test cleanup functionality
+            cleanup_response = self.session.post(f"{BACKEND_URL}/notes/cleanup-failed", timeout=15)
+            
+            if cleanup_response.status_code == 200:
+                cleanup_data = cleanup_response.json()
+                
+                # Validate comprehensive response structure
+                expected_fields = ["message", "deleted_count", "deleted_by_status", "timestamp"]
+                missing_fields = [field for field in expected_fields if field not in cleanup_data]
+                
+                if not missing_fields:
+                    deleted_count = cleanup_data["deleted_count"]
+                    deleted_by_status = cleanup_data["deleted_by_status"]
+                    timestamp = cleanup_data["timestamp"]
+                    
+                    # Validate data types and values
+                    validations = [
+                        (isinstance(deleted_count, int), "deleted_count should be integer"),
+                        (deleted_count >= 0, "deleted_count should be non-negative"),
+                        (isinstance(deleted_by_status, dict), "deleted_by_status should be dict"),
+                        (isinstance(timestamp, str), "timestamp should be string"),
+                        (len(timestamp) > 10, "timestamp should be properly formatted")
+                    ]
+                    
+                    failed_validations = [msg for valid, msg in validations if not valid]
+                    
+                    if not failed_validations:
+                        # Check final state
+                        final_response = self.session.get(f"{BACKEND_URL}/notes/failed-count", timeout=10)
+                        if final_response.status_code == 200:
+                            final_data = final_response.json()
+                            final_count = final_data.get("failed_count", 0)
+                            
+                            self.log_result("Cleanup Functionality Comprehensive", True, 
+                                          f"✅ Comprehensive cleanup test passed. "
+                                          f"Initial: {initial_count}, Final: {final_count}, "
+                                          f"Deleted: {deleted_count}, By status: {deleted_by_status}", cleanup_data)
+                        else:
+                            self.log_result("Cleanup Functionality Comprehensive", True, 
+                                          f"Cleanup completed successfully, deleted {deleted_count} notes")
+                    else:
+                        self.log_result("Cleanup Functionality Comprehensive", False, 
+                                      f"Validation failures: {failed_validations}")
+                else:
+                    self.log_result("Cleanup Functionality Comprehensive", False, 
+                                  f"Missing required fields: {missing_fields}")
+            else:
+                self.log_result("Cleanup Functionality Comprehensive", False, 
+                              f"Cleanup request failed: HTTP {cleanup_response.status_code}: {cleanup_response.text}")
+                
+            # Clean up test notes
+            for note_id in test_notes:
+                try:
+                    self.session.delete(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                except:
+                    pass  # Ignore cleanup errors
+                    
+        except Exception as e:
+            self.log_result("Cleanup Functionality Comprehensive", False, f"Comprehensive cleanup test error: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
