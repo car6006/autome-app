@@ -2207,6 +2207,30 @@ const NotesScreen = () => {
                 {showArchived ? 'Hide Archived' : 'Show Archived'}
               </Button>
               
+              {/* Cleanup Failed Notes Button */}
+              {user && failedNotesCount > 0 && (
+                <Button
+                  onClick={cleanupFailedNotes}
+                  disabled={cleaningUp}
+                  variant="outline"
+                  className={`w-full sm:w-auto border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 ${
+                    cleaningUp ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {cleaningUp ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Cleaning...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clean Up ({failedNotesCount})
+                    </>
+                  )}
+                </Button>
+              )}
+              
               {/* Batch Report Buttons - Multiple Export Options */}
               {selectedNotesForBatch.length > 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
