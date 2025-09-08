@@ -580,6 +580,95 @@ async def upload_file_for_scan(
         "kind": note_kind
     }
 
+@api_router.get("/notes/failed-count")
+async def get_failed_notes_count(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get count of failed/stuck notes for the current user"""
+    try:
+        user_id = current_user["id"]
+        
+        failed_count = await db["notes"].count_documents({
+            "$and": [
+                {"user_id": user_id},
+                {
+                    "$or": [
+                        {"status": {"$in": ["failed", "error", "stuck"]}},
+                        {"artifacts.error": {"$exists": True}},
+                        {
+                            "$and": [
+                                {"status": "processing"},
+                                {"created_at": {"$lt": datetime.now(timezone.utc) - timedelta(hours=1)}}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        })
+        
+        return {
+            "failed_count": failed_count,
+            "has_failed_notes": failed_count > 0
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get failed notes count for user {current_user.get('id')}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get failed notes count")
+
+@api_router.post("/notes/cleanup-failed")
+async def cleanup_failed_notes(
+    current_user: dict = Depends(get_current_user)
+):
+    """Clean up failed, stuck, or error notes for the current user"""
+    try:
+        user_id = current_user["id"]
+        
+        # Define statuses and conditions that indicate failed/stuck notes
+        cleanup_conditions = {
+            "$and": [
+                {"user_id": user_id},  # Only user's own notes
+                {
+                    "$or": [
+                        {"status": {"$in": ["failed", "error", "stuck"]}},
+                        {"artifacts.error": {"$exists": True}},
+                        {
+                            "$and": [
+                                {"status": "processing"},
+                                {"created_at": {"$lt": datetime.now(timezone.utc) - timedelta(hours=1)}}  # Processing for over 1 hour
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        # First, get the notes that will be deleted for reporting
+        notes_to_delete = await db["notes"].find(cleanup_conditions).to_list(length=100)
+        
+        # Delete the failed/stuck notes
+        result = await db["notes"].delete_many(cleanup_conditions)
+        
+        # Categorize what was deleted
+        deleted_by_status = {}
+        for note in notes_to_delete:
+            status = note.get("status", "unknown")
+            if status not in deleted_by_status:
+                deleted_by_status[status] = 0
+            deleted_by_status[status] += 1
+        
+        logger.info(f"🧹 User {current_user.get('email')} cleaned up {result.deleted_count} failed notes: {deleted_by_status}")
+        
+        return {
+            "message": f"Successfully cleaned up {result.deleted_count} failed/stuck notes",
+            "deleted_count": result.deleted_count,
+            "deleted_by_status": deleted_by_status,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to cleanup notes for user {current_user.get('id')}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to cleanup notes")
+
 @api_router.get("/notes/{note_id}", response_model=NoteResponse)
 async def get_note(
     note_id: str,
