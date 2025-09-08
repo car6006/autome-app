@@ -1119,6 +1119,8 @@ const NotesScreen = () => {
   const [currentActionItems, setCurrentActionItems] = useState(null);
   const [currentNoteForMinutes, setCurrentNoteForMinutes] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [failedNotesCount, setFailedNotesCount] = useState(0);
+  const [cleaningUp, setCleaningUp] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
