@@ -827,7 +827,10 @@ async def get_archive_status(
 ):
     """Get current archive configuration and statistics"""
     try:
-        from .archive_manager import ArchiveManager
+        import sys
+        import os
+        sys.path.append('/app/backend')
+        from archive_manager import ArchiveManager
         
         archive_manager = ArchiveManager()
         
@@ -859,7 +862,10 @@ async def run_archive_process(
 ):
     """Run the archive process to clean up old files"""
     try:
-        from .archive_manager import ArchiveManager
+        import sys
+        import os
+        sys.path.append('/app/backend')
+        from archive_manager import ArchiveManager
         
         logger.info(f"Archive process started by user: {current_user.get('email', 'unknown')}")
         
