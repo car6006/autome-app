@@ -88,8 +88,10 @@ async def split_audio_file(file_path: str, chunk_duration: int = CHUNK_DURATION_
         logger.error(f"Error splitting audio file: {e}")
         return [file_path]  # Return original file if splitting fails
 
-async def transcribe_audio_chunk(chunk_path: str, api_key: str, language: str = "en", max_retries: int = 3) -> str:
-    """Transcribe a single audio chunk with language specification and retry logic"""
+async def transcribe_audio_chunk(chunk_path: str, api_key: str, language: str = "en", max_retries: int = 5) -> str:
+    """Transcribe a single audio chunk with enhanced retry logic for OpenAI rate limiting"""
+    import random
+    
     for attempt in range(max_retries):
         try:
             with open(chunk_path, "rb") as audio_file:
@@ -109,24 +111,47 @@ async def transcribe_audio_chunk(chunk_path: str, api_key: str, language: str = 
                     )
                     r.raise_for_status()
                     data = r.json()
-                    return data.get("text", "")
+                    text_result = data.get("text", "")
+                    if text_result:
+                        logger.info(f"✅ Successfully transcribed chunk: {os.path.basename(chunk_path)}")
+                    return text_result
                     
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:  # Rate limit error
-                wait_time = (2 ** attempt) * 5  # Exponential backoff: 5s, 10s, 20s
-                logger.warning(f"Rate limit hit for chunk {chunk_path}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
-                await asyncio.sleep(wait_time)
-                continue
-            elif e.response.status_code == 500:  # Server error - retry
-                wait_time = (2 ** attempt) * 3  # Exponential backoff: 3s, 6s, 12s
-                logger.warning(f"OpenAI server error for chunk {chunk_path}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
-                await asyncio.sleep(wait_time)
-                continue
+                # Get retry-after header if available
+                retry_after = e.response.headers.get('retry-after')
+                if retry_after:
+                    wait_time = int(retry_after)
+                    logger.warning(f"🚦 OpenAI rate limit (retry-after: {wait_time}s) for {os.path.basename(chunk_path)} (attempt {attempt + 1}/{max_retries})")
+                else:
+                    # Enhanced exponential backoff with jitter for rate limits
+                    base_wait = (2 ** attempt) * 15  # 15s, 30s, 60s, 120s, 240s
+                    jitter = random.uniform(0.1, 0.3) * base_wait  # Add 10-30% jitter
+                    wait_time = base_wait + jitter
+                    logger.warning(f"🚦 OpenAI rate limit hit for {os.path.basename(chunk_path)}, backing off {wait_time:.1f}s (attempt {attempt + 1}/{max_retries})")
+                
+                if attempt < max_retries - 1:  # Don't sleep on the last attempt
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    logger.error(f"❌ OpenAI rate limit exceeded after {max_retries} attempts for {os.path.basename(chunk_path)}")
+                    return ""
+                    
+            elif e.response.status_code == 500:  # Server error - retry with shorter backoff
+                wait_time = (2 ** attempt) * 3  # 3s, 6s, 12s, 24s, 48s
+                logger.warning(f"🔧 OpenAI server error for {os.path.basename(chunk_path)}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    logger.error(f"❌ OpenAI server errors exceeded after {max_retries} attempts for {os.path.basename(chunk_path)}")
+                    return ""
             else:
-                logger.error(f"HTTP error transcribing chunk {chunk_path}: {e.response.status_code} - {e.response.text}")
+                logger.error(f"❌ HTTP error transcribing chunk {os.path.basename(chunk_path)}: {e.response.status_code} - {e.response.text}")
                 return ""
+                
         except Exception as e:
-            logger.error(f"Error transcribing chunk {chunk_path} (attempt {attempt + 1}): {e}")
+            logger.error(f"❌ Error transcribing chunk {os.path.basename(chunk_path)} (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
                 return ""
             await asyncio.sleep(2 ** attempt)  # Simple backoff for other errors
