@@ -1276,14 +1276,16 @@ class BackendTester:
         self.test_storage_accessibility()
         self.test_upload_error_handling()
         
-        # 🎯 OCR FUNCTIONALITY TESTS (Enhanced Retry Logic)
+        # 🎯 OCR FUNCTIONALITY TESTS (Optimized System)
         print("\n" + "=" * 60)
-        print("🔍 OCR FUNCTIONALITY TESTS - Enhanced Retry Logic")
+        print("🔍 OCR OPTIMIZED SYSTEM TESTS - Faster Processing")
         print("=" * 60)
         
         self.test_ocr_image_upload()
         self.test_ocr_processing_status()
-        self.test_ocr_retry_logic()
+        self.test_ocr_optimized_retry_logic()
+        self.test_ocr_timeout_optimization()
+        self.test_ocr_faster_processing_notifications()
         self.test_ocr_error_messages()
         self.test_failed_ocr_reprocessing()
         
