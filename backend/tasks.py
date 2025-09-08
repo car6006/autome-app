@@ -302,6 +302,78 @@ async def notify_transcription_delay(note_id: str, user_email: str, delay_reason
         # Don't raise - notifications shouldn't break the main process
         return
 
+async def notify_ocr_delay(note_id: str, user_email: str, delay_reason: str = "high_demand"):
+    """Notify user about OCR delays due to rate limiting"""
+    try:
+        if not user_email:
+            logger.info(f"No email provided for OCR delay notification: {note_id}")
+            return
+            
+        # Get note details
+        note = await NotesStore.get(note_id)
+        if not note:
+            logger.error(f"Note not found for delay notification: {note_id}")
+            return
+            
+        note_title = note.get('title', 'Your Document')
+        
+        delay_messages = {
+            "rate_limit": "Due to high demand for our OCR service",
+            "high_demand": "Due to high demand for our OCR service", 
+            "api_limit": "Due to API service limitations"
+        }
+        
+        delay_message = delay_messages.get(delay_reason, "Due to temporary service constraints")
+        
+        subject = f"⏳ OCR Processing Delayed - {note_title}"
+        
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%); padding: 20px; text-align: center;">
+                <h1 style="color: white; margin: 0;">⏳ OCR In Progress</h1>
+            </div>
+            
+            <div style="padding: 30px; background: #f8f9fa;">
+                <h2 style="color: #333; margin-top: 0;">Your document is being processed</h2>
+                
+                <div style="background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #FF6B6B; margin-top: 0;">📄 Document Details</h3>
+                    <p><strong>Title:</strong> {note_title}</p>
+                    <p><strong>Status:</strong> Processing (Delayed)</p>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                    <p style="margin: 0; color: #856404;">
+                        <strong>📢 Notice:</strong> {delay_message}, your OCR processing is taking longer than usual. 
+                        We're working to extract the text as quickly as possible.
+                    </p>
+                </div>
+                
+                <div style="margin: 30px 0; text-align: center;">
+                    <p style="color: #666;">We'll notify you as soon as your text extraction is ready!</p>
+                    <p style="color: #666; font-size: 14px;">Expected processing time: 1-5 minutes</p>
+                </div>
+                
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; color: #0066cc; font-size: 14px;">
+                        💡 <strong>Tip:</strong> Complex or large images may take longer to process. Your content will be preserved and ready when processing completes.
+                    </p>
+                </div>
+            </div>
+            
+            <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
+                <p style="margin: 0;">AUTO-ME PWA | Intelligent Content Processing</p>
+            </div>
+        </div>
+        """
+        
+        await send_email([user_email], subject, html_content)
+        logger.info(f"📧 OCR delay notification sent to {user_email} for note {note_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send OCR delay notification: {str(e)}")
+        # Don't raise - notifications shouldn't break the main process
+        return
 
 
 async def enqueue_iisb_processing(client_name: str, issues_text: str, user_id: str):
