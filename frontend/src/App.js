@@ -1128,7 +1128,16 @@ const NotesScreen = () => {
 
   useEffect(() => {
     fetchNotes(showArchived);
+    if (user) {
+      fetchFailedNotesCount();
+    }
+    
     const interval = setInterval(() => fetchNotes(showArchived), 3000); // Poll every 3 seconds instead of 5
+    const failedCountInterval = setInterval(() => {
+      if (user) {
+        fetchFailedNotesCount();
+      }
+    }, 10000); // Check failed count every 10 seconds
     
     // Update processing times every second for better UX
     const timeInterval = setInterval(() => {
@@ -1137,9 +1146,10 @@ const NotesScreen = () => {
     
     return () => {
       clearInterval(interval);
+      clearInterval(failedCountInterval);
       clearInterval(timeInterval);
     };
-  }, [showArchived]);
+  }, [showArchived, user]);
 
   const fetchNotes = async (includeArchived = false) => {
     try {
