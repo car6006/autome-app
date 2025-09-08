@@ -467,7 +467,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Failed Notes Cleanup Functionality Testing Complete"
+    - "Frontend Cleanup Button UI Testing Complete"
   stuck_tasks:
     - "Sales Meeting Note Accessibility Verification"
   test_all: false
