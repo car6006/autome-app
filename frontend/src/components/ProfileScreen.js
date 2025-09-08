@@ -466,7 +466,7 @@ const ProfileScreen = () => {
           </Card>
 
           {/* Archive Management - Show for all authenticated users */}
-          {user && (
+          {user && localStorage.getItem('auto_me_token') && (
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
