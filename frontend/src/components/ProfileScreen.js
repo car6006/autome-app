@@ -465,122 +465,120 @@ const ProfileScreen = () => {
             </CardContent>
           </Card>
 
-          {/* Archive Management - Show for all authenticated users */}
-          {user && localStorage.getItem('auto_me_token') && (
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Archive className="w-5 h-5 text-orange-600" />
-                  <span>Archive Management</span>
-                </CardTitle>
-                <CardDescription>
-                  Manage disk space by automatically archiving old files while preserving transcriptions
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Archive Statistics */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg">
-                    <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center">
-                      <HardDrive className="w-6 h-6 text-white" />
-                    </div>
-                    <p className="text-2xl font-bold text-gray-800">
-                      {archiveStatus?.statistics?.archive_files || 0}
-                    </p>
-                    <p className="text-sm text-gray-600">Files to Archive</p>
+          {/* Archive Management - Always show for debugging */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Archive className="w-5 h-5 text-orange-600" />
+                <span>Archive Management</span>
+              </CardTitle>
+              <CardDescription>
+                Manage disk space by automatically archiving old files while preserving transcriptions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Archive Statistics */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg">
+                  <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center">
+                    <HardDrive className="w-6 h-6 text-white" />
                   </div>
-                  
-                  <div className="text-center p-4 bg-gradient-to-r from-red-100 to-pink-100 rounded-lg">
-                    <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
-                      <Trash2 className="w-6 h-6 text-white" />
-                    </div>
-                    <p className="text-2xl font-bold text-gray-800">
-                      {archiveStatus?.statistics?.delete_files || 0}
-                    </p>
-                    <p className="text-sm text-gray-600">Temp Files to Delete</p>
-                  </div>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {archiveStatus?.statistics?.archive_files || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Files to Archive</p>
                 </div>
-
-                <Separator />
-
-                {/* Archive Configuration */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Archive Retention Period
-                    </Label>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        max="365"
-                        value={archiveDays}
-                        onChange={(e) => setArchiveDays(parseInt(e.target.value) || 30)}
-                        className="w-20"
-                      />
-                      <span className="text-sm text-gray-600">days</span>
-                      <Button
-                        onClick={updateArchiveSettings}
-                        disabled={archiveLoading}
-                        size="sm"
-                        variant="outline"
-                      >
-                        {archiveLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Save className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Files older than this will be archived (transcriptions preserved)
-                    </p>
+                
+                <div className="text-center p-4 bg-gradient-to-r from-red-100 to-pink-100 rounded-lg">
+                  <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-6 h-6 text-white" />
                   </div>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {archiveStatus?.statistics?.delete_files || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Temp Files to Delete</p>
+                </div>
+              </div>
 
-                  {/* Archive Actions */}
-                  <div className="flex flex-col sm:flex-row gap-2">
+              <Separator />
+
+              {/* Archive Configuration */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Archive Retention Period
+                  </Label>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={archiveDays}
+                      onChange={(e) => setArchiveDays(parseInt(e.target.value) || 30)}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-gray-600">days</span>
                     <Button
-                      onClick={() => runArchiveProcess(true)}
+                      onClick={updateArchiveSettings}
                       disabled={archiveLoading}
+                      size="sm"
                       variant="outline"
-                      className="flex-1"
                     >
                       {archiveLoading ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Play className="w-4 h-4 mr-2" />
+                        <Save className="w-4 h-4" />
                       )}
-                      Preview Archive
-                    </Button>
-                    
-                    <Button
-                      onClick={() => runArchiveProcess(false)}
-                      disabled={archiveLoading}
-                      className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white"
-                    >
-                      {archiveLoading ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Archive className="w-4 h-4 mr-2" />
-                      )}
-                      Run Archive
                     </Button>
                   </div>
-
-                  <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-                    <strong>Note:</strong> Archive process removes old audio/image files while preserving all transcriptions, 
-                    summaries, and database records. Your content remains accessible.
-                    {!archiveStatus && (
-                      <>
-                        <br /><br />
-                        <strong>Admin permissions required</strong> for archive operations and real-time statistics.
-                      </>
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Files older than this will be archived (transcriptions preserved)
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+
+                {/* Archive Actions */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => runArchiveProcess(true)}
+                    disabled={archiveLoading}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {archiveLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Play className="w-4 h-4 mr-2" />
+                    )}
+                    Preview Archive
+                  </Button>
+                  
+                  <Button
+                    onClick={() => runArchiveProcess(false)}
+                    disabled={archiveLoading}
+                    className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white"
+                  >
+                    {archiveLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Archive className="w-4 h-4 mr-2" />
+                    )}
+                    Run Archive
+                  </Button>
+                </div>
+
+                <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                  <strong>Note:</strong> Archive process removes old audio/image files while preserving all transcriptions, 
+                  summaries, and database records. Your content remains accessible.
+                  {!archiveStatus && (
+                    <>
+                      <br /><br />
+                      <strong>Admin permissions required</strong> for archive operations and real-time statistics.
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
