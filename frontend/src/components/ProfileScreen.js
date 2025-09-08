@@ -129,7 +129,11 @@ const ProfileScreen = () => {
       } else {
         toast({
           title: "❌ Archive Failed",
-          description: error.response?.data?.detail || "Archive process failed",
+          description: typeof error.response?.data?.detail === 'string' 
+            ? error.response.data.detail 
+            : error.response?.data 
+            ? JSON.stringify(error.response.data)
+            : "Archive process failed",
           variant: "destructive"
         });
       }
