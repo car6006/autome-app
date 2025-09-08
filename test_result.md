@@ -455,7 +455,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Voice Notes and OCR Enhanced Retry Logic Frontend Testing Complete"
+    - "Failed Notes Cleanup Functionality Testing Complete"
   stuck_tasks:
     - "Sales Meeting Note Accessibility Verification"
   test_all: false
