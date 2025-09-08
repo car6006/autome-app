@@ -120,11 +120,19 @@ const ProfileScreen = () => {
       fetchArchiveStatus();
     } catch (error) {
       console.error('Archive process failed:', error);
-      toast({
-        title: "❌ Archive Failed",
-        description: error.response?.data?.detail || "Archive process failed",
-        variant: "destructive"
-      });
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        toast({
+          title: "🔐 Admin Access Required",
+          description: "Archive operations require administrator permissions",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "❌ Archive Failed",
+          description: error.response?.data?.detail || "Archive process failed",
+          variant: "destructive"
+        });
+      }
     }
     setArchiveLoading(false);
   };
