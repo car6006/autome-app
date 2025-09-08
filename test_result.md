@@ -428,7 +428,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Sales Meeting Note Accessibility Verification"
+    - "OCR Enhanced Retry Logic"
   stuck_tasks:
     - "Sales Meeting Note Accessibility Verification"
   test_all: false
