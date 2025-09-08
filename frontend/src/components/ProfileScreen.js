@@ -167,7 +167,11 @@ const ProfileScreen = () => {
       } else {
         toast({
           title: "❌ Update Failed",
-          description: error.response?.data?.detail || "Failed to update settings",
+          description: typeof error.response?.data?.detail === 'string' 
+            ? error.response.data.detail 
+            : error.response?.data 
+            ? JSON.stringify(error.response.data)
+            : "Failed to update settings",
           variant: "destructive"
         });
       }
