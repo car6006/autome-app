@@ -711,12 +711,29 @@ class BackendTester:
             return
             
         try:
-            # Create a simple test image (PNG format)
-            # This is a minimal 1x1 pixel PNG image in base64
-            import base64
-            png_data = base64.b64decode(
-                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-            )
+            # Create a proper test image with text using PIL
+            from PIL import Image, ImageDraw, ImageFont
+            import io
+            
+            # Create a simple image with text
+            img = Image.new('RGB', (200, 100), color='white')
+            draw = ImageDraw.Draw(img)
+            
+            # Try to use a basic font, fallback to default if not available
+            try:
+                # Use default font
+                font = ImageFont.load_default()
+            except:
+                font = None
+            
+            # Draw some text
+            text = "TEST OCR"
+            draw.text((10, 30), text, fill='black', font=font)
+            
+            # Convert to bytes
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='PNG')
+            png_data = img_buffer.getvalue()
             
             files = {
                 'file': ('test_ocr_image.png', png_data, 'image/png')
