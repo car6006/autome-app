@@ -580,6 +580,7 @@ const ProfileScreen = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       </div>
     </div>
