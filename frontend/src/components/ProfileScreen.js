@@ -465,8 +465,8 @@ const ProfileScreen = () => {
             </CardContent>
           </Card>
 
-          {/* Archive Management - Only show if user has access */}
-          {archiveStatus && (
+          {/* Archive Management - Show for all authenticated users */}
+          {user && (
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -485,7 +485,7 @@ const ProfileScreen = () => {
                       <HardDrive className="w-6 h-6 text-white" />
                     </div>
                     <p className="text-2xl font-bold text-gray-800">
-                      {archiveStatus.statistics?.archive_files || 0}
+                      {archiveStatus?.statistics?.archive_files || 0}
                     </p>
                     <p className="text-sm text-gray-600">Files to Archive</p>
                   </div>
@@ -495,7 +495,7 @@ const ProfileScreen = () => {
                       <Trash2 className="w-6 h-6 text-white" />
                     </div>
                     <p className="text-2xl font-bold text-gray-800">
-                      {archiveStatus.statistics?.delete_files || 0}
+                      {archiveStatus?.statistics?.delete_files || 0}
                     </p>
                     <p className="text-sm text-gray-600">Temp Files to Delete</p>
                   </div>
@@ -555,7 +555,7 @@ const ProfileScreen = () => {
                     
                     <Button
                       onClick={() => runArchiveProcess(false)}
-                      disabled={archiveLoading || (!archiveStatus.statistics?.archive_files && !archiveStatus.statistics?.delete_files)}
+                      disabled={archiveLoading}
                       className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white"
                     >
                       {archiveLoading ? (
@@ -570,6 +570,10 @@ const ProfileScreen = () => {
                   <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
                     <strong>Note:</strong> Archive process removes old audio/image files while preserving all transcriptions, 
                     summaries, and database records. Your content remains accessible.
+                    {!archiveStatus && (
+                      <br /><br />
+                      <strong>Admin permissions required</strong> for archive operations and real-time statistics.
+                    )}
                   </div>
                 </div>
               </CardContent>
