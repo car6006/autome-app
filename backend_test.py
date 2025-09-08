@@ -1608,6 +1608,17 @@ class BackendTester:
         self.test_ocr_error_messages()
         self.test_failed_ocr_reprocessing()
         
+        # 🎯 CLEANUP FUNCTIONALITY TESTS (New Feature)
+        print("\n" + "=" * 60)
+        print("🧹 CLEANUP FUNCTIONALITY TESTS - Failed Notes Management")
+        print("=" * 60)
+        
+        self.test_failed_notes_count_endpoint()
+        self.test_cleanup_failed_notes_endpoint()
+        self.test_cleanup_user_isolation()
+        self.test_cleanup_error_handling()
+        self.test_cleanup_functionality_comprehensive()
+        
         # Summary
         return self.print_summary()
     
