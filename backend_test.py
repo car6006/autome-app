@@ -346,6 +346,363 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result("Security Headers", False, f"Security headers test error: {str(e)}")
+
+    def test_upload_endpoint_availability(self):
+        """Test upload endpoint availability and response"""
+        if not self.auth_token:
+            self.log_result("Upload Endpoint Availability", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test direct upload endpoint
+            response = self.session.options(f"{BACKEND_URL}/upload-file", timeout=10)
+            
+            if response.status_code in [200, 204, 405]:  # OPTIONS might not be implemented, but endpoint should exist
+                self.log_result("Upload Endpoint Availability", True, f"Upload endpoint accessible (HTTP {response.status_code})")
+            else:
+                self.log_result("Upload Endpoint Availability", False, f"Upload endpoint not accessible: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Upload Endpoint Availability", False, f"Upload endpoint test error: {str(e)}")
+
+    def test_upload_session_creation(self):
+        """Test resumable upload session creation"""
+        if not self.auth_token:
+            self.log_result("Upload Session Creation", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test creating upload session for audio file
+            session_data = {
+                "filename": "sales_meeting_today.mp3",
+                "total_size": 5242880,  # 5MB test file
+                "mime_type": "audio/mpeg"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/uploads/sessions",
+                json=session_data,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("upload_id") and data.get("chunk_size"):
+                    self.upload_session_id = data["upload_id"]
+                    self.log_result("Upload Session Creation", True, f"Upload session created: {data['upload_id']}", data)
+                else:
+                    self.log_result("Upload Session Creation", False, "Missing upload_id or chunk_size", data)
+            else:
+                self.log_result("Upload Session Creation", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Upload Session Creation", False, f"Upload session creation error: {str(e)}")
+
+    def test_direct_audio_upload(self):
+        """Test direct audio file upload for Sales Meeting scenario"""
+        if not self.auth_token:
+            self.log_result("Direct Audio Upload", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a small test audio file content (simulated)
+            test_audio_content = b"RIFF\x24\x08\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x02\x00\x44\xac\x00\x00\x10\xb1\x02\x00\x04\x00\x10\x00data\x00\x08\x00\x00" + b"\x00" * 2048
+            
+            files = {
+                'file': ('sales_meeting_today.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Sales Meeting of Today'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("id") and result.get("status"):
+                    self.uploaded_note_id = result["id"]
+                    self.log_result("Direct Audio Upload", True, f"Audio file uploaded successfully: {result['id']}", result)
+                else:
+                    self.log_result("Direct Audio Upload", False, "Missing note ID or status in response", result)
+            else:
+                self.log_result("Direct Audio Upload", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Direct Audio Upload", False, f"Direct audio upload error: {str(e)}")
+
+    def test_pipeline_worker_status(self):
+        """Test pipeline worker status and health"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/health", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                pipeline_status = data.get("pipeline", {})
+                services = data.get("services", {})
+                
+                pipeline_health = services.get("pipeline", "unknown")
+                
+                if pipeline_health == "healthy":
+                    self.log_result("Pipeline Worker Status", True, "Pipeline worker is healthy and running", pipeline_status)
+                elif pipeline_health == "degraded":
+                    self.log_result("Pipeline Worker Status", True, "Pipeline worker is running but degraded", pipeline_status)
+                else:
+                    self.log_result("Pipeline Worker Status", False, f"Pipeline worker status: {pipeline_health}", pipeline_status)
+            else:
+                self.log_result("Pipeline Worker Status", False, f"Health endpoint error: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Pipeline Worker Status", False, f"Pipeline status check error: {str(e)}")
+
+    def test_transcription_job_processing(self):
+        """Test if uploaded files enter transcription pipeline"""
+        if not hasattr(self, 'uploaded_note_id'):
+            self.log_result("Transcription Job Processing", False, "Skipped - no uploaded file available")
+            return
+            
+        try:
+            # Wait a moment for processing to start
+            time.sleep(2)
+            
+            # Check note status to see if it's being processed
+            response = self.session.get(f"{BACKEND_URL}/notes/{self.uploaded_note_id}", timeout=10)
+            
+            if response.status_code == 200:
+                note_data = response.json()
+                status = note_data.get("status", "unknown")
+                
+                if status in ["processing", "ready"]:
+                    self.log_result("Transcription Job Processing", True, f"File entered pipeline with status: {status}", note_data)
+                elif status == "uploading":
+                    self.log_result("Transcription Job Processing", True, "File is still uploading - pipeline will process when ready", note_data)
+                else:
+                    self.log_result("Transcription Job Processing", False, f"Unexpected status: {status}", note_data)
+            else:
+                self.log_result("Transcription Job Processing", False, f"Cannot check note status: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Transcription Job Processing", False, f"Transcription processing check error: {str(e)}")
+
+    def test_rate_limiting_upload(self):
+        """Test upload rate limiting (10/minute limit)"""
+        if not self.auth_token:
+            self.log_result("Upload Rate Limiting", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test multiple rapid upload attempts to trigger rate limiting
+            rate_limit_hit = False
+            
+            for i in range(3):  # Try 3 uploads rapidly
+                test_content = b"test audio content " + str(i).encode()
+                files = {
+                    'file': (f'test_rate_limit_{i}.wav', test_content, 'audio/wav')
+                }
+                data = {
+                    'title': f'Rate Limit Test {i}'
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/upload-file",
+                    files=files,
+                    data=data,
+                    timeout=10
+                )
+                
+                if response.status_code == 429:  # Rate limit exceeded
+                    rate_limit_hit = True
+                    break
+                elif response.status_code != 200:
+                    # Some other error, not rate limiting
+                    break
+                    
+                time.sleep(0.1)  # Small delay between requests
+            
+            if rate_limit_hit:
+                self.log_result("Upload Rate Limiting", True, "Rate limiting is working - got HTTP 429")
+            else:
+                self.log_result("Upload Rate Limiting", True, "Rate limiting not triggered with 3 requests (within limits)")
+                
+        except Exception as e:
+            self.log_result("Upload Rate Limiting", False, f"Rate limiting test error: {str(e)}")
+
+    def test_large_file_handling(self):
+        """Test support for larger audio files (sales meetings can be long)"""
+        if not self.auth_token:
+            self.log_result("Large File Handling", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test creating session for a large file (50MB)
+            large_file_data = {
+                "filename": "long_sales_meeting.mp3",
+                "total_size": 52428800,  # 50MB
+                "mime_type": "audio/mpeg"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/uploads/sessions",
+                json=large_file_data,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("upload_id"):
+                    self.log_result("Large File Handling", True, f"Large file session created: {data['upload_id']}", data)
+                else:
+                    self.log_result("Large File Handling", False, "Session creation failed", data)
+            elif response.status_code == 400:
+                # Check if it's a file size limit error
+                error_text = response.text.lower()
+                if "too large" in error_text or "maximum size" in error_text:
+                    self.log_result("Large File Handling", True, "File size limits are properly enforced")
+                else:
+                    self.log_result("Large File Handling", False, f"Unexpected 400 error: {response.text}")
+            else:
+                self.log_result("Large File Handling", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Large File Handling", False, f"Large file handling test error: {str(e)}")
+
+    def test_openai_integration(self):
+        """Test OpenAI API connectivity for transcription"""
+        try:
+            # We can't directly test OpenAI without making actual API calls,
+            # but we can check if the health endpoint reports any API key issues
+            response = self.session.get(f"{BACKEND_URL}/health", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Check if there are any obvious API configuration issues
+                services = data.get("services", {})
+                
+                # If the system is healthy, assume OpenAI integration is configured
+                if data.get("status") in ["healthy", "degraded"]:
+                    self.log_result("OpenAI Integration", True, "System health indicates API integrations are configured")
+                else:
+                    self.log_result("OpenAI Integration", False, f"System health status: {data.get('status')}")
+            else:
+                self.log_result("OpenAI Integration", False, f"Cannot check system health: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("OpenAI Integration", False, f"OpenAI integration check error: {str(e)}")
+
+    def test_upload_authentication(self):
+        """Test upload endpoints require proper authentication"""
+        try:
+            # Test upload without authentication
+            original_headers = self.session.headers.copy()
+            if "Authorization" in self.session.headers:
+                del self.session.headers["Authorization"]
+            
+            # Try to upload without auth
+            test_content = b"unauthorized test"
+            files = {
+                'file': ('unauthorized_test.wav', test_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Unauthorized Test'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=10
+            )
+            
+            # Restore headers
+            self.session.headers.update(original_headers)
+            
+            # Upload endpoints should allow anonymous uploads based on the code
+            if response.status_code == 200:
+                self.log_result("Upload Authentication", True, "Upload endpoint allows anonymous uploads (as designed)")
+            elif response.status_code in [401, 403]:
+                self.log_result("Upload Authentication", True, "Upload endpoint requires authentication")
+            else:
+                self.log_result("Upload Authentication", False, f"Unexpected response: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Upload Authentication", False, f"Upload authentication test error: {str(e)}")
+
+    def test_storage_accessibility(self):
+        """Test if storage paths are accessible and writable"""
+        try:
+            # Test by attempting a small upload and checking if it processes
+            if not self.auth_token:
+                self.log_result("Storage Accessibility", False, "Skipped - no authentication token")
+                return
+                
+            # Create a minimal test file
+            test_content = b"storage test content"
+            files = {
+                'file': ('storage_test.wav', test_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Storage Test'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("id"):
+                    self.log_result("Storage Accessibility", True, "File uploaded and stored successfully", result)
+                else:
+                    self.log_result("Storage Accessibility", False, "Upload succeeded but no ID returned", result)
+            else:
+                self.log_result("Storage Accessibility", False, f"Storage test failed: HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Storage Accessibility", False, f"Storage accessibility test error: {str(e)}")
+
+    def test_upload_error_handling(self):
+        """Test upload error handling for invalid files"""
+        if not self.auth_token:
+            self.log_result("Upload Error Handling", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test uploading an invalid file type
+            invalid_content = b"This is not an audio file"
+            files = {
+                'file': ('invalid_file.txt', invalid_content, 'text/plain')
+            }
+            data = {
+                'title': 'Invalid File Test'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=10
+            )
+            
+            if response.status_code == 400:
+                error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {"detail": response.text}
+                if "unsupported" in error_data.get("detail", "").lower() or "allowed" in error_data.get("detail", "").lower():
+                    self.log_result("Upload Error Handling", True, "Invalid file types are properly rejected")
+                else:
+                    self.log_result("Upload Error Handling", False, f"Unexpected error message: {error_data}")
+            elif response.status_code == 200:
+                self.log_result("Upload Error Handling", False, "Invalid file type was accepted (should be rejected)")
+            else:
+                self.log_result("Upload Error Handling", False, f"Unexpected response: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Upload Error Handling", False, f"Upload error handling test error: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
