@@ -413,45 +413,86 @@ async def ocr_read(file_url: str):
                 "max_tokens": 1000
             }
             
-            async with httpx.AsyncClient(timeout=90) as client:
+            # Enhanced retry logic for OCR with exponential backoff
+            import random
+            max_retries = 5
+            
+            for attempt in range(max_retries):
                 try:
-                    r = await client.post(
-                        "https://api.openai.com/v1/chat/completions",
-                        json=payload,
-                        headers={"Authorization": f"Bearer {api_key}"}
-                    )
-                    
-                    if r.status_code == 200:
-                        data = r.json()
-                        text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                        logger.info(f"OCR completed successfully, extracted {len(text)} characters")
-                        return {"text": text, "summary":"", "actions":[]}
-                    else:
-                        error_detail = ""
-                        try:
-                            error_data = r.json()
-                            error_detail = error_data.get("error", {}).get("message", "Unknown error")
-                        except:
-                            error_detail = r.text
+                    async with httpx.AsyncClient(timeout=90) as client:
+                        r = await client.post(
+                            "https://api.openai.com/v1/chat/completions",
+                            json=payload,
+                            headers={"Authorization": f"Bearer {api_key}"}
+                        )
                         
-                        logger.error(f"OpenAI API error {r.status_code}: {error_detail}")
-                        
-                        if r.status_code == 400:
-                            raise ValueError("Image format not supported or image too large. Please try a smaller PNG or JPG image.")
-                        elif r.status_code == 429:
-                            raise ValueError("OCR service temporarily busy. Please try again in a moment.")
+                        if r.status_code == 200:
+                            data = r.json()
+                            text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                            logger.info(f"OCR completed successfully, extracted {len(text)} characters")
+                            return {"text": text, "summary":"", "actions":[]}
                         else:
-                            raise ValueError(f"OCR processing temporarily unavailable (Error {r.status_code}). Please try again.")
+                            error_detail = ""
+                            try:
+                                error_data = r.json()
+                                error_detail = error_data.get("error", {}).get("message", "Unknown error")
+                            except:
+                                error_detail = r.text
                             
+                            logger.error(f"OpenAI OCR API error {r.status_code}: {error_detail}")
+                            
+                            if r.status_code == 400:
+                                raise ValueError("Image format not supported or image too large. Please try a smaller PNG or JPG image.")
+                            elif r.status_code == 429:
+                                # Get retry-after header if available
+                                retry_after = r.headers.get('retry-after')
+                                if retry_after:
+                                    wait_time = int(retry_after)
+                                    logger.warning(f"🚦 OpenAI OCR rate limit (retry-after: {wait_time}s) (attempt {attempt + 1}/{max_retries})")
+                                else:
+                                    # Enhanced exponential backoff with jitter for rate limits
+                                    base_wait = (2 ** attempt) * 15  # 15s, 30s, 60s, 120s, 240s
+                                    jitter = random.uniform(0.1, 0.3) * base_wait  # Add 10-30% jitter
+                                    wait_time = base_wait + jitter
+                                    logger.warning(f"🚦 OpenAI OCR rate limit (exponential backoff: {wait_time:.1f}s) (attempt {attempt + 1}/{max_retries})")
+                                
+                                if attempt < max_retries - 1:
+                                    # Notify user about delay for longer waits
+                                    if wait_time > 30:
+                                        logger.info(f"📧 OCR processing delayed due to rate limits, waiting {wait_time:.0f} seconds")
+                                    await asyncio.sleep(wait_time)
+                                    continue
+                                else:
+                                    logger.error(f"❌ OpenAI OCR rate limit exceeded after {max_retries} attempts")
+                                    raise ValueError("OCR service experiencing high demand. Please try again in a few minutes.")
+                            elif r.status_code == 500:
+                                # Server error - retry with shorter backoff
+                                wait_time = (2 ** attempt) * 3  # 3s, 6s, 12s, 24s, 48s
+                                logger.warning(f"🔧 OpenAI OCR server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                                if attempt < max_retries - 1:
+                                    await asyncio.sleep(wait_time)
+                                    continue
+                                else:
+                                    raise ValueError("OCR service temporarily unavailable due to server issues. Please try again later.")
+                            else:
+                                raise ValueError(f"OCR processing temporarily unavailable (Error {r.status_code}). Please try again.")
+                                
                 except httpx.TimeoutException:
-                    logger.error("OCR request timed out")
-                    raise ValueError("OCR processing timed out. Please try with a smaller image.")
+                    logger.error(f"OCR request timed out (attempt {attempt + 1}/{max_retries})")
+                    if attempt < max_retries - 1:
+                        wait_time = (2 ** attempt) * 2  # 2s, 4s, 8s, 16s, 32s
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        raise ValueError("OCR processing timed out after multiple attempts. Please try with a smaller image.")
                 except ValueError:
                     # Re-raise ValueError as-is (these are our custom validation errors)
                     raise
                 except Exception as e:
-                    logger.error(f"OCR request failed: {str(e)}")
-                    raise ValueError("OCR processing failed due to network error. Please try again.")
+                    logger.error(f"OCR request failed (attempt {attempt + 1}): {str(e)}")
+                    if attempt == max_retries - 1:
+                        raise ValueError("OCR processing failed due to network error. Please try again.")
+                    await asyncio.sleep(2 ** attempt)  # Simple backoff for other errors
         
         elif which == "gcv":
             # Keep Google Vision as fallback
