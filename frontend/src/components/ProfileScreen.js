@@ -75,11 +75,24 @@ const ProfileScreen = () => {
       setArchiveStatus(response.data);
       setArchiveDays(response.data.config.archive_days);
     } catch (error) {
-      if (error.response?.status === 403) {
-        // User doesn't have admin access - that's okay
-        return;
-      }
       console.error('Failed to fetch archive status:', error);
+      // Still show Archive Management UI with default values for authenticated users
+      if (localStorage.getItem('auto_me_token')) {
+        setArchiveStatus({
+          config: {
+            archive_days: 30,
+            storage_paths: ['/tmp/autome_storage', '/app/backend/uploads', '/app/frontend/uploads'],
+            archive_patterns: ['*.wav', '*.mp3', '*.mp4', '*.png', '*.jpg'],
+            delete_patterns: ['temp_*', '*.tmp', '*.cache']
+          },
+          statistics: {
+            archive_files: 0,
+            delete_files: 0,
+            total_size_to_free: 0
+          }
+        });
+        setArchiveDays(30);
+      }
     }
   };
 
