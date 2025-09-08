@@ -465,7 +465,8 @@ const ProfileScreen = () => {
             </CardContent>
           </Card>
 
-          {/* Archive Management - Always show for debugging */}
+          {/* Archive Management - Show for authenticated users */}
+          {user && (
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
