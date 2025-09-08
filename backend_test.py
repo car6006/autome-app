@@ -730,6 +730,28 @@ class BackendTester:
         # System tests
         self.test_system_metrics()
         
+        # 🎯 PRIORITY UPLOAD SYSTEM TESTS (Sales Meeting Upload Issue)
+        print("\n" + "=" * 60)
+        print("🔍 UPLOAD SYSTEM DIAGNOSTIC TESTS")
+        print("=" * 60)
+        
+        # Priority 1: Upload Endpoint Testing
+        self.test_upload_endpoint_availability()
+        self.test_direct_audio_upload()
+        self.test_upload_session_creation()
+        self.test_rate_limiting_upload()
+        
+        # Priority 2: Transcription Pipeline
+        self.test_pipeline_worker_status()
+        self.test_transcription_job_processing()
+        self.test_large_file_handling()
+        self.test_openai_integration()
+        
+        # Priority 3: Error Investigation
+        self.test_upload_authentication()
+        self.test_storage_accessibility()
+        self.test_upload_error_handling()
+        
         # Summary
         return self.print_summary()
     
