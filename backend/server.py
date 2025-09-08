@@ -44,6 +44,9 @@ from worker_manager import worker_lifespan, get_pipeline_status
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Set up logging
+logger = logging.getLogger(__name__)
+
 # API Key validation on startup
 def validate_api_keys():
     """Validate critical API keys on startup"""
