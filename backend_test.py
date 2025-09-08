@@ -823,10 +823,16 @@ class BackendTester:
             
         try:
             # Create multiple OCR requests to potentially trigger rate limiting
-            import base64
-            png_data = base64.b64decode(
-                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-            )
+            from PIL import Image, ImageDraw, ImageFont
+            import io
+            
+            # Create a proper test image
+            img = Image.new('RGB', (150, 50), color='white')
+            draw = ImageDraw.Draw(img)
+            draw.text((10, 15), "RETRY TEST", fill='black')
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='PNG')
+            png_data = img_buffer.getvalue()
             
             ocr_notes = []
             
