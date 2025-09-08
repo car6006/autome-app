@@ -334,7 +334,7 @@ frontend:
           comment: "Frontend testing not performed as per system limitations. Frontend is serving static files via 'serve' command on port 3000."
         - working: true
           agent: "testing"
-          comment: "Frontend is successfully deployed and accessible at https://autome-ai.preview.emergentagent.com. Mobile responsive UI improvements verified through comprehensive testing."
+          comment: "Frontend is successfully deployed and accessible at https://content-capture.preview.emergentagent.com. Mobile responsive UI improvements verified through comprehensive testing."
 
   - task: "Mobile Responsive UI"
     implemented: true
@@ -424,7 +424,7 @@ test_plan:
 
 agent_communication:
     - agent: "testing"
-      message: "Comprehensive backend testing completed successfully. All 12 critical backend endpoints are working correctly. The API is fully functional with proper authentication, note management, and system monitoring. Backend is accessible at https://autome-ai.preview.emergentagent.com/api with all /api prefixed routes working as expected. No critical issues found."
+      message: "Comprehensive backend testing completed successfully. All 12 critical backend endpoints are working correctly. The API is fully functional with proper authentication, note management, and system monitoring. Backend is accessible at https://content-capture.preview.emergentagent.com/api with all /api prefixed routes working as expected. No critical issues found."
     - agent: "testing"
       message: "Mobile responsive UI testing completed successfully. Comprehensive testing across multiple viewports (390px-1280px) confirms excellent mobile responsiveness. Key achievements: ✅ No horizontal scrolling on any screen size, ✅ Proper PWA viewport configuration, ✅ Modal components fit correctly within mobile viewports, ✅ Most interactive elements meet 44px touch targets, ✅ Text readability optimized with proper wrapping, ✅ Form elements sized appropriately for mobile interaction. The mobile experience is significantly improved and meets modern responsive design standards."
     - agent: "testing"
