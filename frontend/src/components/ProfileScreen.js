@@ -154,11 +154,19 @@ const ProfileScreen = () => {
       fetchArchiveStatus();
     } catch (error) {
       console.error('Failed to update archive settings:', error);
-      toast({
-        title: "❌ Update Failed",
-        description: error.response?.data?.detail || "Failed to update settings",
-        variant: "destructive"
-      });
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        toast({
+          title: "🔐 Admin Access Required",
+          description: "Configuring archive settings requires administrator permissions",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "❌ Update Failed",
+          description: error.response?.data?.detail || "Failed to update settings",
+          variant: "destructive"
+        });
+      }
     }
     setArchiveLoading(false);
   };
