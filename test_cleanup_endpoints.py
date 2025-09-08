@@ -16,8 +16,8 @@ def test_cleanup_endpoints():
     # Register a new user
     unique_id = uuid.uuid4().hex[:8]
     user_data = {
-        "email": f"cleanup_test_{unique_id}@example.com",
-        "username": f"cleanup_test_{unique_id}",
+        "email": f"cleanuptest{unique_id}@example.com",
+        "username": f"cleanuptest{unique_id}",
         "password": "TestPassword123",
         "first_name": "Cleanup",
         "last_name": "Test"
