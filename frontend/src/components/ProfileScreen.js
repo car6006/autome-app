@@ -145,16 +145,19 @@ const ProfileScreen = () => {
     setArchiveLoading(true);
     try {
       const token = localStorage.getItem('auto_me_token');
+      const validArchiveDays = Math.max(1, Math.min(365, parseInt(archiveDays) || 30));
+      
       await axios.post(`${API}/admin/archive/configure`, 
-        { archive_days: archiveDays },
+        { archive_days: validArchiveDays },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       
       toast({
         title: "✅ Settings Updated",
-        description: `Archive retention set to ${archiveDays} days`
+        description: `Archive retention set to ${validArchiveDays} days`
       });
       
+      setArchiveDays(validArchiveDays);
       fetchArchiveStatus();
     } catch (error) {
       console.error('Failed to update archive settings:', error);
