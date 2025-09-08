@@ -297,7 +297,7 @@ async def stt_transcribe(file_url: str):
 
 async def ocr_read(file_url: str):
     """
-    Perform OCR on image using OpenAI Vision API
+    Perform OCR on image using OpenAI Vision API with enhanced retry logic for rate limiting
     """
     which = (os.getenv("OCR_PROVIDER") or "openai").lower()
     local = await _download(file_url)
