@@ -1186,6 +1186,61 @@ const NotesScreen = () => {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
+  const fetchFailedNotesCount = async () => {
+    try {
+      const response = await axios.get(`${API}/notes/failed-count`);
+      setFailedNotesCount(response.data.failed_count || 0);
+    } catch (error) {
+      // Silently handle error, not critical functionality
+      setFailedNotesCount(0);
+    }
+  };
+
+  const cleanupFailedNotes = async () => {
+    if (!user) {
+      toast({ title: "Authentication Required", description: "Please log in to clean up failed notes", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setCleaningUp(true);
+      const response = await axios.post(`${API}/notes/cleanup-failed`);
+      const { deleted_count, deleted_by_status } = response.data;
+      
+      if (deleted_count > 0) {
+        // Create a summary of what was deleted
+        const statusSummary = Object.entries(deleted_by_status)
+          .map(([status, count]) => `${count} ${status}`)
+          .join(', ');
+        
+        toast({ 
+          title: "🧹 Cleanup Completed", 
+          description: `Removed ${deleted_count} failed notes: ${statusSummary}`,
+          variant: "default"
+        });
+        
+        // Refresh notes and failed count
+        await fetchNotes(showArchived);
+        await fetchFailedNotesCount();
+      } else {
+        toast({ 
+          title: "✨ All Clean", 
+          description: "No failed or stuck notes found to clean up",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Failed to cleanup notes:', error);
+      toast({ 
+        title: "Cleanup Failed", 
+        description: "Failed to clean up failed notes. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setCleaningUp(false);
+    }
+  };
+
   const sendEmail = async (noteId) => {
     if (!emailTo || !emailSubject) {
       toast({ title: "Missing info", description: "Please enter email and subject", variant: "destructive" });
