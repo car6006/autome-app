@@ -571,8 +571,10 @@ const ProfileScreen = () => {
                     <strong>Note:</strong> Archive process removes old audio/image files while preserving all transcriptions, 
                     summaries, and database records. Your content remains accessible.
                     {!archiveStatus && (
-                      <br /><br />
-                      <strong>Admin permissions required</strong> for archive operations and real-time statistics.
+                      <>
+                        <br /><br />
+                        <strong>Admin permissions required</strong> for archive operations and real-time statistics.
+                      </>
                     )}
                   </div>
                 </div>
