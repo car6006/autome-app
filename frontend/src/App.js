@@ -2732,21 +2732,30 @@ const NotesScreen = () => {
                         </div>
                       )}
                       
+                      {/* Always show retry button for processing notes */}
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-blue-700">
+                            Having issues? You can retry processing without losing your content.
+                          </span>
+                          <Button
+                            onClick={() => retryNoteProcessing(note.id)}
+                            size="sm"
+                            variant="outline"
+                            className="ml-2 h-6 px-2 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
+                          >
+                            <RefreshCw className="w-3 h-3 mr-1" />
+                            Retry
+                          </Button>
+                        </div>
+                      </div>
+                      
                       {getProcessingTime(note.id) > 120 && (
                         <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-orange-700">
                               ⚠️ Processing is taking unusually long. This might indicate an issue.
                             </span>
-                            <Button
-                              onClick={() => retryNoteProcessing(note.id)}
-                              size="sm"
-                              variant="outline"
-                              className="ml-2 h-6 px-2 text-xs border-orange-300 text-orange-700 hover:bg-orange-100"
-                            >
-                              <RefreshCw className="w-3 h-3 mr-1" />
-                              Retry
-                            </Button>
                           </div>
                         </div>
                       )}
