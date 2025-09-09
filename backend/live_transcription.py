@@ -413,24 +413,33 @@ class LiveTranscriptionManager:
             }
 
     async def _emit_events(self, session_id: str, events: dict):
-        """Emit events to connected clients (WebSocket/SSE)"""
+        """Emit events to connected clients with proper accumulation"""
         try:
             for event_type, event_data in events.items():
                 if event_data:
-                    # Store event in Redis for client polling
-                    event_key = f"events:{session_id}:{event_type}"
+                    # Create timestamped event key to prevent overwrites
+                    timestamp = time.time()
+                    event_key = f"events:{session_id}:{event_type}:{int(timestamp * 1000)}"
+                    
                     event_payload = {
                         "type": event_type,
                         "session_id": session_id,
-                        "timestamp": time.time(),
+                        "timestamp": timestamp,
                         "data": event_data
                     }
                     
+                    # Store event with 5 minute TTL
                     await self.redis_client.setex(
-                        event_key, 300, json.dumps(event_payload)  # 5 minutes TTL
+                        event_key, 300, json.dumps(event_payload)
                     )
                     
-                    logger.debug(f"📡 Emitted {event_type} event for session {session_id}")
+                    # Also maintain a list of recent events for this session
+                    events_list_key = f"events:{session_id}:list"
+                    await self.redis_client.lpush(events_list_key, json.dumps(event_payload))
+                    await self.redis_client.ltrim(events_list_key, 0, 49)  # Keep last 50 events
+                    await self.redis_client.expire(events_list_key, 300)  # 5 minutes TTL
+                    
+                    logger.debug(f"📡 Emitted {event_type} event for session {session_id} at {timestamp}")
                     
         except Exception as e:
             logger.error(f"❌ Error emitting events for {session_id}: {e}")
