@@ -1077,6 +1077,135 @@ const PhotoScanScreen = () => {
   );
 };
 
+const LiveTranscriptionScreen = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
+
+  const handleTranscriptionComplete = (result) => {
+    toast({
+      title: "🎉 Live Transcription Complete!",
+      description: `Transcribed ${result.word_count} words in ${Math.round(result.recording_duration / 60)} minutes`,
+      variant: "default"
+    });
+
+    // Optionally navigate to notes or create a note with the result
+    navigate('/notes');
+  };
+
+  return (
+    <div className={`min-h-screen ${theme.background} ${theme.text}`}>
+      {/* Header */}
+      <div className={`${theme.cardBackground} ${theme.border} border-b`}>
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {branding.icon}
+              <div>
+                <h1 className={`text-2xl font-bold ${theme.primary}`}>
+                  Live Transcription
+                </h1>
+                <p className={`text-sm ${theme.textSecondary}`}>
+                  Real-time speech-to-text with instant results
+                </p>
+              </div>
+            </div>
+            
+            <Button
+              onClick={() => navigate('/capture')}
+              variant="outline"
+              className="ml-4"
+            >
+              <ChevronDown className="w-4 h-4 mr-2 rotate-90" />
+              Back to Capture
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Feature Description */}
+          <Card className={`${theme.cardBackground} ${theme.border}`}>
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${theme.accent} bg-opacity-10`}>
+                  <Mic className={`w-8 h-8 ${theme.primary}`} />
+                </div>
+                
+                <div>
+                  <h2 className={`text-xl font-semibold ${theme.text} mb-2`}>
+                    Revolutionary Live Transcription
+                  </h2>
+                  <p className={`${theme.textSecondary} max-w-2xl mx-auto`}>
+                    See your words appear in real-time as you speak. Our advanced live transcription 
+                    processes audio in 5-second chunks with intelligent overlap resolution, giving you 
+                    instant text feedback during your entire recording session.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                  <div className="text-center p-4">
+                    <Zap className={`w-6 h-6 ${theme.primary} mx-auto mb-2`} />
+                    <h3 className={`font-medium ${theme.text}`}>Real-time Processing</h3>
+                    <p className={`text-sm ${theme.textSecondary}`}>See text appear as you speak</p>
+                  </div>
+                  
+                  <div className="text-center p-4">
+                    <Target className={`w-6 h-6 ${theme.primary} mx-auto mb-2`} />
+                    <h3 className={`font-medium ${theme.text}`}>High Accuracy</h3>
+                    <p className={`text-sm ${theme.textSecondary}`}>Advanced conflict resolution</p>
+                  </div>
+                  
+                  <div className="text-center p-4">
+                    <Clock className={`w-6 h-6 ${theme.primary} mx-auto mb-2`} />
+                    <h3 className={`font-medium ${theme.text}`}>Instant Results</h3>
+                    <p className={`text-sm ${theme.textSecondary}`}>Final transcript in seconds</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Live Transcription Recorder */}
+          <LiveTranscriptionRecorder 
+            onTranscriptionComplete={handleTranscriptionComplete}
+            user={user}
+          />
+
+          {/* Help Text */}
+          <Card className={`${theme.cardBackground} ${theme.border}`}>
+            <CardContent className="p-6">
+              <h3 className={`font-semibold ${theme.text} mb-3`}>How to Use Live Transcription</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${theme.accent} bg-opacity-10 text-xs font-medium ${theme.primary} flex-shrink-0`}>1</span>
+                  <span className={theme.textSecondary}>Click "Start Live Recording" to begin capturing audio with real-time transcription</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${theme.accent} bg-opacity-10 text-xs font-medium ${theme.primary} flex-shrink-0`}>2</span>
+                  <span className={theme.textSecondary}>Speak naturally - you'll see words appear in real-time with a short delay</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${theme.accent} bg-opacity-10 text-xs font-medium ${theme.primary} flex-shrink-0`}>3</span>
+                  <span className={theme.textSecondary}>Use pause/resume to control recording, or stop to finalize your transcript</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${theme.accent} bg-opacity-10 text-xs font-medium ${theme.primary} flex-shrink-0`}>4</span>
+                  <span className={theme.textSecondary}>Final transcript with timestamps will be ready within seconds of stopping</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const NotesScreen = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
