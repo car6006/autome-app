@@ -76,12 +76,12 @@ class RollingTranscript:
                     "committed_words": []
                 }
             
-            # Parse stored state
+            # Parse stored state with proper type handling
             return {
-                "last_committed_ms": int(state_data.get(b"last_committed_ms", 0)),
+                "last_committed_ms": int(float(state_data.get(b"last_committed_ms", 0))),
                 "tail_buffer": json.loads(state_data.get(b"tail_buffer", "[]")),
                 "received_idx_set": set(json.loads(state_data.get(b"received_idx_set", "[]"))),
-                "last_seq": int(state_data.get(b"last_seq", -1)),
+                "last_seq": int(float(state_data.get(b"last_seq", -1))),
                 "updated_at": float(state_data.get(b"updated_at", time.time())),
                 "committed_words": json.loads(state_data.get(b"committed_words", "[]"))
             }
