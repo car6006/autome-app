@@ -2733,8 +2733,21 @@ const NotesScreen = () => {
                       )}
                       
                       {getProcessingTime(note.id) > 120 && (
-                        <div className="mt-1 text-xs text-red-600">
-                          <span>⚠️ Processing seems stuck. Try refreshing the page.</span>
+                        <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-orange-700">
+                              ⚠️ Processing is taking unusually long. This might indicate an issue.
+                            </span>
+                            <Button
+                              onClick={() => retryNoteProcessing(note.id)}
+                              size="sm"
+                              variant="outline"
+                              className="ml-2 h-6 px-2 text-xs border-orange-300 text-orange-700 hover:bg-orange-100"
+                            >
+                              <RefreshCw className="w-3 h-3 mr-1" />
+                              Retry
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
