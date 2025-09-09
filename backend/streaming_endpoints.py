@@ -445,23 +445,32 @@ async def get_session_events(
             if first_chunk.get("user_id") != user_id:
                 raise HTTPException(status_code=403, detail="Session access denied")
         
-        # Get events from Redis
-        event_types = ["partial", "commit", "final"] if not event_type else [event_type]
+        # Get accumulated events from Redis list
         events = []
+        events_list_key = f"events:{session_id}:list"
         
-        for etype in event_types:
-            event_key = f"events:{session_id}:{etype}"
-            event_data = await live_transcription_manager.redis_client.get(event_key)
+        try:
+            # Get recent events from the list (most recent first)
+            events_data = await live_transcription_manager.redis_client.lrange(events_list_key, 0, 19)  # Get last 20 events
             
-            if event_data:
+            for event_data in events_data:
                 try:
+                    if isinstance(event_data, bytes):
+                        event_data = event_data.decode('utf-8')
                     event = json.loads(event_data)
-                    events.append(event)
+                    
+                    # Filter by event type if specified
+                    if not event_type or event.get("type") == event_type:
+                        events.append(event)
+                        
                 except json.JSONDecodeError:
                     continue
+                    
+        except Exception as e:
+            logger.error(f"Error retrieving events for {session_id}: {e}")
         
-        # Sort by timestamp
-        events.sort(key=lambda e: e.get("timestamp", 0))
+        # Sort by timestamp (newest first for real-time updates)
+        events.sort(key=lambda e: e.get("timestamp", 0), reverse=True)
         
         return {
             "session_id": session_id,
