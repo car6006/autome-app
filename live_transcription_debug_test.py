@@ -200,7 +200,7 @@ class LiveTranscriptionDebugger:
                 
                 if self.debug_session_id:
                     # Test Redis operations through live transcript
-                    live_response = self.session.get(f"{BACKEND_URL}/uploads/sessions/{self.debug_session_id}/live", timeout=10)
+                    live_response = self.session.get(f"{BACKEND_URL}/live/sessions/{self.debug_session_id}/live", timeout=10)
                     
                     if live_response.status_code == 200:
                         self.log_result("Redis Operations", True, 
