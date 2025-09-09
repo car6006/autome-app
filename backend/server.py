@@ -740,6 +740,101 @@ async def delete_note(
     
     return {"message": "Note deleted successfully"}
 
+@api_router.post("/notes/{note_id}/retry-processing")
+async def retry_note_processing(
+    note_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user)
+):
+    """Retry processing for a stuck or failed note"""
+    try:
+        # Get the note
+        note = await NotesStore.get(note_id)
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+        
+        # Check ownership
+        if note.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to retry this note")
+        
+        # Check if note is actually stuck/failed
+        current_status = note.get("status", "")
+        if current_status in ["ready", "completed"]:
+            return {
+                "message": "Note is already processed successfully",
+                "status": current_status,
+                "no_action_needed": True
+            }
+        
+        # Determine what type of processing to retry based on note kind and current state
+        note_kind = note.get("kind", "")
+        has_content = bool(note.get("content", "").strip())
+        has_artifacts = bool(note.get("artifacts", {}))
+        
+        retry_actions = []
+        
+        # Reset note status to processing
+        await NotesStore.update_status(note_id, "processing")
+        
+        if note_kind == "audio":
+            # Audio note - retry transcription
+            if not has_artifacts or "error" in note.get("artifacts", {}):
+                # Clear any error artifacts and retry transcription
+                await db["notes"].update_one(
+                    {"id": note_id},
+                    {"$unset": {"artifacts.error": ""}}
+                )
+                
+                # Re-enqueue transcription job
+                from tasks import enqueue_transcription
+                background_tasks.add_task(enqueue_transcription, note_id)
+                retry_actions.append("transcription")
+                
+        elif note_kind == "photo":
+            # Photo note - retry OCR
+            if not has_artifacts or "error" in note.get("artifacts", {}):
+                # Clear any error artifacts and retry OCR
+                await db["notes"].update_one(
+                    {"id": note_id},
+                    {"$unset": {"artifacts.error": ""}}
+                )
+                
+                # Re-enqueue OCR job
+                from tasks import enqueue_ocr
+                background_tasks.add_task(enqueue_ocr, note_id)
+                retry_actions.append("OCR")
+                
+        elif note_kind == "text":
+            # Text note - should be instant, but check if AI processing failed
+            if not has_content:
+                # Shouldn't happen for text notes, but handle gracefully
+                await NotesStore.update_status(note_id, "ready")
+                retry_actions.append("status_reset")
+            else:
+                # Text note is ready by default
+                await NotesStore.update_status(note_id, "ready")
+                retry_actions.append("status_reset")
+        
+        # If note has content but no AI analysis artifacts, we can retry AI processing too
+        if has_content and note.get("artifacts", {}).get("analysis") is None:
+            # This would be for future AI analysis retry
+            retry_actions.append("ready_for_ai_analysis")
+        
+        # Log the retry action
+        logger.info(f"🔄 Retrying processing for note {note_id}: {retry_actions}")
+        
+        return {
+            "message": f"Processing retry initiated for {note_kind} note",
+            "note_id": note_id,
+            "actions_taken": retry_actions,
+            "new_status": "processing",
+            "estimated_completion": "1-2 minutes"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error retrying processing for note {note_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retry processing: {str(e)}")
+
 
 
 
