@@ -1035,7 +1035,7 @@ async def get_professional_context(
     }
 
 from ai_context_processor import ai_context_processor
-import providers
+from enhanced_providers import transcribe_audio, generate_ai_analysis
 
 @api_router.post("/batch-report/ai-chat")
 async def batch_report_ai_chat(
