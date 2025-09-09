@@ -75,7 +75,7 @@ async def upload_audio_chunk(
         chunk_data = {
             f"chunk_{chunk_idx}": json.dumps({
                 "idx": chunk_idx,
-                "file_path": file_path,
+                "file_path": str(file_path),  # Convert PosixPath to string
                 "size": len(file_content),
                 "sample_rate": sample_rate,
                 "codec": codec,
