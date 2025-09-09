@@ -2166,23 +2166,16 @@ async def generate_professional_report(
         Use professional business language. Make it executive-ready. Use clear section headings in CAPS, bullet points with •, and write in complete sentences. Do NOT use markdown formatting symbols.
         """
         
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 1500,
-                    "temperature": 0.3
-                },
-                headers={"Authorization": f"Bearer {api_key}"}
-            )
-            response.raise_for_status()
-            
-            ai_analysis = response.json()
-            report_content = ai_analysis["choices"][0]["message"]["content"]
+        # Use enhanced AI provider with dual-provider support
+        user_context = current_user.get("profile", {}) if current_user else {}
+        
+        analysis_result = await generate_ai_analysis(
+            content=prompt,
+            analysis_type="professional_report",
+            user_context=user_context
+        )
+        
+        report_content = analysis_result
             
             # Add logo header for Expeditors users
             if is_expeditors_user:
