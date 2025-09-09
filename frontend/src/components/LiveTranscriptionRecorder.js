@@ -315,6 +315,8 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   
   // Start event polling for live updates
   const startEventPolling = (currentSessionId) => {
+    console.log(`🔔 Starting event polling for session: ${currentSessionId}`);
+    
     eventPollingTimer.current = setInterval(async () => {
       try {
         const response = await axios.get(
@@ -323,13 +325,23 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
         );
         
         if (response.status === 200) {
-          const { events } = response.data;
-          processLiveEvents(events);
+          const { events, event_count } = response.data;
+          
+          if (event_count > 0) {
+            console.log(`📡 Received ${event_count} events for session ${currentSessionId}`);
+            processLiveEvents(events);
+          }
         }
         
       } catch (error) {
-        // Silently handle polling errors to avoid spam
-        console.debug('Event polling error:', error);
+        // Log polling errors for debugging
+        console.warn('Event polling error:', error.message);
+        
+        // If session doesn't exist, stop polling
+        if (error.response?.status === 404) {
+          console.warn('Session not found, stopping polling');
+          clearInterval(eventPollingTimer.current);
+        }
       }
     }, POLLING_INTERVAL);
   };
