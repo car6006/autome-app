@@ -32,6 +32,10 @@ from upload_api import router as upload_router
 from transcription_api import router as transcription_router
 from webhooks import webhook_router
 
+# Import Live Transcription System
+from streaming_endpoints import streaming_router
+from live_transcription import live_transcription_manager
+
 # Phase 4: Production imports
 from cloud_storage import storage_manager
 from cache_manager import cache_manager
