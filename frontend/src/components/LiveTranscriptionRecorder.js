@@ -156,6 +156,8 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
       formData.append('overlap_ms', OVERLAP_DURATION.toString());
       
       // Upload chunk for immediate processing
+      console.log(`📤 Uploading chunk ${currentChunkIdx} for session ${currentSessionId}`);
+      
       const response = await axios.post(
         `${API}/live/sessions/${currentSessionId}/chunks/${currentChunkIdx}`,
         formData,
@@ -169,6 +171,9 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
       
       if (response.status === 202) {
         console.log(`✅ Chunk ${currentChunkIdx} uploaded and processing started`);
+        console.log(`📊 Response:`, response.data);
+      } else {
+        console.warn(`⚠️ Unexpected response status: ${response.status}`);
       }
       
     } catch (error) {
