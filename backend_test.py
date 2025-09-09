@@ -4561,6 +4561,17 @@ class BackendTester:
         self.test_retry_processing_background_tasks()
         self.test_retry_processing_status_information()
         
+        # 🎯 CRITICAL DEBUG TESTS (REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🚨 CRITICAL DEBUG TESTS - Why Retry Processing Isn't Fixing Stuck Notes")
+        print("=" * 60)
+        
+        self.test_stuck_notes_retry_debugging()
+        self.test_background_task_execution_verification()
+        self.test_transcription_processing_pipeline()
+        self.test_status_update_mechanism()
+        self.test_regular_vs_live_transcription()
+        
         # Summary
         return self.print_summary()
     
