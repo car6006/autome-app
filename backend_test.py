@@ -3640,6 +3640,22 @@ class BackendTester:
         
         self.test_live_transcription_session_9mez563j_debug()
         
+        # 🎯 RETRY PROCESSING FUNCTIONALITY TESTS (NEW FEATURE - REVIEW REQUEST)
+        print("\n" + "=" * 60)
+        print("🔄 RETRY PROCESSING FUNCTIONALITY TESTS - Note Processing Retry System")
+        print("=" * 60)
+        
+        self.test_retry_processing_endpoint_basic()
+        self.test_retry_processing_audio_note()
+        self.test_retry_processing_photo_note()
+        self.test_retry_processing_text_note()
+        self.test_retry_processing_nonexistent_note()
+        self.test_retry_processing_unauthorized()
+        self.test_retry_processing_already_completed()
+        self.test_retry_processing_error_artifacts_clearing()
+        self.test_retry_processing_background_tasks()
+        self.test_retry_processing_status_information()
+        
         # Summary
         return self.print_summary()
     
