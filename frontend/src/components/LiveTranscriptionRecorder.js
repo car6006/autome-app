@@ -348,13 +348,17 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   
   // Process live transcription events
   const processLiveEvents = (events) => {
-    events.forEach(event => {
+    console.log(`🔄 Processing ${events.length} events`);
+    
+    events.forEach((event, index) => {
       const { type, data } = event;
+      console.log(`📝 Event ${index + 1}: ${type}`, data);
       
       switch (type) {
         case 'partial':
           // Update live transcript with uncommitted text
           if (data && data.text) {
+            console.log(`📄 Updating partial transcript: "${data.text}"`);
             setLiveTranscript(data.text);
           }
           break;
@@ -362,7 +366,12 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
         case 'commit':
           // Move text from partial to committed
           if (data && data.text) {
-            setCommittedTranscript(prev => prev + ' ' + data.text);
+            console.log(`✅ Committing text: "${data.text}"`);
+            setCommittedTranscript(prev => {
+              const newCommitted = prev ? prev + ' ' + data.text : data.text;
+              console.log(`📋 New committed transcript: "${newCommitted}"`);
+              return newCommitted;
+            });
             setLiveTranscript(''); // Clear partial text
           }
           break;
@@ -370,7 +379,7 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
         case 'final':
           // Final transcript received
           if (data && data.session_id === sessionId) {
-            console.log('📋 Final transcript received');
+            console.log('📋 Final transcript received for session');
           }
           break;
           
