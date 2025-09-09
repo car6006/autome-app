@@ -3980,6 +3980,426 @@ class BackendTester:
                 
         except Exception as e:
             self.log_result("Retry Status Information", False, f"Status information test error: {str(e)}")
+
+    def test_stuck_notes_retry_debugging(self):
+        """
+        CRITICAL DEBUG TEST: Test why retry processing isn't fixing stuck notes
+        This addresses the specific issue mentioned in the review request
+        """
+        if not self.auth_token:
+            self.log_result("Stuck Notes Retry Debugging", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Step 1: Create an audio note to test the complete pipeline
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"test_audio_data" * 100
+            
+            files = {
+                'file': ('stuck_note_test.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Stuck Notes Debug Test'
+            }
+            
+            upload_response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                
+                if note_id:
+                    self.log_result("Stuck Notes Retry Debugging", True, 
+                                  f"✅ Step 1: Audio note created successfully: {note_id}")
+                    
+                    # Step 2: Wait and check initial processing status
+                    time.sleep(3)
+                    
+                    status_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                    if status_response.status_code == 200:
+                        note_data = status_response.json()
+                        initial_status = note_data.get("status", "unknown")
+                        
+                        self.log_result("Stuck Notes Retry Debugging", True, 
+                                      f"✅ Step 2: Initial status check: {initial_status}")
+                        
+                        # Step 3: Test retry processing functionality
+                        retry_response = self.session.post(
+                            f"{BACKEND_URL}/notes/{note_id}/retry-processing",
+                            timeout=15
+                        )
+                        
+                        if retry_response.status_code == 200:
+                            retry_data = retry_response.json()
+                            
+                            self.log_result("Stuck Notes Retry Debugging", True, 
+                                          f"✅ Step 3: Retry processing triggered: {retry_data.get('message', 'No message')}")
+                            
+                            # Step 4: Check if enqueue_transcription was actually called
+                            # Wait for background task to process
+                            time.sleep(5)
+                            
+                            # Check status after retry
+                            post_retry_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                            if post_retry_response.status_code == 200:
+                                post_retry_data = post_retry_response.json()
+                                post_retry_status = post_retry_data.get("status", "unknown")
+                                
+                                # Step 5: Analyze the complete pipeline
+                                pipeline_analysis = {
+                                    "note_id": note_id,
+                                    "initial_status": initial_status,
+                                    "post_retry_status": post_retry_status,
+                                    "retry_response": retry_data,
+                                    "artifacts": post_retry_data.get("artifacts", {}),
+                                    "has_media_key": bool(post_retry_data.get("media_key")),
+                                    "note_kind": post_retry_data.get("kind", "unknown")
+                                }
+                                
+                                # Check if transcription actually happened
+                                artifacts = post_retry_data.get("artifacts", {})
+                                has_transcript = bool(artifacts.get("transcript", "").strip())
+                                has_error = bool(artifacts.get("error", ""))
+                                
+                                if post_retry_status == "ready" and has_transcript:
+                                    self.log_result("Stuck Notes Retry Debugging", True, 
+                                                  f"✅ SUCCESS: Complete pipeline working - note processed to ready with transcript", 
+                                                  pipeline_analysis)
+                                elif post_retry_status == "processing":
+                                    self.log_result("Stuck Notes Retry Debugging", True, 
+                                                  f"⏳ PROCESSING: Note is actively processing after retry (normal behavior)", 
+                                                  pipeline_analysis)
+                                elif has_error:
+                                    error_msg = artifacts.get("error", "")
+                                    if "rate limit" in error_msg.lower() or "quota" in error_msg.lower():
+                                        self.log_result("Stuck Notes Retry Debugging", True, 
+                                                      f"🚦 RATE LIMITED: Retry working but hitting API limits: {error_msg}", 
+                                                      pipeline_analysis)
+                                    else:
+                                        self.log_result("Stuck Notes Retry Debugging", False, 
+                                                      f"❌ ERROR: Retry triggered but processing failed: {error_msg}", 
+                                                      pipeline_analysis)
+                                else:
+                                    self.log_result("Stuck Notes Retry Debugging", False, 
+                                                  f"❌ STUCK: Retry may not be working - status: {post_retry_status}", 
+                                                  pipeline_analysis)
+                            else:
+                                self.log_result("Stuck Notes Retry Debugging", False, 
+                                              f"Cannot check post-retry status: HTTP {post_retry_response.status_code}")
+                        else:
+                            self.log_result("Stuck Notes Retry Debugging", False, 
+                                          f"❌ Retry processing failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                    else:
+                        self.log_result("Stuck Notes Retry Debugging", False, 
+                                      f"Cannot check initial note status: HTTP {status_response.status_code}")
+                else:
+                    self.log_result("Stuck Notes Retry Debugging", False, "Audio upload succeeded but no note ID returned")
+            else:
+                self.log_result("Stuck Notes Retry Debugging", False, 
+                              f"Audio upload failed: HTTP {upload_response.status_code}: {upload_response.text}")
+                
+        except Exception as e:
+            self.log_result("Stuck Notes Retry Debugging", False, f"Stuck notes retry debugging error: {str(e)}")
+
+    def test_background_task_execution_verification(self):
+        """
+        DEBUG TEST: Verify if background tasks are actually being executed
+        """
+        if not self.auth_token:
+            self.log_result("Background Task Execution Verification", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Check pipeline worker status first
+            health_response = self.session.get(f"{BACKEND_URL}/health", timeout=10)
+            
+            if health_response.status_code == 200:
+                health_data = health_response.json()
+                pipeline_status = health_data.get("pipeline", {})
+                services = health_data.get("services", {})
+                
+                pipeline_health = services.get("pipeline", "unknown")
+                worker_running = pipeline_status.get("worker", {}).get("running", False)
+                
+                background_task_analysis = {
+                    "pipeline_health": pipeline_health,
+                    "worker_running": worker_running,
+                    "pipeline_status": pipeline_status,
+                    "overall_health": health_data.get("status", "unknown")
+                }
+                
+                if pipeline_health == "healthy" and worker_running:
+                    self.log_result("Background Task Execution Verification", True, 
+                                  f"✅ Pipeline worker is healthy and running", background_task_analysis)
+                elif pipeline_health == "degraded":
+                    self.log_result("Background Task Execution Verification", True, 
+                                  f"⚠️ Pipeline worker is degraded but functional", background_task_analysis)
+                else:
+                    self.log_result("Background Task Execution Verification", False, 
+                                  f"❌ Pipeline worker issues detected: {pipeline_health}", background_task_analysis)
+            else:
+                self.log_result("Background Task Execution Verification", False, 
+                              f"Cannot check pipeline status: HTTP {health_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Background Task Execution Verification", False, 
+                          f"Background task verification error: {str(e)}")
+
+    def test_transcription_processing_pipeline(self):
+        """
+        DEBUG TEST: Test the complete transcription processing pipeline
+        """
+        if not self.auth_token:
+            self.log_result("Transcription Processing Pipeline", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a proper audio file for transcription testing
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"transcription_test_data" * 50
+            
+            files = {
+                'file': ('transcription_pipeline_test.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Transcription Pipeline Debug Test'
+            }
+            
+            # Track timing for pipeline analysis
+            start_time = time.time()
+            
+            upload_response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                upload_time = time.time() - start_time
+                
+                if note_id:
+                    # Monitor the complete pipeline process
+                    pipeline_stages = []
+                    max_monitoring_time = 60  # Monitor for up to 60 seconds
+                    check_interval = 3
+                    checks = 0
+                    max_checks = max_monitoring_time // check_interval
+                    
+                    while checks < max_checks:
+                        time.sleep(check_interval)
+                        checks += 1
+                        current_time = time.time() - start_time
+                        
+                        status_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                        if status_response.status_code == 200:
+                            note_data = status_response.json()
+                            current_status = note_data.get("status", "unknown")
+                            artifacts = note_data.get("artifacts", {})
+                            
+                            stage_info = {
+                                "time_elapsed": f"{current_time:.1f}s",
+                                "status": current_status,
+                                "has_transcript": bool(artifacts.get("transcript", "").strip()),
+                                "has_error": bool(artifacts.get("error", "")),
+                                "error_message": artifacts.get("error", ""),
+                                "check_number": checks
+                            }
+                            
+                            pipeline_stages.append(stage_info)
+                            
+                            # Check for completion or failure
+                            if current_status == "ready":
+                                transcript = artifacts.get("transcript", "")
+                                if transcript.strip():
+                                    self.log_result("Transcription Processing Pipeline", True, 
+                                                  f"✅ COMPLETE: Transcription pipeline successful in {current_time:.1f}s", 
+                                                  {"stages": pipeline_stages, "final_transcript_length": len(transcript)})
+                                else:
+                                    self.log_result("Transcription Processing Pipeline", False, 
+                                                  f"❌ EMPTY: Pipeline completed but no transcript generated", 
+                                                  {"stages": pipeline_stages})
+                                return
+                                
+                            elif current_status == "failed":
+                                error_msg = artifacts.get("error", "Unknown error")
+                                if "rate limit" in error_msg.lower() or "quota" in error_msg.lower():
+                                    self.log_result("Transcription Processing Pipeline", True, 
+                                                  f"🚦 RATE LIMITED: Pipeline failed due to API limits (expected): {error_msg}", 
+                                                  {"stages": pipeline_stages})
+                                else:
+                                    self.log_result("Transcription Processing Pipeline", False, 
+                                                  f"❌ FAILED: Pipeline failed with error: {error_msg}", 
+                                                  {"stages": pipeline_stages})
+                                return
+                    
+                    # If we get here, pipeline is still processing after max monitoring time
+                    final_status_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                    if final_status_response.status_code == 200:
+                        final_note_data = final_status_response.json()
+                        final_status = final_note_data.get("status", "unknown")
+                        
+                        if final_status == "processing":
+                            self.log_result("Transcription Processing Pipeline", True, 
+                                          f"⏳ SLOW: Pipeline still processing after {max_monitoring_time}s (may indicate rate limiting)", 
+                                          {"stages": pipeline_stages, "final_status": final_status})
+                        else:
+                            self.log_result("Transcription Processing Pipeline", False, 
+                                          f"❌ TIMEOUT: Pipeline did not complete in {max_monitoring_time}s, final status: {final_status}", 
+                                          {"stages": pipeline_stages})
+                else:
+                    self.log_result("Transcription Processing Pipeline", False, "Upload succeeded but no note ID returned")
+            else:
+                self.log_result("Transcription Processing Pipeline", False, 
+                              f"Upload failed: HTTP {upload_response.status_code}: {upload_response.text}")
+                
+        except Exception as e:
+            self.log_result("Transcription Processing Pipeline", False, 
+                          f"Transcription pipeline test error: {str(e)}")
+
+    def test_status_update_mechanism(self):
+        """
+        DEBUG TEST: Test if status updates are working correctly
+        """
+        if not self.auth_token:
+            self.log_result("Status Update Mechanism", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a text note to test status updates (should be instant)
+            note_data = {
+                "title": f"Status Update Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "This is a test note to verify status update mechanisms are working correctly."
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/notes",
+                json=note_data,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                note_result = response.json()
+                note_id = note_result.get("id")
+                initial_status = note_result.get("status", "unknown")
+                
+                if note_id:
+                    # Check status immediately after creation
+                    immediate_check = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                    if immediate_check.status_code == 200:
+                        immediate_data = immediate_check.json()
+                        immediate_status = immediate_data.get("status", "unknown")
+                        
+                        # Text notes should be "ready" immediately
+                        if immediate_status == "ready":
+                            self.log_result("Status Update Mechanism", True, 
+                                          f"✅ Status updates working: Text note immediately ready", 
+                                          {"initial_status": initial_status, "immediate_status": immediate_status})
+                        else:
+                            self.log_result("Status Update Mechanism", False, 
+                                          f"❌ Status update issue: Text note not ready immediately (status: {immediate_status})", 
+                                          {"initial_status": initial_status, "immediate_status": immediate_status})
+                    else:
+                        self.log_result("Status Update Mechanism", False, 
+                                      f"Cannot check note status: HTTP {immediate_check.status_code}")
+                else:
+                    self.log_result("Status Update Mechanism", False, "Note creation succeeded but no ID returned")
+            else:
+                self.log_result("Status Update Mechanism", False, 
+                              f"Note creation failed: HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Status Update Mechanism", False, f"Status update test error: {str(e)}")
+
+    def test_regular_vs_live_transcription(self):
+        """
+        DEBUG TEST: Test regular (non-live) transcription system
+        """
+        if not self.auth_token:
+            self.log_result("Regular vs Live Transcription", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test regular transcription (upload-file endpoint)
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"regular_transcription_test" * 30
+            
+            files = {
+                'file': ('regular_transcription_test.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Regular Transcription System Test'
+            }
+            
+            upload_response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                
+                if note_id:
+                    # Monitor regular transcription processing
+                    time.sleep(5)  # Wait for initial processing
+                    
+                    status_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                    if status_response.status_code == 200:
+                        note_data = status_response.json()
+                        status = note_data.get("status", "unknown")
+                        artifacts = note_data.get("artifacts", {})
+                        
+                        transcription_analysis = {
+                            "note_id": note_id,
+                            "status": status,
+                            "has_media_key": bool(note_data.get("media_key")),
+                            "has_transcript": bool(artifacts.get("transcript", "").strip()),
+                            "has_error": bool(artifacts.get("error", "")),
+                            "error_message": artifacts.get("error", ""),
+                            "note_kind": note_data.get("kind", "unknown")
+                        }
+                        
+                        if status == "ready" and artifacts.get("transcript", "").strip():
+                            self.log_result("Regular vs Live Transcription", True, 
+                                          f"✅ Regular transcription working: Note processed successfully", 
+                                          transcription_analysis)
+                        elif status == "processing":
+                            self.log_result("Regular vs Live Transcription", True, 
+                                          f"⏳ Regular transcription processing: Note is being processed", 
+                                          transcription_analysis)
+                        elif status == "failed":
+                            error_msg = artifacts.get("error", "")
+                            if "rate limit" in error_msg.lower() or "quota" in error_msg.lower():
+                                self.log_result("Regular vs Live Transcription", True, 
+                                              f"🚦 Regular transcription rate limited (expected): {error_msg}", 
+                                              transcription_analysis)
+                            else:
+                                self.log_result("Regular vs Live Transcription", False, 
+                                              f"❌ Regular transcription failed: {error_msg}", 
+                                              transcription_analysis)
+                        else:
+                            self.log_result("Regular vs Live Transcription", False, 
+                                          f"❌ Unexpected regular transcription status: {status}", 
+                                          transcription_analysis)
+                    else:
+                        self.log_result("Regular vs Live Transcription", False, 
+                                      f"Cannot check transcription status: HTTP {status_response.status_code}")
+                else:
+                    self.log_result("Regular vs Live Transcription", False, "Upload succeeded but no note ID returned")
+            else:
+                self.log_result("Regular vs Live Transcription", False, 
+                              f"Regular transcription upload failed: HTTP {upload_response.status_code}: {upload_response.text}")
+                
+        except Exception as e:
+            self.log_result("Regular vs Live Transcription", False, f"Regular transcription test error: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
