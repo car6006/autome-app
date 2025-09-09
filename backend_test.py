@@ -3297,6 +3297,204 @@ class BackendTester:
             
         except Exception as e:
             self.log_result("Live Transcription Session Debug", False, f"Debug session error: {str(e)}")
+
+    def test_live_transcription_session_9mez563j_debug(self):
+        """Debug specific live transcription session 9mez563j that's not updating UI"""
+        session_id = "9mez563j"
+        
+        print(f"\n🔍 DEBUGGING SESSION {session_id} - UI NOT UPDATING ISSUE")
+        print("=" * 70)
+        print("User has been speaking for 51 seconds but sees no transcribed text")
+        print("Investigating real-time pipeline breakdown...")
+        print("=" * 70)
+        
+        try:
+            # 1. Check Session State - verify if chunks are being uploaded and processed
+            print(f"\n1️⃣ CHECKING SESSION STATE...")
+            response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/live", timeout=10)
+            
+            if response.status_code == 200:
+                live_data = response.json()
+                committed_words = live_data.get("committed_words", 0)
+                tail_words = live_data.get("tail_words", 0)
+                total_words = committed_words + tail_words
+                session_active = live_data.get("session_active", False)
+                
+                print(f"   📊 Session Status: {'Active' if session_active else 'Inactive'}")
+                print(f"   📝 Committed Words: {committed_words}")
+                print(f"   📝 Tail Words: {tail_words}")
+                print(f"   📝 Total Words: {total_words}")
+                
+                if total_words == 0:
+                    self.log_result("Session 9mez563j State Check", False, 
+                                  f"❌ Session exists but has NO transcribed content after 51 seconds - CRITICAL ISSUE")
+                    print("   🚨 DIAGNOSIS: Chunks not being processed or transcription failing")
+                else:
+                    self.log_result("Session 9mez563j State Check", True, 
+                                  f"✅ Session has {total_words} words but UI not updating - Frontend issue")
+                    print("   💡 DIAGNOSIS: Backend has content, frontend polling may be broken")
+                    
+            elif response.status_code == 404:
+                self.log_result("Session 9mez563j State Check", False, 
+                              "❌ Session 9mez563j NOT FOUND - expired or never existed")
+                print("   🚨 CRITICAL: User needs to restart live transcription session")
+                return
+            else:
+                self.log_result("Session 9mez563j State Check", False, 
+                              f"❌ Cannot access session: HTTP {response.status_code}")
+                return
+            
+            # 2. Test Real-time Events - check if events are being generated
+            print(f"\n2️⃣ CHECKING REAL-TIME EVENTS...")
+            events_response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/events", timeout=10)
+            
+            if events_response.status_code == 200:
+                events = events_response.json()
+                
+                if isinstance(events, list):
+                    event_count = len(events)
+                    print(f"   📊 Total Events: {event_count}")
+                    
+                    if event_count > 0:
+                        # Analyze event types and content
+                        partial_events = [e for e in events if e.get("type") == "partial"]
+                        commit_events = [e for e in events if e.get("type") == "commit"]
+                        events_with_text = [e for e in events if e.get("content", "").strip()]
+                        
+                        print(f"   📊 Partial Events: {len(partial_events)}")
+                        print(f"   📊 Commit Events: {len(commit_events)}")
+                        print(f"   📊 Events with Text: {len(events_with_text)}")
+                        
+                        if events_with_text:
+                            latest_event = events[-1]
+                            print(f"   📝 Latest Event: {latest_event.get('type')} - '{latest_event.get('content', '')[:50]}...'")
+                            self.log_result("Session 9mez563j Events", True, 
+                                          f"✅ Found {len(events_with_text)} events with transcribed text")
+                        else:
+                            self.log_result("Session 9mez563j Events", False, 
+                                          f"❌ {event_count} events found but NONE contain transcribed text")
+                            print("   🚨 DIAGNOSIS: Events generated but transcription content missing")
+                    else:
+                        self.log_result("Session 9mez563j Events", False, 
+                                      "❌ NO events found - chunks not being processed")
+                        print("   🚨 DIAGNOSIS: Real-time processing pipeline completely broken")
+                else:
+                    self.log_result("Session 9mez563j Events", False, 
+                                  f"❌ Events endpoint returned invalid format: {type(events)}")
+            else:
+                self.log_result("Session 9mez563j Events", False, 
+                              f"❌ Cannot access events: HTTP {events_response.status_code}")
+            
+            # 3. Test Event Processing - verify event format for frontend
+            print(f"\n3️⃣ TESTING EVENT PROCESSING FORMAT...")
+            if events_response.status_code == 200 and isinstance(events, list) and events:
+                sample_event = events[0]
+                required_fields = ["type", "content", "timestamp", "session_id"]
+                missing_fields = [field for field in required_fields if field not in sample_event]
+                
+                if not missing_fields:
+                    self.log_result("Session 9mez563j Event Format", True, 
+                                  "✅ Events have correct format for frontend processing")
+                    print(f"   📋 Sample Event Structure: {list(sample_event.keys())}")
+                else:
+                    self.log_result("Session 9mez563j Event Format", False, 
+                                  f"❌ Events missing required fields: {missing_fields}")
+                    print("   🚨 DIAGNOSIS: Event format incompatible with frontend")
+            
+            # 4. Check Live Transcript Endpoint
+            print(f"\n4️⃣ CHECKING LIVE TRANSCRIPT ENDPOINT...")
+            live_response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/live", timeout=10)
+            
+            if live_response.status_code == 200:
+                live_data = live_response.json()
+                transcript_text = live_data.get("transcript", "")
+                
+                if transcript_text.strip():
+                    print(f"   📝 Live Transcript Available: '{transcript_text[:100]}...'")
+                    self.log_result("Session 9mez563j Live Transcript", True, 
+                                  f"✅ Live transcript exists: {len(transcript_text)} characters")
+                    print("   💡 DIAGNOSIS: Backend has transcript, frontend not displaying it")
+                else:
+                    self.log_result("Session 9mez563j Live Transcript", False, 
+                                  "❌ Live transcript endpoint returns empty content")
+                    print("   🚨 DIAGNOSIS: No transcript content being generated")
+            
+            # 5. Test System Health for Live Transcription
+            print(f"\n5️⃣ CHECKING SYSTEM HEALTH...")
+            health_response = self.session.get(f"{BACKEND_URL}/health", timeout=10)
+            
+            if health_response.status_code == 200:
+                health_data = health_response.json()
+                services = health_data.get("services", {})
+                
+                cache_health = services.get("cache", "unknown")
+                pipeline_health = services.get("pipeline", "unknown")
+                
+                print(f"   🔧 Cache Health: {cache_health}")
+                print(f"   🔧 Pipeline Health: {pipeline_health}")
+                
+                if cache_health in ["healthy", "enabled"] and pipeline_health == "healthy":
+                    self.log_result("Session 9mez563j System Health", True, 
+                                  "✅ Live transcription system components healthy")
+                else:
+                    self.log_result("Session 9mez563j System Health", False, 
+                                  f"❌ System issues: cache={cache_health}, pipeline={pipeline_health}")
+                    print("   🚨 DIAGNOSIS: Infrastructure problems affecting live transcription")
+            
+            # 6. Simulate Frontend Event Polling
+            print(f"\n6️⃣ SIMULATING FRONTEND EVENT POLLING...")
+            polling_success = 0
+            polling_attempts = 3
+            
+            for i in range(polling_attempts):
+                time.sleep(1)
+                poll_response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/events", timeout=10)
+                
+                if poll_response.status_code == 200:
+                    polling_success += 1
+                    poll_events = poll_response.json()
+                    print(f"   📡 Poll {i+1}: {len(poll_events) if isinstance(poll_events, list) else 0} events")
+                else:
+                    print(f"   📡 Poll {i+1}: FAILED - HTTP {poll_response.status_code}")
+            
+            if polling_success == polling_attempts:
+                self.log_result("Session 9mez563j Event Polling", True, 
+                              f"✅ Event polling working ({polling_success}/{polling_attempts} successful)")
+                print("   💡 DIAGNOSIS: Backend event polling functional, check frontend implementation")
+            else:
+                self.log_result("Session 9mez563j Event Polling", False, 
+                              f"❌ Event polling unreliable ({polling_success}/{polling_attempts} successful)")
+                print("   🚨 DIAGNOSIS: Backend event polling issues")
+            
+            # 7. Final Diagnosis
+            print(f"\n🔬 FINAL DIAGNOSIS FOR SESSION 9mez563j:")
+            print("=" * 50)
+            
+            # Determine root cause based on test results
+            session_results = [r for r in self.test_results if "9mez563j" in r["test"]]
+            failed_tests = [r for r in session_results if not r["success"]]
+            
+            if any("NOT FOUND" in r["message"] for r in failed_tests):
+                print("🚨 ROOT CAUSE: Session expired or never existed")
+                print("💡 SOLUTION: User must restart live transcription session")
+            elif any("NO transcribed content" in r["message"] for r in failed_tests):
+                print("🚨 ROOT CAUSE: Transcription processing failure")
+                print("💡 POSSIBLE CAUSES:")
+                print("   - OpenAI API quota exhausted")
+                print("   - Audio chunks not being uploaded")
+                print("   - Transcription service down")
+                print("💡 SOLUTION: Check OpenAI API status and chunk upload process")
+            elif any("Events" in r["test"] and not r["success"] for r in session_results):
+                print("🚨 ROOT CAUSE: Event generation system failure")
+                print("💡 SOLUTION: Check Redis connectivity and event processing pipeline")
+            else:
+                print("✅ BACKEND APPEARS FUNCTIONAL")
+                print("🚨 LIKELY CAUSE: Frontend event polling or UI update issues")
+                print("💡 SOLUTION: Debug frontend JavaScript event handling")
+            
+        except Exception as e:
+            self.log_result("Session 9mez563j Debug", False, f"Debug error: {str(e)}")
+            print(f"   ❌ Debug process failed: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
