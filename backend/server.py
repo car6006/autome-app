@@ -3684,7 +3684,14 @@ async def startup_event():
     except Exception as e:
         logger.error(f"❌ Failed to start webhook manager: {e}")
     
-    logger.info("🎉 All Phase 4 services started successfully")
+    # Start live transcription manager
+    try:
+        await live_transcription_manager.initialize()
+        logger.info("✅ Live transcription manager started")
+    except Exception as e:
+        logger.error(f"❌ Failed to start live transcription manager: {e}")
+    
+    logger.info("🎉 All services started successfully (including live transcription)")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
