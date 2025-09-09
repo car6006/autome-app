@@ -267,7 +267,7 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   const finalizeSession = async () => {
     try {
       const response = await axios.post(
-        `${API}/uploads/sessions/${sessionId}/finalize`,
+        `${API}/live/sessions/${sessionId}/finalize`,
         {},
         { timeout: 30000 }
       );
