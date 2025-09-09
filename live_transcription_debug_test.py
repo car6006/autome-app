@@ -327,7 +327,7 @@ class LiveTranscriptionDebugger:
         try:
             session_id = self.debug_session_id
             
-            response = self.session.post(f"{BACKEND_URL}/uploads/sessions/{session_id}/finalize", timeout=30)
+            response = self.session.post(f"{BACKEND_URL}/live/sessions/{session_id}/finalize", timeout=30)
             
             if response.status_code == 200:
                 result = response.json()
