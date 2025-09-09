@@ -2116,11 +2116,6 @@ async def generate_professional_report(
         raise HTTPException(status_code=400, detail="No content available to generate report")
     
     try:
-        # Use OpenAI to generate professional insights
-        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("WHISPER_API_KEY")
-        if not api_key:
-            raise HTTPException(status_code=500, detail="AI service not configured")
-        
         # Check if user is from Expeditors
         is_expeditors_user = current_user and current_user.get("email", "").endswith("@expeditors.com")
         
