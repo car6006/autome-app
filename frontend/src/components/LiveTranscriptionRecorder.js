@@ -157,7 +157,7 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
       
       // Upload chunk for immediate processing
       const response = await axios.post(
-        `${API}/uploads/sessions/${currentSessionId}/chunks/${currentChunkIdx}`,
+        `${API}/live/sessions/${currentSessionId}/chunks/${currentChunkIdx}`,
         formData,
         {
           headers: {
