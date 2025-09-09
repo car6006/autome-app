@@ -125,6 +125,15 @@ async def worker_lifespan(app):
     logger.info("Starting transcription pipeline worker...")
     await worker_manager.start_worker()
     
+    # Initialize live transcription manager
+    try:
+        from live_transcription import live_transcription_manager
+        logger.info("Initializing live transcription manager...")
+        await live_transcription_manager.initialize()
+        logger.info("✅ Live transcription manager initialized")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize live transcription manager: {e}")
+    
     # Setup signal handlers for graceful shutdown
     def signal_handler(signum, frame):
         logger.info(f"Received signal {signum}, initiating graceful shutdown...")
