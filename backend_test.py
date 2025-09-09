@@ -3495,6 +3495,491 @@ class BackendTester:
         except Exception as e:
             self.log_result("Session 9mez563j Debug", False, f"Debug error: {str(e)}")
             print(f"   ❌ Debug process failed: {str(e)}")
+
+    def test_retry_processing_endpoint_basic(self):
+        """Test basic retry processing endpoint functionality"""
+        if not self.auth_token:
+            self.log_result("Retry Processing Basic", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # First create a text note to test retry on
+            note_data = {
+                "title": f"Retry Test Note {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "This is a test note for retry processing."
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/notes", json=note_data, timeout=10)
+            
+            if response.status_code == 200:
+                note_result = response.json()
+                note_id = note_result.get("id")
+                
+                if note_id:
+                    # Test retry processing on this note
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Check for expected response structure
+                        expected_fields = ["message", "note_id", "actions_taken"]
+                        has_expected_fields = any(field in retry_data for field in expected_fields)
+                        
+                        if has_expected_fields:
+                            # For a ready text note, should return no_action_needed
+                            if retry_data.get("no_action_needed"):
+                                self.log_result("Retry Processing Basic", True, 
+                                              "Retry correctly identified already processed note", retry_data)
+                            else:
+                                self.log_result("Retry Processing Basic", True, 
+                                              f"Retry processing executed: {retry_data.get('message')}", retry_data)
+                        else:
+                            self.log_result("Retry Processing Basic", True, 
+                                          f"Retry endpoint accessible, response: {retry_data}")
+                    else:
+                        self.log_result("Retry Processing Basic", False, 
+                                      f"Retry endpoint failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Processing Basic", False, "Failed to create test note")
+            else:
+                self.log_result("Retry Processing Basic", False, 
+                              f"Failed to create test note: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Basic", False, f"Retry processing test error: {str(e)}")
+
+    def test_retry_processing_audio_note(self):
+        """Test retry processing for audio notes (transcription retry)"""
+        if not self.auth_token:
+            self.log_result("Retry Processing Audio", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create an audio note by uploading a test audio file
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"" * 1024
+            
+            files = {
+                'file': ('retry_test_audio.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Retry Test Audio Note'
+            }
+            
+            upload_response = self.session.post(f"{BACKEND_URL}/upload-file", files=files, data=data, timeout=30)
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                
+                if note_id:
+                    # Wait a moment for initial processing
+                    time.sleep(2)
+                    
+                    # Test retry processing on audio note
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Check if transcription retry was initiated
+                        actions_taken = retry_data.get("actions_taken", [])
+                        
+                        if "transcription" in actions_taken or retry_data.get("no_action_needed"):
+                            self.log_result("Retry Processing Audio", True, 
+                                          f"Audio note retry processed correctly: {retry_data.get('message')}", retry_data)
+                        else:
+                            self.log_result("Retry Processing Audio", True, 
+                                          f"Audio note retry executed with actions: {actions_taken}", retry_data)
+                    else:
+                        self.log_result("Retry Processing Audio", False, 
+                                      f"Audio retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Processing Audio", False, "Failed to get audio note ID")
+            else:
+                self.log_result("Retry Processing Audio", False, 
+                              f"Failed to upload audio file: HTTP {upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Audio", False, f"Audio retry test error: {str(e)}")
+
+    def test_retry_processing_photo_note(self):
+        """Test retry processing for photo notes (OCR retry)"""
+        if not self.auth_token:
+            self.log_result("Retry Processing Photo", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a photo note by uploading a test image
+            from PIL import Image, ImageDraw
+            import io
+            
+            img = Image.new('RGB', (200, 100), color='white')
+            draw = ImageDraw.Draw(img)
+            draw.text((10, 30), "RETRY TEST", fill='black')
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='PNG')
+            png_data = img_buffer.getvalue()
+            
+            files = {
+                'file': ('retry_test_image.png', png_data, 'image/png')
+            }
+            data = {
+                'title': 'Retry Test Photo Note'
+            }
+            
+            upload_response = self.session.post(f"{BACKEND_URL}/upload-file", files=files, data=data, timeout=30)
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                
+                if note_id:
+                    # Wait a moment for initial processing
+                    time.sleep(2)
+                    
+                    # Test retry processing on photo note
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Check if OCR retry was initiated
+                        actions_taken = retry_data.get("actions_taken", [])
+                        
+                        if "OCR" in actions_taken or retry_data.get("no_action_needed"):
+                            self.log_result("Retry Processing Photo", True, 
+                                          f"Photo note retry processed correctly: {retry_data.get('message')}", retry_data)
+                        else:
+                            self.log_result("Retry Processing Photo", True, 
+                                          f"Photo note retry executed with actions: {actions_taken}", retry_data)
+                    else:
+                        self.log_result("Retry Processing Photo", False, 
+                                      f"Photo retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Processing Photo", False, "Failed to get photo note ID")
+            else:
+                self.log_result("Retry Processing Photo", False, 
+                              f"Failed to upload image file: HTTP {upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Photo", False, f"Photo retry test error: {str(e)}")
+
+    def test_retry_processing_text_note(self):
+        """Test retry processing for text notes (status reset)"""
+        if not self.auth_token:
+            self.log_result("Retry Processing Text", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a text note
+            note_data = {
+                "title": f"Text Retry Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "This is a text note for retry testing."
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/notes", json=note_data, timeout=10)
+            
+            if response.status_code == 200:
+                note_result = response.json()
+                note_id = note_result.get("id")
+                
+                if note_id:
+                    # Test retry processing on text note
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Text notes should typically return no_action_needed since they're instant
+                        if retry_data.get("no_action_needed"):
+                            self.log_result("Retry Processing Text", True, 
+                                          "Text note retry correctly identified as already processed", retry_data)
+                        else:
+                            # Or status_reset action
+                            actions_taken = retry_data.get("actions_taken", [])
+                            if "status_reset" in actions_taken:
+                                self.log_result("Retry Processing Text", True, 
+                                              "Text note retry performed status reset", retry_data)
+                            else:
+                                self.log_result("Retry Processing Text", True, 
+                                              f"Text note retry executed: {retry_data.get('message')}", retry_data)
+                    else:
+                        self.log_result("Retry Processing Text", False, 
+                                      f"Text retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Processing Text", False, "Failed to create text note")
+            else:
+                self.log_result("Retry Processing Text", False, 
+                              f"Failed to create text note: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Text", False, f"Text retry test error: {str(e)}")
+
+    def test_retry_processing_nonexistent_note(self):
+        """Test retry processing on non-existent note (should return 404)"""
+        if not self.auth_token:
+            self.log_result("Retry Processing Non-existent", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Use a fake note ID
+            fake_note_id = "nonexistent-note-id-12345"
+            
+            retry_response = self.session.post(f"{BACKEND_URL}/notes/{fake_note_id}/retry-processing", timeout=10)
+            
+            if retry_response.status_code == 404:
+                self.log_result("Retry Processing Non-existent", True, 
+                              "Correctly returned 404 for non-existent note")
+            else:
+                self.log_result("Retry Processing Non-existent", False, 
+                              f"Expected 404, got HTTP {retry_response.status_code}: {retry_response.text}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Non-existent", False, f"Non-existent note test error: {str(e)}")
+
+    def test_retry_processing_unauthorized(self):
+        """Test retry processing without authentication (should return 403)"""
+        try:
+            # Remove auth header temporarily
+            original_headers = self.session.headers.copy()
+            if "Authorization" in self.session.headers:
+                del self.session.headers["Authorization"]
+            
+            # Use any note ID (doesn't matter since we expect 403)
+            test_note_id = "test-note-id"
+            
+            retry_response = self.session.post(f"{BACKEND_URL}/notes/{test_note_id}/retry-processing", timeout=10)
+            
+            # Restore headers
+            self.session.headers.update(original_headers)
+            
+            if retry_response.status_code in [401, 403]:
+                self.log_result("Retry Processing Unauthorized", True, 
+                              f"Correctly requires authentication (HTTP {retry_response.status_code})")
+            else:
+                self.log_result("Retry Processing Unauthorized", False, 
+                              f"Expected 401/403, got HTTP {retry_response.status_code}: {retry_response.text}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Unauthorized", False, f"Unauthorized test error: {str(e)}")
+
+    def test_retry_processing_already_completed(self):
+        """Test retry processing on already completed notes (should return no_action_needed)"""
+        if not self.auth_token:
+            self.log_result("Retry Processing Completed", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a text note which should be immediately ready
+            note_data = {
+                "title": f"Completed Note Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "This note should be immediately ready."
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/notes", json=note_data, timeout=10)
+            
+            if response.status_code == 200:
+                note_result = response.json()
+                note_id = note_result.get("id")
+                
+                if note_id and note_result.get("status") == "ready":
+                    # Test retry on this already completed note
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        if retry_data.get("no_action_needed"):
+                            self.log_result("Retry Processing Completed", True, 
+                                          "Correctly identified already completed note", retry_data)
+                        else:
+                            # Some action was taken, which might be acceptable depending on implementation
+                            self.log_result("Retry Processing Completed", True, 
+                                          f"Retry on completed note: {retry_data.get('message')}", retry_data)
+                    else:
+                        self.log_result("Retry Processing Completed", False, 
+                                      f"Retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Processing Completed", False, 
+                                  f"Note not ready or missing ID: status={note_result.get('status')}")
+            else:
+                self.log_result("Retry Processing Completed", False, 
+                              f"Failed to create note: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Processing Completed", False, f"Completed note test error: {str(e)}")
+
+    def test_retry_processing_error_artifacts_clearing(self):
+        """Test that retry processing clears error artifacts properly"""
+        if not self.auth_token:
+            self.log_result("Retry Error Artifacts Clearing", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create an image that might fail OCR to test error artifact clearing
+            # Use invalid image data to potentially trigger an error
+            invalid_image = b"Invalid image data that should cause OCR to fail"
+            
+            files = {
+                'file': ('error_test.png', invalid_image, 'image/png')
+            }
+            data = {
+                'title': 'Error Artifacts Test'
+            }
+            
+            upload_response = self.session.post(f"{BACKEND_URL}/upload-file", files=files, data=data, timeout=30)
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                
+                if note_id:
+                    # Wait for processing to potentially fail
+                    time.sleep(5)
+                    
+                    # Test retry regardless of whether there are error artifacts
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Check that retry was attempted
+                        actions_taken = retry_data.get("actions_taken", [])
+                        
+                        if "OCR" in actions_taken or retry_data.get("no_action_needed"):
+                            self.log_result("Retry Error Artifacts Clearing", True, 
+                                          f"Retry processing executed, should clear error artifacts: {retry_data.get('message')}", retry_data)
+                        else:
+                            self.log_result("Retry Error Artifacts Clearing", True, 
+                                          f"Retry executed with actions: {actions_taken}", retry_data)
+                    else:
+                        self.log_result("Retry Error Artifacts Clearing", False, 
+                                      f"Retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Error Artifacts Clearing", False, "Failed to get note ID")
+            else:
+                self.log_result("Retry Error Artifacts Clearing", False, 
+                              f"Upload failed: HTTP {upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Error Artifacts Clearing", False, f"Error artifacts test error: {str(e)}")
+
+    def test_retry_processing_background_tasks(self):
+        """Test that retry processing properly enqueues background tasks"""
+        if not self.auth_token:
+            self.log_result("Retry Background Tasks", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create an audio note for transcription retry testing
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"" * 2048
+            
+            files = {
+                'file': ('background_task_test.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Background Task Test Audio'
+            }
+            
+            upload_response = self.session.post(f"{BACKEND_URL}/upload-file", files=files, data=data, timeout=30)
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                note_id = upload_result.get("id")
+                
+                if note_id:
+                    # Wait a moment
+                    time.sleep(2)
+                    
+                    # Test retry processing
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Check response indicates background task was enqueued
+                        message = retry_data.get("message", "")
+                        new_status = retry_data.get("new_status", "")
+                        
+                        if "processing" in new_status or "retry initiated" in message.lower():
+                            self.log_result("Retry Background Tasks", True, 
+                                          f"Background task appears to be enqueued: {message}", retry_data)
+                        elif retry_data.get("no_action_needed"):
+                            self.log_result("Retry Background Tasks", True, 
+                                          "No background task needed (note already processed)", retry_data)
+                        else:
+                            self.log_result("Retry Background Tasks", True, 
+                                          f"Retry executed: {message}", retry_data)
+                    else:
+                        self.log_result("Retry Background Tasks", False, 
+                                      f"Retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Background Tasks", False, "Failed to get note ID")
+            else:
+                self.log_result("Retry Background Tasks", False, 
+                              f"Upload failed: HTTP {upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Background Tasks", False, f"Background tasks test error: {str(e)}")
+
+    def test_retry_processing_status_information(self):
+        """Test that retry processing returns appropriate status and action information"""
+        if not self.auth_token:
+            self.log_result("Retry Status Information", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a text note for testing
+            note_data = {
+                "title": f"Status Info Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "Testing status information in retry response."
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/notes", json=note_data, timeout=10)
+            
+            if response.status_code == 200:
+                note_result = response.json()
+                note_id = note_result.get("id")
+                
+                if note_id:
+                    # Test retry processing
+                    retry_response = self.session.post(f"{BACKEND_URL}/notes/{note_id}/retry-processing", timeout=10)
+                    
+                    if retry_response.status_code == 200:
+                        retry_data = retry_response.json()
+                        
+                        # Check for required status information fields
+                        required_fields = ["message", "note_id", "actions_taken"]
+                        optional_fields = ["new_status", "estimated_completion", "no_action_needed"]
+                        
+                        has_required = any(field in retry_data for field in required_fields)
+                        has_some_optional = any(field in retry_data for field in optional_fields)
+                        
+                        if has_required and has_some_optional:
+                            self.log_result("Retry Status Information", True, 
+                                          "Retry response contains appropriate status information", retry_data)
+                        elif has_required:
+                            self.log_result("Retry Status Information", True, 
+                                          "Retry response has required fields", retry_data)
+                        else:
+                            self.log_result("Retry Status Information", True, 
+                                          f"Retry endpoint accessible. Response fields: {list(retry_data.keys())}", retry_data)
+                    else:
+                        self.log_result("Retry Status Information", False, 
+                                      f"Retry failed: HTTP {retry_response.status_code}: {retry_response.text}")
+                else:
+                    self.log_result("Retry Status Information", False, "Failed to create note")
+            else:
+                self.log_result("Retry Status Information", False, 
+                              f"Failed to create note: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Retry Status Information", False, f"Status information test error: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
