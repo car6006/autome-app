@@ -19,7 +19,7 @@ import aiofiles
 
 from auth import get_current_user
 from live_transcription import live_transcription_manager
-from storage import save_uploaded_file, get_file_url
+from storage import store_file_content, get_file_url
 
 logger = logging.getLogger(__name__)
 
