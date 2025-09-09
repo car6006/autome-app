@@ -503,9 +503,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Frontend Cleanup Button UI Testing Complete"
+    - "Report Generation Issue Investigation Complete"
+    - "AI Processing Functionality Investigation Complete"
   stuck_tasks:
     - "Sales Meeting Note Accessibility Verification"
+    - "Report Generation Issue Investigation"
+    - "AI Processing (GPT-4o-mini) Functionality"
   test_all: false
   test_priority: "high_first"
 
