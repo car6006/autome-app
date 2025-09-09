@@ -3435,6 +3435,13 @@ class BackendTester:
         
         self.test_live_transcription_session_m0uevvygg()
         
+        # 🎯 CRITICAL SESSION DEBUGGING (CURRENT REVIEW REQUEST)
+        print("\n" + "=" * 60)
+        print("🔍 CRITICAL SESSION DEBUGGING - Session 9mez563j Not Updating UI")
+        print("=" * 60)
+        
+        self.test_live_transcription_session_9mez563j_debug()
+        
         # Summary
         return self.print_summary()
     
