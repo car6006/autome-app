@@ -161,7 +161,7 @@ class LiveTranscriptionDebugger:
             time.sleep(5)
             
             # Check live transcript
-            live_response = self.session.get(f"{BACKEND_URL}/uploads/sessions/{session_id}/live", timeout=10)
+            live_response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/live", timeout=10)
             
             if live_response.status_code == 200:
                 live_data = live_response.json()
