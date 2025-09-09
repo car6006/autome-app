@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Mic, Square, Pause, Play, Loader2, Wifi, WifiOff } from 'lucide-react';
-import { useToast } from './ui/use-toast';
+import { useToast } from '../hooks/use-toast';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
