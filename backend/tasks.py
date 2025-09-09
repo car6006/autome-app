@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 from store import NotesStore, db
 from storage import create_presigned_get_url
-from providers import stt_transcribe, ocr_read
+from enhanced_providers import transcribe_audio as stt_transcribe
+from providers import ocr_read
 
 import httpx
 import logging
