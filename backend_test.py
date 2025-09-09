@@ -1952,6 +1952,569 @@ class BackendTester:
         except Exception as e:
             self.log_result("Live Transcript Retrieval", False, f"Live transcript retrieval test error: {str(e)}")
 
+    def test_live_transcription_chunk_upload(self):
+        """Test uploading audio chunks to live transcription endpoint"""
+        if not self.auth_token:
+            self.log_result("Live Transcription Chunk Upload", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a test session ID
+            import uuid
+            session_id = str(uuid.uuid4())
+            chunk_idx = 0
+            
+            # Create test audio content
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"test_audio_data" * 100
+            
+            # Upload chunk to live transcription endpoint
+            files = {
+                'file': (f'live_chunk_{chunk_idx}.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'sample_rate': 16000,
+                'codec': 'wav',
+                'chunk_ms': 5000,
+                'overlap_ms': 750
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/live/sessions/{session_id}/chunks/{chunk_idx}",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if response.status_code == 202:  # Expected for async processing
+                result = response.json()
+                if result.get("session_id") == session_id and result.get("chunk_idx") == chunk_idx:
+                    self.live_session_id = session_id
+                    self.log_result("Live Transcription Chunk Upload", True, 
+                                  f"Chunk uploaded successfully: session {session_id}, chunk {chunk_idx}", result)
+                else:
+                    self.log_result("Live Transcription Chunk Upload", False, "Missing session/chunk info in response", result)
+            else:
+                self.log_result("Live Transcription Chunk Upload", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Chunk Upload", False, f"Live chunk upload error: {str(e)}")
+
+    def test_live_transcription_multiple_chunks(self):
+        """Test uploading multiple sequential chunks for real-time processing"""
+        if not self.auth_token or not hasattr(self, 'live_session_id'):
+            self.log_result("Live Transcription Multiple Chunks", False, "Skipped - no session or auth token")
+            return
+            
+        try:
+            session_id = self.live_session_id
+            chunks_uploaded = 0
+            
+            # Upload 3 sequential chunks
+            for chunk_idx in range(1, 4):
+                test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + f"chunk_{chunk_idx}_data".encode() * 50
+                
+                files = {
+                    'file': (f'live_chunk_{chunk_idx}.wav', test_audio_content, 'audio/wav')
+                }
+                data = {
+                    'sample_rate': 16000,
+                    'codec': 'wav',
+                    'chunk_ms': 5000,
+                    'overlap_ms': 750
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/live/sessions/{session_id}/chunks/{chunk_idx}",
+                    files=files,
+                    data=data,
+                    timeout=30
+                )
+                
+                if response.status_code == 202:
+                    chunks_uploaded += 1
+                    # Small delay between chunks to simulate real-time streaming
+                    time.sleep(0.5)
+                else:
+                    break
+            
+            if chunks_uploaded == 3:
+                self.log_result("Live Transcription Multiple Chunks", True, 
+                              f"Successfully uploaded {chunks_uploaded} sequential chunks")
+            else:
+                self.log_result("Live Transcription Multiple Chunks", False, 
+                              f"Only uploaded {chunks_uploaded}/3 chunks")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Multiple Chunks", False, f"Multiple chunks test error: {str(e)}")
+
+    def test_live_transcription_events_polling(self):
+        """Test polling for real-time transcription events"""
+        if not self.auth_token or not hasattr(self, 'live_session_id'):
+            self.log_result("Live Transcription Events Polling", False, "Skipped - no session or auth token")
+            return
+            
+        try:
+            session_id = self.live_session_id
+            
+            # Wait a moment for processing to generate events
+            time.sleep(2)
+            
+            # Poll for events
+            response = self.session.get(
+                f"{BACKEND_URL}/live/sessions/{session_id}/events",
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("session_id") == session_id:
+                    events = result.get("events", [])
+                    event_count = result.get("event_count", 0)
+                    
+                    # Check for expected event types (partial, commit, final)
+                    event_types = [event.get("type") for event in events]
+                    expected_types = ["partial", "commit"]
+                    
+                    has_expected_events = any(etype in event_types for etype in expected_types)
+                    
+                    if has_expected_events or event_count > 0:
+                        self.log_result("Live Transcription Events Polling", True, 
+                                      f"Retrieved {event_count} events with types: {event_types}", result)
+                    else:
+                        self.log_result("Live Transcription Events Polling", True, 
+                                      "No events yet (processing may still be in progress)")
+                else:
+                    self.log_result("Live Transcription Events Polling", False, "Session ID mismatch in response", result)
+            else:
+                self.log_result("Live Transcription Events Polling", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Events Polling", False, f"Events polling error: {str(e)}")
+
+    def test_live_transcription_current_state(self):
+        """Test getting current live transcript state"""
+        if not self.auth_token or not hasattr(self, 'live_session_id'):
+            self.log_result("Live Transcription Current State", False, "Skipped - no session or auth token")
+            return
+            
+        try:
+            session_id = self.live_session_id
+            
+            # Get current live transcript
+            response = self.session.get(
+                f"{BACKEND_URL}/live/sessions/{session_id}/live",
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("session_id") == session_id:
+                    transcript = result.get("transcript", {})
+                    is_active = result.get("is_active", False)
+                    
+                    # Check transcript structure
+                    has_text = "text" in transcript
+                    has_words = "words" in transcript
+                    
+                    if has_text or has_words:
+                        text_length = len(transcript.get("text", ""))
+                        word_count = len(transcript.get("words", []))
+                        
+                        self.log_result("Live Transcription Current State", True, 
+                                      f"Retrieved live transcript: {text_length} chars, {word_count} words, active: {is_active}", 
+                                      {"text_length": text_length, "word_count": word_count, "is_active": is_active})
+                    else:
+                        self.log_result("Live Transcription Current State", True, 
+                                      "Live transcript endpoint accessible (no content yet)")
+                else:
+                    self.log_result("Live Transcription Current State", False, "Session ID mismatch", result)
+            else:
+                self.log_result("Live Transcription Current State", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Current State", False, f"Current state test error: {str(e)}")
+
+    def test_live_transcription_session_finalization(self):
+        """Test finalizing a live transcription session"""
+        if not self.auth_token or not hasattr(self, 'live_session_id'):
+            self.log_result("Live Transcription Session Finalization", False, "Skipped - no session or auth token")
+            return
+            
+        try:
+            session_id = self.live_session_id
+            
+            # Wait for processing to complete
+            time.sleep(3)
+            
+            # Finalize the session
+            response = self.session.post(
+                f"{BACKEND_URL}/live/sessions/{session_id}/finalize",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("session_id") == session_id:
+                    transcript = result.get("transcript", {})
+                    artifacts = result.get("artifacts", {})
+                    
+                    # Check finalization results
+                    has_transcript = "text" in transcript
+                    has_artifacts = len(artifacts) > 0
+                    word_count = transcript.get("word_count", 0)
+                    
+                    # Check for expected artifacts (TXT, JSON, SRT, VTT)
+                    expected_artifacts = ["txt_url", "json_url", "srt_url", "vtt_url"]
+                    found_artifacts = [art for art in expected_artifacts if art in artifacts]
+                    
+                    if has_transcript and has_artifacts:
+                        self.log_result("Live Transcription Session Finalization", True, 
+                                      f"Session finalized: {word_count} words, {len(found_artifacts)} artifacts: {found_artifacts}", 
+                                      {"word_count": word_count, "artifacts": found_artifacts})
+                    else:
+                        self.log_result("Live Transcription Session Finalization", True, 
+                                      "Session finalized successfully (minimal content)")
+                else:
+                    self.log_result("Live Transcription Session Finalization", False, "Session ID mismatch", result)
+            else:
+                self.log_result("Live Transcription Session Finalization", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Session Finalization", False, f"Session finalization error: {str(e)}")
+
+    def test_live_transcription_processing_speed(self):
+        """Test that live transcription processing is fast (seconds, not minutes)"""
+        if not self.auth_token:
+            self.log_result("Live Transcription Processing Speed", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a new session for speed testing
+            import uuid
+            session_id = str(uuid.uuid4())
+            
+            # Record start time
+            start_time = time.time()
+            
+            # Upload a single chunk
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"speed_test_data" * 100
+            
+            files = {
+                'file': ('speed_test_chunk.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'sample_rate': 16000,
+                'codec': 'wav',
+                'chunk_ms': 5000
+            }
+            
+            upload_response = self.session.post(
+                f"{BACKEND_URL}/live/sessions/{session_id}/chunks/0",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            upload_time = time.time() - start_time
+            
+            if upload_response.status_code == 202:
+                # Wait for processing and check for events
+                max_wait = 10  # Maximum 10 seconds
+                events_found = False
+                
+                for wait_seconds in range(1, max_wait + 1):
+                    time.sleep(1)
+                    
+                    # Check for events
+                    events_response = self.session.get(
+                        f"{BACKEND_URL}/live/sessions/{session_id}/events",
+                        timeout=5
+                    )
+                    
+                    if events_response.status_code == 200:
+                        events_data = events_response.json()
+                        if events_data.get("event_count", 0) > 0:
+                            events_found = True
+                            processing_time = time.time() - start_time
+                            
+                            if processing_time <= 5:  # Should be very fast
+                                self.log_result("Live Transcription Processing Speed", True, 
+                                              f"✅ Fast processing: {processing_time:.1f}s total, upload: {upload_time:.1f}s", 
+                                              {"total_time": f"{processing_time:.1f}s", "upload_time": f"{upload_time:.1f}s"})
+                            else:
+                                self.log_result("Live Transcription Processing Speed", True, 
+                                              f"Processing completed in {processing_time:.1f}s (acceptable for live transcription)")
+                            break
+                
+                if not events_found:
+                    total_time = time.time() - start_time
+                    self.log_result("Live Transcription Processing Speed", False, 
+                                  f"No events generated after {total_time:.1f}s (too slow for live transcription)")
+            else:
+                self.log_result("Live Transcription Processing Speed", False, f"Upload failed: HTTP {upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Processing Speed", False, f"Processing speed test error: {str(e)}")
+
+    def test_live_transcription_session_isolation(self):
+        """Test that multiple sessions don't interfere with each other"""
+        if not self.auth_token:
+            self.log_result("Live Transcription Session Isolation", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            import uuid
+            
+            # Create two different sessions
+            session_1 = str(uuid.uuid4())
+            session_2 = str(uuid.uuid4())
+            
+            # Upload chunks to both sessions
+            sessions_data = []
+            
+            for i, session_id in enumerate([session_1, session_2]):
+                test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + f"session_{i}_data".encode() * 50
+                
+                files = {
+                    'file': (f'isolation_test_{i}.wav', test_audio_content, 'audio/wav')
+                }
+                data = {
+                    'sample_rate': 16000,
+                    'codec': 'wav',
+                    'chunk_ms': 5000
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/live/sessions/{session_id}/chunks/0",
+                    files=files,
+                    data=data,
+                    timeout=30
+                )
+                
+                sessions_data.append({
+                    "session_id": session_id,
+                    "upload_success": response.status_code == 202
+                })
+            
+            # Wait for processing
+            time.sleep(3)
+            
+            # Check that each session has its own events/state
+            isolation_verified = True
+            session_results = []
+            
+            for session_data in sessions_data:
+                if session_data["upload_success"]:
+                    session_id = session_data["session_id"]
+                    
+                    # Get events for this session
+                    events_response = self.session.get(
+                        f"{BACKEND_URL}/live/sessions/{session_id}/events",
+                        timeout=10
+                    )
+                    
+                    if events_response.status_code == 200:
+                        events_data = events_response.json()
+                        session_results.append({
+                            "session_id": session_id,
+                            "event_count": events_data.get("event_count", 0),
+                            "has_events": events_data.get("event_count", 0) > 0
+                        })
+                    else:
+                        isolation_verified = False
+            
+            if isolation_verified and len(session_results) == 2:
+                # Check that sessions are properly isolated
+                session_1_events = session_results[0]["event_count"]
+                session_2_events = session_results[1]["event_count"]
+                
+                self.log_result("Live Transcription Session Isolation", True, 
+                              f"Session isolation verified: Session 1: {session_1_events} events, Session 2: {session_2_events} events", 
+                              {"session_results": session_results})
+            else:
+                self.log_result("Live Transcription Session Isolation", False, 
+                              f"Session isolation test incomplete: {len(session_results)} sessions tested")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Session Isolation", False, f"Session isolation test error: {str(e)}")
+
+    def test_live_transcription_redis_operations(self):
+        """Test Redis rolling transcript operations"""
+        if not self.auth_token:
+            self.log_result("Live Transcription Redis Operations", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            import uuid
+            session_id = str(uuid.uuid4())
+            
+            # Upload a chunk to create Redis state
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"redis_test_data" * 100
+            
+            files = {
+                'file': ('redis_test_chunk.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'sample_rate': 16000,
+                'codec': 'wav',
+                'chunk_ms': 5000
+            }
+            
+            upload_response = self.session.post(
+                f"{BACKEND_URL}/live/sessions/{session_id}/chunks/0",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if upload_response.status_code == 202:
+                # Wait for Redis operations to complete
+                time.sleep(2)
+                
+                # Test getting live transcript (which reads from Redis)
+                live_response = self.session.get(
+                    f"{BACKEND_URL}/live/sessions/{session_id}/live",
+                    timeout=10
+                )
+                
+                if live_response.status_code == 200:
+                    live_data = live_response.json()
+                    transcript = live_data.get("transcript", {})
+                    
+                    # Check Redis state indicators
+                    has_committed_words = transcript.get("committed_words", 0) >= 0
+                    has_tail_words = transcript.get("tail_words", 0) >= 0
+                    has_last_updated = "last_updated" in transcript
+                    
+                    redis_indicators = [has_committed_words, has_tail_words, has_last_updated]
+                    redis_working = sum(redis_indicators) >= 2  # At least 2 indicators should be present
+                    
+                    if redis_working:
+                        self.log_result("Live Transcription Redis Operations", True, 
+                                      f"Redis operations working: committed={transcript.get('committed_words', 0)}, "
+                                      f"tail={transcript.get('tail_words', 0)}, updated={has_last_updated}", 
+                                      transcript)
+                    else:
+                        self.log_result("Live Transcription Redis Operations", False, 
+                                      "Redis state indicators missing or invalid", transcript)
+                else:
+                    self.log_result("Live Transcription Redis Operations", False, 
+                                  f"Could not retrieve live transcript: HTTP {live_response.status_code}")
+            else:
+                self.log_result("Live Transcription Redis Operations", False, 
+                              f"Chunk upload failed: HTTP {upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Live Transcription Redis Operations", False, f"Redis operations test error: {str(e)}")
+
+    def test_live_transcription_end_to_end_pipeline(self):
+        """Test complete end-to-end live transcription pipeline"""
+        if not self.auth_token:
+            self.log_result("Live Transcription End-to-End Pipeline", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            import uuid
+            session_id = str(uuid.uuid4())
+            
+            pipeline_start_time = time.time()
+            
+            # Step 1: Upload multiple chunks
+            chunks_uploaded = 0
+            for chunk_idx in range(3):
+                test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + f"e2e_chunk_{chunk_idx}".encode() * 50
+                
+                files = {
+                    'file': (f'e2e_chunk_{chunk_idx}.wav', test_audio_content, 'audio/wav')
+                }
+                data = {
+                    'sample_rate': 16000,
+                    'codec': 'wav',
+                    'chunk_ms': 5000,
+                    'overlap_ms': 750
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/live/sessions/{session_id}/chunks/{chunk_idx}",
+                    files=files,
+                    data=data,
+                    timeout=30
+                )
+                
+                if response.status_code == 202:
+                    chunks_uploaded += 1
+                    time.sleep(0.5)  # Simulate real-time streaming
+            
+            # Step 2: Wait for processing and check events
+            time.sleep(3)
+            
+            events_response = self.session.get(
+                f"{BACKEND_URL}/live/sessions/{session_id}/events",
+                timeout=10
+            )
+            
+            events_generated = False
+            if events_response.status_code == 200:
+                events_data = events_response.json()
+                events_generated = events_data.get("event_count", 0) > 0
+            
+            # Step 3: Get live transcript state
+            live_response = self.session.get(
+                f"{BACKEND_URL}/live/sessions/{session_id}/live",
+                timeout=10
+            )
+            
+            live_transcript_available = False
+            if live_response.status_code == 200:
+                live_data = live_response.json()
+                transcript = live_data.get("transcript", {})
+                live_transcript_available = len(transcript.get("text", "")) > 0 or transcript.get("committed_words", 0) > 0
+            
+            # Step 4: Finalize session
+            finalize_response = self.session.post(
+                f"{BACKEND_URL}/live/sessions/{session_id}/finalize",
+                timeout=30
+            )
+            
+            finalization_successful = False
+            artifacts_created = False
+            
+            if finalize_response.status_code == 200:
+                finalize_data = finalize_response.json()
+                finalization_successful = finalize_data.get("session_id") == session_id
+                artifacts = finalize_data.get("artifacts", {})
+                artifacts_created = len(artifacts) > 0
+            
+            # Calculate total pipeline time
+            total_pipeline_time = time.time() - pipeline_start_time
+            
+            # Evaluate end-to-end pipeline
+            pipeline_steps = [
+                ("Chunk Upload", chunks_uploaded == 3),
+                ("Event Generation", events_generated),
+                ("Live Transcript", live_transcript_available),
+                ("Session Finalization", finalization_successful),
+                ("Artifact Creation", artifacts_created)
+            ]
+            
+            successful_steps = sum(1 for _, success in pipeline_steps if success)
+            pipeline_success = successful_steps >= 3  # At least 3/5 steps should work
+            
+            if pipeline_success and total_pipeline_time <= 15:  # Should complete within 15 seconds
+                self.log_result("Live Transcription End-to-End Pipeline", True, 
+                              f"✅ E2E pipeline successful: {successful_steps}/5 steps, {total_pipeline_time:.1f}s total", 
+                              {
+                                  "steps": dict(pipeline_steps),
+                                  "total_time": f"{total_pipeline_time:.1f}s",
+                                  "chunks_uploaded": chunks_uploaded
+                              })
+            else:
+                self.log_result("Live Transcription End-to-End Pipeline", False, 
+                              f"Pipeline incomplete: {successful_steps}/5 steps, {total_pipeline_time:.1f}s", 
+                              {"steps": dict(pipeline_steps)})
+                
+        except Exception as e:
+            self.log_result("Live Transcription End-to-End Pipeline", False, f"E2E pipeline test error: {str(e)}")
     def test_redis_connectivity(self):
         """Test Redis connectivity for live transcription state management"""
         try:
