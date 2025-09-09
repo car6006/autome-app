@@ -144,7 +144,7 @@ class LiveTranscriptionDebugger:
                 }
                 
                 response = self.session.post(
-                    f"{BACKEND_URL}/uploads/sessions/{session_id}/chunks/{chunk_idx}",
+                    f"{BACKEND_URL}/live/sessions/{session_id}/chunks/{chunk_idx}",
                     files=files,
                     data=data,
                     timeout=30
