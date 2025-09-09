@@ -2124,6 +2124,26 @@ class BackendTester:
         self.test_generate_report_endpoint()
         self.test_ai_chat_endpoint()
         
+        # 🎯 ENHANCED DUAL-PROVIDER SYSTEM TESTS (NEW FEATURE)
+        print("\n" + "=" * 60)
+        print("🚀 ENHANCED DUAL-PROVIDER SYSTEM TESTS - Emergent LLM Key + OpenAI Fallback")
+        print("=" * 60)
+        
+        self.test_emergent_llm_key_configuration()
+        self.test_enhanced_ai_provider_system()
+        self.test_ai_chat_dual_provider()
+        self.test_quota_error_resolution()
+        
+        # 🎯 LIVE TRANSCRIPTION STREAMING TESTS (NEW FEATURE)
+        print("\n" + "=" * 60)
+        print("🎤 LIVE TRANSCRIPTION STREAMING TESTS - Real-time Transcription Infrastructure")
+        print("=" * 60)
+        
+        self.test_redis_connectivity()
+        self.test_live_transcription_streaming_endpoints()
+        self.test_live_transcription_finalization()
+        self.test_live_transcript_retrieval()
+        
         # Summary
         return self.print_summary()
     
