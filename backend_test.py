@@ -3231,6 +3231,13 @@ class BackendTester:
         self.test_live_events_system()
         self.test_session_finalization_artifacts()
         
+        # 🎯 SPECIFIC SESSION DEBUGGING (REVIEW REQUEST)
+        print("\n" + "=" * 60)
+        print("🔍 SPECIFIC SESSION DEBUGGING - Session m0uevvygg Investigation")
+        print("=" * 60)
+        
+        self.test_live_transcription_session_m0uevvygg()
+        
         # Summary
         return self.print_summary()
     
