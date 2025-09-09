@@ -318,7 +318,7 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
     eventPollingTimer.current = setInterval(async () => {
       try {
         const response = await axios.get(
-          `${API}/uploads/sessions/${currentSessionId}/events`,
+          `${API}/live/sessions/${currentSessionId}/events`,
           { timeout: 5000 }
         );
         
