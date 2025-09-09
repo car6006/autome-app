@@ -98,7 +98,7 @@ class LiveTranscriptionDebugger:
             
             # Test chunk upload
             response = self.session.post(
-                f"{BACKEND_URL}/uploads/sessions/{session_id}/chunks/0",
+                f"{BACKEND_URL}/live/sessions/{session_id}/chunks/0",
                 files=files,
                 data=data,
                 timeout=30
