@@ -2630,6 +2630,21 @@ class BackendTester:
         self.test_ai_chat_dual_provider()
         self.test_quota_error_resolution()
         
+        # 🎯 LIVE TRANSCRIPTION SYSTEM TESTS (REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🎤 LIVE TRANSCRIPTION SYSTEM TESTS - Fixed Endpoints & Simulated Emergent Transcription")
+        print("=" * 60)
+        
+        self.test_live_transcription_chunk_upload()
+        self.test_live_transcription_multiple_chunks()
+        self.test_live_transcription_events_polling()
+        self.test_live_transcription_current_state()
+        self.test_live_transcription_session_finalization()
+        self.test_live_transcription_processing_speed()
+        self.test_live_transcription_session_isolation()
+        self.test_live_transcription_redis_operations()
+        self.test_live_transcription_end_to_end_pipeline()
+        
         # 🎯 LIVE TRANSCRIPTION STREAMING TESTS (NEW FEATURE)
         print("\n" + "=" * 60)
         print("🎤 LIVE TRANSCRIPTION STREAMING TESTS - Real-time Transcription Infrastructure")
