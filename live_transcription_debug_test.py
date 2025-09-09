@@ -297,7 +297,7 @@ class LiveTranscriptionDebugger:
         try:
             session_id = self.debug_session_id
             
-            events_response = self.session.get(f"{BACKEND_URL}/uploads/sessions/{session_id}/events", timeout=10)
+            events_response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/events", timeout=10)
             
             if events_response.status_code == 200:
                 events_data = events_response.json()
