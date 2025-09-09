@@ -2144,6 +2144,19 @@ class BackendTester:
         self.test_live_transcription_finalization()
         self.test_live_transcript_retrieval()
         
+        # 🎯 DEEP LIVE TRANSCRIPTION DEBUGGING TESTS (REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🔍 DEEP LIVE TRANSCRIPTION DEBUGGING - Real-time Processing Pipeline")
+        print("=" * 60)
+        
+        self.test_streaming_chunk_upload_detailed()
+        self.test_chunk_transcription_pipeline()
+        self.test_redis_rolling_transcript_operations()
+        self.test_enhanced_providers_chunk_transcription()
+        self.test_complete_realtime_pipeline()
+        self.test_live_events_system()
+        self.test_session_finalization_artifacts()
+        
         # Summary
         return self.print_summary()
     
