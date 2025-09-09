@@ -67,7 +67,8 @@ async def upload_audio_chunk(
         
         # Read and save file
         file_content = await file.read()
-        file_path = await save_uploaded_file(file_content, chunk_filename, user_id)
+        file_key = await store_file_content_async(file_content, chunk_filename)
+        file_path = get_file_path(file_key)
         
         # Store chunk metadata in Redis for session tracking
         chunk_key = f"session:{session_id}:chunks"
