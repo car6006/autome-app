@@ -2176,13 +2176,13 @@ async def generate_professional_report(
         )
         
         report_content = analysis_result
-            
-            # Add logo header for Expeditors users
-            if is_expeditors_user:
-                report_content = logo_header + report_content
-            
-            # Store the report in artifacts
-            updated_artifacts = {**artifacts, "professional_report": report_content}
+        
+        # Add logo header for Expeditors users
+        if is_expeditors_user:
+            report_content = logo_header + report_content
+        
+        # Store the report in artifacts
+        updated_artifacts = {**artifacts, "professional_report": report_content}
             await NotesStore.set_artifacts(note_id, updated_artifacts)
             
             # Mark note as completed since report was generated
