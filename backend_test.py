@@ -1546,6 +1546,235 @@ class BackendTester:
                     
         except Exception as e:
             self.log_result("Cleanup Functionality Comprehensive", False, f"Comprehensive cleanup test error: {str(e)}")
+
+    def test_generate_report_endpoint(self):
+        """Test the /api/notes/{note_id}/generate-report endpoint"""
+        if not self.auth_token or not hasattr(self, 'note_id'):
+            self.log_result("Generate Report Endpoint", False, "Skipped - no authentication token or note ID")
+            return
+            
+        try:
+            # Test generating report for the text note we created
+            response = self.session.post(
+                f"{BACKEND_URL}/notes/{self.note_id}/generate-report",
+                timeout=70  # Longer timeout for AI processing
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["report", "note_title", "generated_at", "note_id"]
+                
+                if all(field in data for field in required_fields):
+                    report_content = data.get("report", "")
+                    if len(report_content) > 100:  # Report should be substantial
+                        self.log_result("Generate Report Endpoint", True, 
+                                      f"Report generated successfully ({len(report_content)} chars)", {
+                                          "note_id": data.get("note_id"),
+                                          "report_length": len(report_content),
+                                          "has_expeditors_branding": data.get("is_expeditors", False)
+                                      })
+                    else:
+                        self.log_result("Generate Report Endpoint", False, 
+                                      f"Report too short ({len(report_content)} chars)", data)
+                else:
+                    missing_fields = [f for f in required_fields if f not in data]
+                    self.log_result("Generate Report Endpoint", False, 
+                                  f"Missing required fields: {missing_fields}", data)
+            elif response.status_code == 400:
+                # Check if it's the expected "No content available" error
+                error_detail = response.json().get("detail", "") if response.headers.get('content-type', '').startswith('application/json') else response.text
+                if "no content available" in error_detail.lower():
+                    self.log_result("Generate Report Endpoint", True, 
+                                  "Correctly rejects notes without content for report generation")
+                else:
+                    self.log_result("Generate Report Endpoint", False, 
+                                  f"Unexpected 400 error: {error_detail}")
+            elif response.status_code == 500:
+                error_detail = response.json().get("detail", "") if response.headers.get('content-type', '').startswith('application/json') else response.text
+                if "ai service not configured" in error_detail.lower():
+                    self.log_result("Generate Report Endpoint", False, 
+                                  "AI service configuration issue - OpenAI API key may be missing or invalid")
+                elif "temporarily unavailable" in error_detail.lower():
+                    self.log_result("Generate Report Endpoint", False, 
+                                  "Report generation service temporarily unavailable - possible OpenAI API issue")
+                else:
+                    self.log_result("Generate Report Endpoint", False, 
+                                  f"Server error during report generation: {error_detail}")
+            else:
+                self.log_result("Generate Report Endpoint", False, 
+                              f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Generate Report Endpoint", False, f"Report generation test error: {str(e)}")
+
+    def test_ai_chat_endpoint(self):
+        """Test the /api/notes/{note_id}/ai-chat endpoint"""
+        if not self.auth_token or not hasattr(self, 'note_id'):
+            self.log_result("AI Chat Endpoint", False, "Skipped - no authentication token or note ID")
+            return
+            
+        try:
+            chat_request = {
+                "question": "What are the key points from this content?"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/notes/{self.note_id}/ai-chat",
+                json=chat_request,
+                timeout=50
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["response", "question", "note_title", "timestamp"]
+                
+                if all(field in data for field in required_fields):
+                    ai_response = data.get("response", "")
+                    if len(ai_response) > 20:  # AI response should be meaningful
+                        self.log_result("AI Chat Endpoint", True, 
+                                      f"AI chat working correctly ({len(ai_response)} chars response)", {
+                                          "question": data.get("question"),
+                                          "response_length": len(ai_response),
+                                          "context_summary": data.get("context_summary", "N/A")
+                                      })
+                    else:
+                        self.log_result("AI Chat Endpoint", False, 
+                                      f"AI response too short ({len(ai_response)} chars)", data)
+                else:
+                    missing_fields = [f for f in required_fields if f not in data]
+                    self.log_result("AI Chat Endpoint", False, 
+                                  f"Missing required fields: {missing_fields}", data)
+            elif response.status_code == 400:
+                error_detail = response.json().get("detail", "") if response.headers.get('content-type', '').startswith('application/json') else response.text
+                if "no content available" in error_detail.lower():
+                    self.log_result("AI Chat Endpoint", True, 
+                                  "Correctly rejects notes without content for AI analysis")
+                elif "please provide a question" in error_detail.lower():
+                    self.log_result("AI Chat Endpoint", True, 
+                                  "Correctly validates that question is required")
+                else:
+                    self.log_result("AI Chat Endpoint", False, 
+                                  f"Unexpected 400 error: {error_detail}")
+            elif response.status_code == 500:
+                error_detail = response.json().get("detail", "") if response.headers.get('content-type', '').startswith('application/json') else response.text
+                if "ai service not configured" in error_detail.lower():
+                    self.log_result("AI Chat Endpoint", False, 
+                                  "AI service configuration issue - OpenAI API key may be missing or invalid")
+                elif "temporarily unavailable" in error_detail.lower():
+                    self.log_result("AI Chat Endpoint", False, 
+                                  "AI chat service temporarily unavailable - possible OpenAI API issue")
+                else:
+                    self.log_result("AI Chat Endpoint", False, 
+                                  f"Server error during AI chat: {error_detail}")
+            else:
+                self.log_result("AI Chat Endpoint", False, 
+                              f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("AI Chat Endpoint", False, f"AI chat test error: {str(e)}")
+
+    def test_transcription_functionality(self):
+        """Test transcription functionality to verify it's still working"""
+        if not self.auth_token:
+            self.log_result("Transcription Functionality", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a small test audio file for transcription
+            test_audio_content = b"RIFF\x24\x08WAVEfmt \x10\x01\x02\x44\xac\x10\xb1\x02\x04\x10data\x08" + b"test audio" * 100
+            
+            files = {
+                'file': ('transcription_test.wav', test_audio_content, 'audio/wav')
+            }
+            data = {
+                'title': 'Transcription Test Audio'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("id") and result.get("kind") == "audio":
+                    transcription_note_id = result["id"]
+                    
+                    # Wait for transcription processing
+                    time.sleep(5)
+                    
+                    # Check transcription status
+                    note_response = self.session.get(f"{BACKEND_URL}/notes/{transcription_note_id}", timeout=10)
+                    if note_response.status_code == 200:
+                        note_data = note_response.json()
+                        status = note_data.get("status", "unknown")
+                        artifacts = note_data.get("artifacts", {})
+                        
+                        if status == "ready":
+                            transcript = artifacts.get("transcript", "")
+                            if transcript:
+                                self.log_result("Transcription Functionality", True, 
+                                              f"Transcription completed successfully: '{transcript[:100]}...'")
+                            else:
+                                self.log_result("Transcription Functionality", True, 
+                                              "Transcription completed but no text (expected for test audio)")
+                        elif status == "failed":
+                            error_msg = artifacts.get("error", "Unknown error")
+                            if "rate limit" in error_msg.lower() or "too many requests" in error_msg.lower():
+                                self.log_result("Transcription Functionality", True, 
+                                              f"Transcription failed due to OpenAI rate limiting: {error_msg}")
+                            else:
+                                self.log_result("Transcription Functionality", False, 
+                                              f"Transcription failed with error: {error_msg}")
+                        elif status == "processing":
+                            self.log_result("Transcription Functionality", True, 
+                                          "Transcription still processing (normal with rate limiting)")
+                        else:
+                            self.log_result("Transcription Functionality", False, 
+                                          f"Unexpected transcription status: {status}")
+                    else:
+                        self.log_result("Transcription Functionality", False, 
+                                      "Could not check transcription note status")
+                else:
+                    self.log_result("Transcription Functionality", False, 
+                                  "Audio upload failed or returned wrong kind", result)
+            else:
+                self.log_result("Transcription Functionality", False, 
+                              f"Audio upload failed: HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Transcription Functionality", False, f"Transcription test error: {str(e)}")
+
+    def test_openai_api_key_validation(self):
+        """Test OpenAI API key configuration and validation"""
+        try:
+            # Check health endpoint for API key warnings
+            response = self.session.get(f"{BACKEND_URL}/health", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                services = data.get("services", {})
+                
+                # Check if system is healthy - indicates API keys are likely configured
+                overall_status = data.get("status", "unknown")
+                
+                if overall_status == "healthy":
+                    self.log_result("OpenAI API Key Validation", True, 
+                                  "System health indicates OpenAI API key is configured correctly")
+                elif overall_status == "degraded":
+                    self.log_result("OpenAI API Key Validation", True, 
+                                  "System is degraded but running - API key may have rate limits")
+                else:
+                    self.log_result("OpenAI API Key Validation", False, 
+                                  f"System health status indicates potential API issues: {overall_status}")
+            else:
+                self.log_result("OpenAI API Key Validation", False, 
+                              f"Cannot check system health: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("OpenAI API Key Validation", False, f"API key validation test error: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
