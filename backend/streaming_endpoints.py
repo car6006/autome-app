@@ -24,7 +24,7 @@ from storage import store_file_content, store_file_content_async, get_file_path,
 logger = logging.getLogger(__name__)
 
 # Create router for streaming endpoints
-streaming_router = APIRouter(prefix="/api/uploads", tags=["streaming"])
+streaming_router = APIRouter(prefix="/api/live", tags=["streaming"])
 
 # Security
 security = HTTPBearer()
