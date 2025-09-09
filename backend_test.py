@@ -1848,6 +1848,16 @@ class BackendTester:
         self.test_cleanup_error_handling()
         self.test_cleanup_functionality_comprehensive()
         
+        # 🎯 AI AND REPORT GENERATION TESTS (FOCUS OF REVIEW REQUEST)
+        print("\n" + "=" * 60)
+        print("🤖 AI & REPORT GENERATION TESTS - Investigating 400 Bad Request Issues")
+        print("=" * 60)
+        
+        self.test_openai_api_key_validation()
+        self.test_transcription_functionality()
+        self.test_generate_report_endpoint()
+        self.test_ai_chat_endpoint()
+        
         # Summary
         return self.print_summary()
     
