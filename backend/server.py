@@ -2183,18 +2183,18 @@ async def generate_professional_report(
         
         # Store the report in artifacts
         updated_artifacts = {**artifacts, "professional_report": report_content}
-            await NotesStore.set_artifacts(note_id, updated_artifacts)
-            
-            # Mark note as completed since report was generated
-            await NotesStore.update_status(note_id, "completed")
-            
-            return {
-                "report": report_content,
-                "note_title": note["title"],
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "note_id": note_id,
-                "is_expeditors": is_expeditors_user
-            }
+        await NotesStore.set_artifacts(note_id, updated_artifacts)
+        
+        # Mark note as completed since report was generated
+        await NotesStore.update_status(note_id, "completed")
+        
+        return {
+            "report": report_content,
+            "note_title": note["title"],
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "note_id": note_id,
+            "is_expeditors": is_expeditors_user
+        }
     
     except Exception as e:
         logger.error(f"Report generation error: {str(e)}")
