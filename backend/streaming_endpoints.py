@@ -278,7 +278,8 @@ async def _save_artifact(filename: str, content: str, user_id: str) -> str:
     """Save artifact content to storage"""
     try:
         content_bytes = content.encode('utf-8')
-        return await save_uploaded_file(content_bytes, filename, user_id)
+        file_key = await store_file_content_async(content_bytes, filename)
+        return get_file_path(file_key)
     except Exception as e:
         logger.error(f"❌ Error saving artifact {filename}: {e}")
         raise
