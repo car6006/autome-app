@@ -31,4 +31,6 @@ python-docx==1.2.0
 reportlab==4.4.3
 boto3==1.35.0
 redis==5.1.1
+emergentintegrations
+aiofiles
 psutil==6.0.0pytest-asyncio
