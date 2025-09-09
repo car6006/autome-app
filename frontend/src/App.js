@@ -1381,6 +1381,50 @@ const NotesScreen = () => {
     }
   };
 
+  const retryNoteProcessing = async (noteId) => {
+    if (!user) {
+      toast({ title: "Authentication Required", description: "Please log in to retry processing", variant: "destructive" });
+      return;
+    }
+
+    try {
+      toast({ 
+        title: "🔄 Retrying Processing", 
+        description: "Restarting processing for this note...",
+        variant: "default"
+      });
+
+      const response = await axios.post(`${API}/notes/${noteId}/retry-processing`);
+      const { message, actions_taken, no_action_needed } = response.data;
+      
+      if (no_action_needed) {
+        toast({ 
+          title: "✅ No Action Needed", 
+          description: message,
+          variant: "default"
+        });
+      } else {
+        const actionsSummary = actions_taken.join(', ');
+        toast({ 
+          title: "🚀 Retry Started", 
+          description: `${message}. Actions: ${actionsSummary}`,
+          variant: "default"
+        });
+        
+        // Refresh notes to show updated status
+        await fetchNotes(showArchived);
+      }
+    } catch (error) {
+      console.error('Failed to retry processing:', error);
+      const errorMessage = error.response?.data?.detail || "Failed to retry processing. Please try again.";
+      toast({ 
+        title: "Retry Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
   const sendEmail = async (noteId) => {
     if (!emailTo || !emailSubject) {
       toast({ title: "Missing info", description: "Please enter email and subject", variant: "destructive" });
