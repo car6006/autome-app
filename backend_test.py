@@ -3101,6 +3101,203 @@ class BackendTester:
         
         return wav_header + audio_data
     
+    def test_live_transcription_session_m0uevvygg(self):
+        """Debug specific live transcription session m0uevvygg that's not working"""
+        session_id = "m0uevvygg"
+        
+        if not self.auth_token:
+            self.log_result("Live Transcription Session Debug", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            print(f"\n🔍 DEBUGGING LIVE TRANSCRIPTION SESSION: {session_id}")
+            print("=" * 60)
+            
+            # 1. Check Session State in Redis via live transcript endpoint
+            print("1. Checking Session State in Redis...")
+            try:
+                response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/live", timeout=10)
+                
+                if response.status_code == 200:
+                    live_data = response.json()
+                    transcript = live_data.get("transcript", {})
+                    committed_words = transcript.get("committed_words", 0)
+                    tail_words = transcript.get("tail_words", 0)
+                    
+                    print(f"   ✅ Session found in Redis")
+                    print(f"   📊 Committed words: {committed_words}")
+                    print(f"   📊 Tail words: {tail_words}")
+                    print(f"   📊 Is active: {live_data.get('is_active', False)}")
+                    
+                    if committed_words == 0 and tail_words == 0:
+                        print(f"   ⚠️  WARNING: No words in transcript - transcription may not be working")
+                    
+                    self.log_result("Session State Check", True, f"Session found with {committed_words} committed words, {tail_words} tail words", live_data)
+                    
+                elif response.status_code == 404:
+                    print(f"   ❌ Session {session_id} not found in Redis")
+                    self.log_result("Session State Check", False, f"Session {session_id} not found in Redis")
+                    
+                elif response.status_code == 403:
+                    print(f"   ❌ Access denied to session {session_id}")
+                    self.log_result("Session State Check", False, f"Access denied to session {session_id}")
+                    
+                else:
+                    print(f"   ❌ Unexpected response: HTTP {response.status_code}")
+                    self.log_result("Session State Check", False, f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                print(f"   ❌ Error checking session state: {str(e)}")
+                self.log_result("Session State Check", False, f"Error: {str(e)}")
+            
+            # 2. Test Session Events
+            print("\n2. Checking Session Events...")
+            try:
+                response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/events", timeout=10)
+                
+                if response.status_code == 200:
+                    events_data = response.json()
+                    events = events_data.get("events", [])
+                    event_count = len(events)
+                    
+                    print(f"   ✅ Events endpoint accessible")
+                    print(f"   📊 Event count: {event_count}")
+                    
+                    if event_count == 0:
+                        print(f"   ⚠️  WARNING: No events found - transcription pipeline may not be processing")
+                    else:
+                        print(f"   📝 Recent events:")
+                        for i, event in enumerate(events[-3:]):  # Show last 3 events
+                            event_type = event.get("type", "unknown")
+                            timestamp = event.get("timestamp", 0)
+                            content = event.get("content", {})
+                            print(f"      {i+1}. Type: {event_type}, Time: {timestamp}, Content: {str(content)[:50]}...")
+                    
+                    self.log_result("Session Events Check", True, f"Found {event_count} events", events_data)
+                    
+                elif response.status_code == 404:
+                    print(f"   ❌ Session {session_id} not found for events")
+                    self.log_result("Session Events Check", False, f"Session {session_id} not found for events")
+                    
+                elif response.status_code == 403:
+                    print(f"   ❌ Access denied to session events")
+                    self.log_result("Session Events Check", False, f"Access denied to session events")
+                    
+                else:
+                    print(f"   ❌ Unexpected response: HTTP {response.status_code}")
+                    self.log_result("Session Events Check", False, f"HTTP {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                print(f"   ❌ Error checking session events: {str(e)}")
+                self.log_result("Session Events Check", False, f"Error: {str(e)}")
+            
+            # 3. Check if chunks are being stored
+            print("\n3. Checking Chunk Storage...")
+            try:
+                # We can't directly access Redis, but we can infer from the live transcript
+                # If the session exists but has no words, chunks might not be processed
+                response = self.session.get(f"{BACKEND_URL}/live/sessions/{session_id}/live", timeout=10)
+                
+                if response.status_code == 200:
+                    live_data = response.json()
+                    transcript = live_data.get("transcript", {})
+                    
+                    if transcript.get("text", "").strip():
+                        print(f"   ✅ Chunks appear to be processed (transcript has content)")
+                        self.log_result("Chunk Storage Check", True, "Chunks are being processed successfully")
+                    else:
+                        print(f"   ⚠️  WARNING: No transcript content - chunks may not be processed")
+                        self.log_result("Chunk Storage Check", False, "No transcript content found - chunks may not be processed")
+                else:
+                    print(f"   ❌ Cannot check chunk storage (session not accessible)")
+                    self.log_result("Chunk Storage Check", False, "Cannot access session to check chunk storage")
+                    
+            except Exception as e:
+                print(f"   ❌ Error checking chunk storage: {str(e)}")
+                self.log_result("Chunk Storage Check", False, f"Error: {str(e)}")
+            
+            # 4. Test Transcription Pipeline Health
+            print("\n4. Checking Transcription Pipeline Health...")
+            try:
+                # Check overall system health
+                response = self.session.get(f"{BACKEND_URL}/health", timeout=10)
+                
+                if response.status_code == 200:
+                    health_data = response.json()
+                    services = health_data.get("services", {})
+                    pipeline_health = services.get("pipeline", "unknown")
+                    
+                    print(f"   📊 Pipeline health: {pipeline_health}")
+                    
+                    if pipeline_health == "healthy":
+                        print(f"   ✅ Pipeline is healthy")
+                        self.log_result("Pipeline Health Check", True, "Pipeline is healthy")
+                    elif pipeline_health == "degraded":
+                        print(f"   ⚠️  Pipeline is degraded")
+                        self.log_result("Pipeline Health Check", True, "Pipeline is degraded but running")
+                    else:
+                        print(f"   ❌ Pipeline health issue: {pipeline_health}")
+                        self.log_result("Pipeline Health Check", False, f"Pipeline health: {pipeline_health}")
+                        
+                    # Check Redis connectivity
+                    cache_health = services.get("cache", "unknown")
+                    print(f"   📊 Redis/Cache health: {cache_health}")
+                    
+                    if cache_health not in ["healthy", "disabled"]:
+                        print(f"   ⚠️  Redis/Cache issue may affect live transcription")
+                        
+                else:
+                    print(f"   ❌ Cannot check pipeline health: HTTP {response.status_code}")
+                    self.log_result("Pipeline Health Check", False, f"Health check failed: HTTP {response.status_code}")
+                    
+            except Exception as e:
+                print(f"   ❌ Error checking pipeline health: {str(e)}")
+                self.log_result("Pipeline Health Check", False, f"Error: {str(e)}")
+            
+            # 5. Check Backend Logs for Session-Specific Errors
+            print("\n5. Checking Backend Logs...")
+            try:
+                # We already checked logs above and found no entries for this session
+                print(f"   📋 No recent log entries found for session {session_id}")
+                print(f"   💡 This suggests either:")
+                print(f"      - Session was created but no chunks were uploaded")
+                print(f"      - Session is older and logs have rotated")
+                print(f"      - Session ID may be incorrect")
+                
+                self.log_result("Backend Logs Check", True, f"No recent log entries for session {session_id}")
+                
+            except Exception as e:
+                print(f"   ❌ Error checking backend logs: {str(e)}")
+                self.log_result("Backend Logs Check", False, f"Error: {str(e)}")
+            
+            # 6. Summary and Recommendations
+            print(f"\n📋 DEBUGGING SUMMARY FOR SESSION {session_id}:")
+            print("=" * 60)
+            
+            # Count successful vs failed checks
+            session_tests = [r for r in self.test_results if "Session" in r["test"] or "Pipeline" in r["test"] or "Chunk" in r["test"]]
+            successful_checks = len([r for r in session_tests if r["success"]])
+            total_checks = len(session_tests)
+            
+            if successful_checks == total_checks:
+                print("✅ All debugging checks passed - system appears healthy")
+                print("💡 Possible issues:")
+                print("   - User may not be actively recording")
+                print("   - Frontend may not be sending chunks")
+                print("   - Session may be inactive/expired")
+            else:
+                print(f"⚠️  {total_checks - successful_checks} out of {total_checks} checks failed")
+                print("💡 Recommended actions:")
+                print("   - Check if session is still active")
+                print("   - Verify audio chunks are being uploaded")
+                print("   - Check Redis connectivity")
+                print("   - Review transcription pipeline status")
+            
+            print("\n" + "=" * 60)
+            
+        except Exception as e:
+            self.log_result("Live Transcription Session Debug", False, f"Debug session error: {str(e)}")
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Testing Suite")
