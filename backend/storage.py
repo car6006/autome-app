@@ -48,5 +48,7 @@ async def store_file_content_async(content: bytes, filename: str) -> str:
 
 def create_presigned_get_url(file_key: str) -> str:
     """Create a presigned URL for file access (returns local path for processing)"""
+    if not file_key:
+        raise ValueError("File key cannot be None or empty")
     file_path = get_file_path(file_key)
     return str(file_path)  # Return absolute path for local processing
