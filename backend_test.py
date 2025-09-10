@@ -5479,6 +5479,17 @@ class BackendTester:
         self.test_generate_report_endpoint()
         self.test_ai_chat_endpoint()
         
+        # 🎯 ENHANCED PROVIDERS & LARGE FILE HANDLING TESTS (NEW - REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🔧 ENHANCED PROVIDERS & LARGE FILE HANDLING TESTS - Transcription System Fix")
+        print("=" * 60)
+        
+        self.test_ffmpeg_availability()
+        self.test_enhanced_providers_import()
+        self.test_enhanced_providers_transcription()
+        self.test_large_file_chunking_logic()
+        self.test_voice_capture_transcription_compatibility()
+        
         # 🎯 ENHANCED DUAL-PROVIDER SYSTEM TESTS (NEW FEATURE)
         print("\n" + "=" * 60)
         print("🚀 ENHANCED DUAL-PROVIDER SYSTEM TESTS - Emergent LLM Key + OpenAI Fallback")
