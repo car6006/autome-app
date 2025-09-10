@@ -4427,6 +4427,15 @@ class BackendTester:
         # System tests
         self.test_system_metrics()
         
+        # 🎯 CRITICAL: NORMAL VOICE CAPTURE PIPELINE TESTS (REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🎤 NORMAL VOICE CAPTURE PIPELINE TESTS - Testing Regular Audio Upload System")
+        print("=" * 60)
+        
+        self.test_normal_voice_capture_pipeline()
+        self.test_transcription_provider_verification()
+        self.test_live_transcription_conflict_check()
+        
         # 🎯 PRIORITY UPLOAD SYSTEM TESTS (Sales Meeting Upload Issue)
         print("\n" + "=" * 60)
         print("🔍 UPLOAD SYSTEM DIAGNOSTIC TESTS")
