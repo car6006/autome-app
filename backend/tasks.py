@@ -100,9 +100,6 @@ async def enqueue_transcription(note_id: str):
         # Add timeout for transcription to prevent hanging
         # Calculate dynamic timeout based on file size and expected processing time
         try:
-            # Get file size to estimate processing time
-            signed = create_presigned_get_url(note["media_key"])
-            
             # For large files, allow much more time
             import os
             try:
