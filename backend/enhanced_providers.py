@@ -241,30 +241,47 @@ class AIProvider:
         raise ValueError("AI analysis failed - no providers available")
 
     async def _analyze_with_emergent(self, content: str, analysis_type: str, user_context: dict = None) -> dict:
-        """Analyze using Emergent LLM Key"""
-        try:
-            # Create chat instance
-            chat = LlmChat(
-                api_key=self.emergent_key,
-                session_id=f"analysis_{int(time.time())}",
-                system_message=self._get_system_prompt(analysis_type, user_context)
-            ).with_model("openai", "gpt-4o-mini")  # Use GPT-4o-mini through Emergent
-            
-            # Create user message for analysis
-            user_message = UserMessage(text=content)
-            
-            # Get analysis
-            response = await chat.send_message(user_message)
-            
-            return {
-                "analysis": response,
-                "provider": "emergent",
-                "model": "gpt-4o-mini"
-            }
-            
-        except Exception as e:
-            logger.error(f"❌ Emergent AI analysis error: {e}")
-            raise
+        """Analyze using Emergent LLM Key with multiple model fallbacks"""
+        
+        # Define fallback models in order of preference
+        fallback_models = [
+            ("openai", "gpt-4o-mini"),       # Fast and efficient
+            ("anthropic", "claude-3-5-sonnet-20241022"),  # High quality
+            ("google", "gemini-2.0-flash"),  # Fast alternative
+            ("openai", "gpt-4o"),           # More powerful if needed
+        ]
+        
+        for provider, model in fallback_models:
+            try:
+                logger.info(f"🤖 Attempting AI analysis with {provider}/{model}")
+                
+                # Create chat instance
+                chat = LlmChat(
+                    api_key=self.emergent_key,
+                    session_id=f"analysis_{int(time.time())}_{provider}",
+                    system_message=self._get_system_prompt(analysis_type, user_context)
+                ).with_model(provider, model)
+                
+                # Create user message for analysis
+                user_message = UserMessage(text=content)
+                
+                # Get analysis
+                response = await chat.send_message(user_message)
+                
+                logger.info(f"✅ AI analysis successful with {provider}/{model}")
+                return {
+                    "analysis": response,
+                    "provider": f"emergent_{provider}",
+                    "model": model
+                }
+                
+            except Exception as e:
+                logger.warning(f"❌ {provider}/{model} failed: {e}")
+                # Continue to next fallback
+                continue
+        
+        # If all fallbacks fail
+        raise Exception("All AI analysis providers failed")
 
     async def _analyze_with_openai(self, content: str, analysis_type: str, user_context: dict = None) -> dict:
         """Analyze using OpenAI API directly"""
