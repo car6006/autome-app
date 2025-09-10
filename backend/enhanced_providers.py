@@ -363,6 +363,68 @@ class AIProvider:
 transcription_provider = TranscriptionProvider()
 ai_provider = AIProvider()
 
+async def split_large_audio_file(file_path: str, chunk_duration: int = 240) -> list[str]:
+    """Split audio file into smaller chunks using ffmpeg"""
+    chunks = []
+    
+    try:
+        # Get audio duration using ffprobe
+        cmd = [
+            'ffprobe', '-v', 'quiet', '-print_format', 'json', 
+            '-show_format', file_path
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        
+        if result.returncode != 0:
+            logger.warning(f"Could not get audio duration for {file_path}")
+            return [file_path]  # Return original file if can't split
+        
+        data = json.loads(result.stdout)
+        duration = float(data['format']['duration'])
+        
+        if duration <= chunk_duration:
+            return [file_path]  # File is already small enough
+        
+        num_chunks = math.ceil(duration / chunk_duration)
+        logger.info(f"🔨 Splitting {duration:.1f}s audio into {num_chunks} chunks of {chunk_duration}s each")
+        
+        for i in range(num_chunks):
+            start_time = i * chunk_duration
+            
+            # Create temporary file for chunk
+            chunk_fd, chunk_path = tempfile.mkstemp(suffix='.wav')
+            os.close(chunk_fd)
+            
+            cmd = [
+                'ffmpeg', '-i', file_path,
+                '-ss', str(start_time),
+                '-t', str(chunk_duration),
+                '-acodec', 'pcm_s16le',  # Use WAV format for compatibility
+                '-ar', '16000',  # 16kHz sample rate
+                '-ac', '1',  # Mono
+                '-y',  # Overwrite output file
+                chunk_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            
+            if result.returncode == 0:
+                chunks.append(chunk_path)
+                logger.info(f"✅ Created chunk {i+1}/{num_chunks}: {chunk_path}")
+            else:
+                logger.error(f"❌ Failed to create chunk {i+1}: {result.stderr}")
+                # Clean up failed chunk
+                try:
+                    os.unlink(chunk_path)
+                except:
+                    pass
+        
+        return chunks
+        
+    except Exception as e:
+        logger.error(f"❌ Error splitting audio file: {e}")
+        return [file_path]  # Return original file if splitting fails
+
 # Export the enhanced functions for backward compatibility
 async def transcribe_audio(file_path: str, session_id: str = None) -> dict:
     """Enhanced transcription function with dual-provider support"""
