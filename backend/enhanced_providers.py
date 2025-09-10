@@ -116,6 +116,7 @@ class TranscriptionProvider:
                 }
                 data = {
                     'model': 'whisper-1',
+                    'language': 'en',  # Force English transcription
                     'response_format': 'verbose_json',  # Get word-level timestamps
                     'timestamp_granularities': ['word']
                 }
