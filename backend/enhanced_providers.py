@@ -160,19 +160,9 @@ class TranscriptionProvider:
                                 }
                                 
                             elif response.status_code == 429:
-                                # Rate limit - exponential backoff
-                                retry_after = response.headers.get('retry-after')
-                                if retry_after:
-                                    wait_time = min(int(retry_after), 20)
-                                else:
-                                    wait_time = min((2 ** attempt) * 3, 20)  # 3s, 6s, 12s max
-                                
-                                logger.warning(f"🚦 OpenAI rate limit, retrying in {wait_time}s (chunk {chunk_idx})")
-                                if attempt < 2:
-                                    await asyncio.sleep(wait_time)
-                                    continue
-                                else:
-                                    raise ValueError("Rate limit exceeded for transcription")
+                                # Rate limit - provide helpful message instead of fake text
+                                logger.warning(f"🚦 OpenAI rate limit hit for transcription")
+                                raise ValueError("OpenAI transcription service is currently rate limited. Please try again in a few minutes, or contact support to increase your quota.")
                                     
                             else:
                                 error_detail = response.text
