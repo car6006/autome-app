@@ -614,6 +614,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Download Buttons Removal from Large File Transcription - COMPLETED AND VERIFIED"
     - "Normal Voice Capture Pipeline - RESOLVED AND WORKING PERFECTLY"
     - "Live Transcription System Critical Debug - RESOLVED"
     - "Real-time Transcription Pipeline Fully Functional"
