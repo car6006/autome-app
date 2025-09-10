@@ -5146,6 +5146,17 @@ class BackendTester:
         self.test_transcription_provider_verification()
         self.test_live_transcription_conflict_check()
         
+        # 🎯 TRANSCRIPTION FAILURE FIX TESTS (NEW - REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🔧 TRANSCRIPTION FAILURE FIX TESTS - Null Media Key Handling")
+        print("=" * 60)
+        
+        self.test_transcription_null_media_key_handling()
+        self.test_transcription_with_valid_media_key()
+        self.test_storage_create_presigned_url_validation()
+        self.test_no_posixpath_nonetype_errors()
+        self.test_transcription_pipeline_robustness()
+        
         # 🎯 PRIORITY UPLOAD SYSTEM TESTS (Sales Meeting Upload Issue)
         print("\n" + "=" * 60)
         print("🔍 UPLOAD SYSTEM DIAGNOSTIC TESTS")
