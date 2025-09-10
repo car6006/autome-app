@@ -590,6 +590,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Normal Voice Capture Pipeline - RESOLVED AND WORKING PERFECTLY"
     - "Live Transcription System Critical Debug - RESOLVED"
     - "Real-time Transcription Pipeline Fully Functional"
     - "Redis Connectivity Issues Fixed"
