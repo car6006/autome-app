@@ -427,8 +427,95 @@ async def split_large_audio_file(file_path: str, chunk_duration: int = 240) -> l
 
 # Export the enhanced functions for backward compatibility
 async def transcribe_audio(file_path: str, session_id: str = None) -> dict:
-    """Enhanced transcription function with dual-provider support"""
-    return await transcription_provider.transcribe_audio_chunk(file_path, session_id)
+    """Enhanced transcription function with dual-provider support and large file handling"""
+    
+    # Check if it's a URL or local path
+    if file_path.startswith('http'):
+        # Download file first
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.get(file_path, follow_redirects=True)
+            r.raise_for_status()
+            fd, local_path = tempfile.mkstemp()
+            with os.fdopen(fd, "wb") as f:
+                f.write(r.content)
+            file_path = local_path
+    
+    try:
+        # Check file size for chunking logic
+        file_size = os.path.getsize(file_path)
+        OPENAI_MAX_FILE_SIZE = 24 * 1024 * 1024  # 24MB to be safe
+        
+        logger.info(f"🎵 Audio file size: {file_size / (1024*1024):.1f} MB")
+        
+        if file_size <= OPENAI_MAX_FILE_SIZE:
+            # Small file - process directly
+            logger.info("📝 File size OK, processing directly")
+            result = await transcription_provider.transcribe_audio_chunk(file_path, session_id)
+            
+            # Convert to expected format for tasks.py
+            return {
+                "text": result.get("text", ""),
+                "summary": "",
+                "actions": [],
+                "note": ""
+            }
+        else:
+            # Large file - need to split into chunks
+            logger.info(f"📁 File too large ({file_size / (1024*1024):.1f} MB), splitting into chunks")
+            
+            # Split audio file into chunks
+            chunks = await split_large_audio_file(file_path)
+            if not chunks:
+                return {"text": "", "summary": "", "actions": [], "note": "Failed to split audio file"}
+            
+            logger.info(f"🔄 Processing {len(chunks)} audio chunks")
+            transcriptions = []
+            
+            # Process each chunk sequentially
+            for i, chunk_path in enumerate(chunks):
+                try:
+                    logger.info(f"🎤 Transcribing chunk {i+1}/{len(chunks)}")
+                    result = await transcription_provider.transcribe_audio_chunk(chunk_path, f"{session_id}_chunk_{i}")
+                    
+                    chunk_text = result.get("text", "").strip()
+                    if chunk_text:
+                        # Add chunk number for long transcriptions
+                        if len(chunks) > 1:
+                            transcriptions.append(f"[Part {i+1}] {chunk_text}")
+                        else:
+                            transcriptions.append(chunk_text)
+                    else:
+                        logger.warning(f"⚠️ Empty transcription for chunk {i+1}")
+                    
+                    # Add delay between chunks to respect rate limits
+                    if i < len(chunks) - 1:
+                        logger.info(f"⏳ Waiting 3 seconds before processing next chunk...")
+                        await asyncio.sleep(3)
+                    
+                except Exception as e:
+                    logger.error(f"❌ Error processing chunk {i+1}: {e}")
+                    transcriptions.append(f"[Part {i+1}] Error processing this segment")
+                
+                finally:
+                    # Clean up chunk file
+                    try:
+                        os.unlink(chunk_path)
+                    except:
+                        pass
+            
+            # Combine all transcriptions
+            full_text = " ".join(transcriptions).strip()
+            
+            return {
+                "text": full_text,
+                "summary": "",
+                "actions": [],
+                "note": f"Transcribed from {len(chunks)} audio segments"
+            }
+            
+    except Exception as e:
+        logger.error(f"❌ Enhanced transcription error: {e}")
+        return {"text": "", "summary": "", "actions": [], "note": f"Transcription failed: {str(e)}"}
 
 async def generate_ai_analysis(content: str, analysis_type: str = "general", user_context: dict = None) -> str:
     """Enhanced AI analysis function with dual-provider support"""
