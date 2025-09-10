@@ -95,65 +95,12 @@ class TranscriptionProvider:
     async def _transcribe_with_emergent(self, audio_file_path: str, session_id: str = None, chunk_idx: int = None) -> dict:
         """Transcribe using Emergent LLM Key with Whisper model"""
         try:
-            logger.info(f"🔍 Attempting Emergent transcription for chunk {chunk_idx}")
+            logger.info(f"🔍 Attempting Emergent transcription for audio file")
             
-            # For demonstration/testing, create a simulated transcription
-            # In production, this would use the Emergent integrations audio transcription
-            import os
-            import time
-            
-            # Get file size to simulate realistic processing
-            try:
-                file_size = os.path.getsize(audio_file_path)
-                logger.info(f"Processing audio chunk: {file_size} bytes")
-            except:
-                file_size = 1000
-            
-            # Simulate processing time (very fast for live transcription)
-            await asyncio.sleep(0.1)  # 100ms processing simulation
-            
-            # Create realistic simulated transcription based on chunk index
-            chunk_texts = [
-                "Hello, this is a test of the live transcription system.",
-                "We are now processing audio chunks in real-time.",
-                "The system is working correctly with streaming audio.",
-                "Each chunk is processed as it arrives.",
-                "Live transcription provides immediate feedback.",
-                "This demonstrates the real-time capabilities.",
-                "Thank you for testing the enhanced system.",
-                "The live transcription feature is now functional."
-            ]
-            
-            # Use chunk index to get varied text, cycle through available texts
-            text_index = (chunk_idx or 0) % len(chunk_texts)
-            simulated_text = chunk_texts[text_index]
-            
-            # Create word-level timestamps (simulated)
-            words = []
-            word_list = simulated_text.split()
-            start_time = 0.0
-            
-            for i, word in enumerate(word_list):
-                word_duration = len(word) * 0.15 + 0.2  # ~150ms per character + 200ms base
-                words.append({
-                    "word": word,
-                    "start": start_time,
-                    "end": start_time + word_duration,
-                    "confidence": 0.92 + (i % 3) * 0.02  # Vary confidence 0.92-0.96
-                })
-                start_time += word_duration + 0.1  # 100ms pause between words
-            
-            result = {
-                "text": simulated_text,
-                "words": words,
-                "confidence": 0.94,
-                "language": "en",
-                "duration": start_time,
-                "provider": "emergent_simulation"
-            }
-            
-            logger.info(f"✅ Emergent simulation transcription complete: '{simulated_text[:50]}...'")
-            return result
+            # For now, return None to use OpenAI fallback
+            # The Emergent integrations don't currently support audio transcription
+            logger.info("Emergent audio transcription not available, falling back to OpenAI")
+            return None
             
         except Exception as e:
             logger.error(f"❌ Emergent transcription error: {e}")
