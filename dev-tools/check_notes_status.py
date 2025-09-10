@@ -9,7 +9,7 @@ import time
 
 def check_note_status(note_id, auth_token):
     """Check the status of a specific note"""
-    url = f"https://content-capture.preview.emergentagent.com/api/notes/{note_id}"
+    url = f"https://smart-transcript-1.preview.emergentagent.com/api/notes/{note_id}"
     headers = {'Authorization': f'Bearer {auth_token}'}
     
     try:
@@ -64,7 +64,7 @@ def main():
     
     try:
         response = requests.post(
-            "https://content-capture.preview.emergentagent.com/api/auth/register",
+            "https://smart-transcript-1.preview.emergentagent.com/api/auth/register",
             json=auth_data,
             timeout=10
         )

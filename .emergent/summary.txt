@@ -1,66 +1,78 @@
 <analysis>
-The AI engineer systematically tackled a wide range of issues and feature enhancements for the AUTO-ME PWA. Initially, significant effort was dedicated to improving AI report formatting for Word and PDF, ensuring professional layouts with correct spacing and branding. This led to an iterative process involving frontend and backend adjustments, including a temporary shift to frontend generation before reverting to a more robust, proven backend-driven approach for comprehensive batch reports.
+The AI engineer systematically addressed several critical issues and feature requests, demonstrating adaptability to user feedback. Initially, the focus was on resolving persistent OCR failures due to OpenAI API rate limits, which was fixed by implementing robust exponential backoff and user notifications in  and . Subsequently, a Clean Up Failed Notes feature was added, including backend API endpoints () and a frontend UI (), enhancing data management.
 
-Key fixes included addressing rate limiting for large file uploads by increasing API limits and clearing stuck notes, and resolving critical login failures caused by a data type mismatch (float vs. integer) in productivity metrics, which required both code adjustments and direct database updates. Markdown symbols in AI-generated content were eradicated through a combination of enhanced AI prompting and post-processing. The engineer also significantly improved documentation and organized a cluttered file structure. The immediate task involves diagnosing a deployment issue where the application's  is not being served correctly.
+A major shift occurred with the user's request for live, incremental transcription. This led to a comprehensive overhaul of the AI provider system, integrating  and Redis for real-time state management. New backend components (, , ) and frontend UI (, ) were developed. Throughout this, the engineer faced challenges with Redis configuration, API routing, and frontend event processing, requiring extensive debugging and refactoring, including fixing Redis data type parsing and event accumulation issues.
+
+After persistent live transcription failures, the engineer pivoted to ensure the core voice capture worked reliably, removing hardcoded mock responses and reinforcing English-only transcription. The most recent task involves addressing confusing speaker diarization in large file transcriptions.
 </analysis>
 
 <product_requirements>
-The AUTO-ME PWA is a zero-friction content capture application designed for guaranteed delivery and editable AI outputs. Its core features include Whisper transcription, OCR, text notes, email/Git synchronization, JWT authentication, and data isolation. The application aims to evolve with enterprise features such as IISB analysis, dynamic theming, multi-file upload, AI professional reports, and a conversational Ask AI agent.
+The AUTO-ME PWA is a content capture application with Whisper transcription, OCR, text notes, email/Git sync, and JWT authentication. It aims for enterprise features like AI reports and a conversational AI agent.
 
-Explicit requests and features that have been implemented or addressed so far include:
--   **Large File Transcription Reliability**: Debugged and stabilized Error loading jobs and Could not fetch transcription jobs for large uploads.
--   **Batch Report & Comprehensive Report Enhancements**: Structured output, added Ask AI Agent functionality, visual batch indicators, ensured notes are marked complete post-export. Professional reports now offer Word and PDF export with enhanced formatting and branding.
--   **Productivity Metrics**: Implemented a real-time, automatic system to track productivity gains (time saved) upon note completion, with content-length-based calculations and reasonable caps.
--   **Password Management**: Implemented a Forgot Password feature with email validation and a password reset flow, accessible from the login screen and user profile.
--   **Text/Document Formatting**: Improved paragraph and heading formatting for all text exports (TXT, RTF, DOC, AI reports, PDF) to ensure a professional layout and remove markdown symbols.
--   **Database Cleanup**: Provided and executed a mechanism to delete notes and transcription jobs, and also to correct database entry types.
--   **Rate Limiting**: Adjusted API rate limits to support heavy usage scenarios.
--   **File Organization**: Streamlined the project directory structure, moving development artifacts into dedicated folders.
+Implemented features and addressed requests include:
+-   **OCR Reliability**: Fixed OpenAI API 429 rate limit issues for OCR with exponential backoff and user notifications for delays. Optimized retry logic for faster processing.
+-   **Note Management**: Added a Clean Up Failed Notes feature (backend endpoints, frontend UI) to remove stuck or failed notes. Implemented a Retry Processing button for stuck notes.
+-   **Live Transcription**: Designed and partially implemented a real-time, incremental transcription system (streaming chunks, Redis state, real-time UI updates, instant finalization).
+-   **AI Provider Robustness**: Integrated Emergent LLM key as a primary/fallback for AI analysis and reports, with OpenAI as a backup, to mitigate quota issues.
+-   **Transcription Language Control**: Ensured OpenAI Whisper transcribes in English by explicitly setting the language parameter.
+-   **Core Voice Capture Fixes**: Resolved issues where normal voice capture was failing or providing fake/incorrect language transcriptions due to live transcription development.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React, JavaScript (), Tailwind CSS, Shadcn/UI, React Context, Axios, Yarn.
--   **Backend**: FastAPI, MongoDB (Motor), JWT,  (for Word),  (for PDF), OpenAI (GPT-4o-mini).
+-   **Frontend**: React, JavaScript, Tailwind CSS, Shadcn/UI, React Context, Axios, WebSockets/SSE.
+-   **Backend**: FastAPI, MongoDB (Motor), JWT, OpenAI (Whisper, GPT-4o-mini), , , Redis, .
+-   **Core Features**: Asynchronous task processing, Rate Limiting, Exponential Backoff, Data Type Validation (Pydantic), Cron jobs, Real-time Streaming, Event-driven architecture.
 -   **Deployment**: Kubernetes, Supervisor.
--   **Core Features**: Asynchronous task processing, Rate Limiting, Environment Variables, Data Type Validation (Pydantic).
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a standard full-stack architecture with a React frontend and a FastAPI backend, interacting with MongoDB.
+The application uses a standard full-stack architecture with a React frontend and a FastAPI backend, interacting with MongoDB and Redis.
 
 
 
--   **backend/server.py**: Main FastAPI application handling API requests.
-    -   **Importance**: Central API for authentication, report generation, and exports.
-    -   **Changes**: Enhanced Word/PDF export formatting for AI analysis reports (individual and batch), rewrote PDF logic to match Word quality. Added new endpoints for comprehensive batch report generation and export ( and ). Fixed missing  statements causing export failures. Strengthened AI prompt and added post-processing for markdown removal in reports.
--   **backend/store.py**: Manages MongoDB interactions and data persistence.
-    -   **Importance**: Handles user data and productivity metrics.
-    -   **Changes**: Modified  to calculate time saved based on content length with reasonable caps and ensured  is always rounded to an integer for Pydantic compatibility.
--   **backend/rate_limiting.py**: Defines and enforces API rate limits.
-    -   **Importance**: Prevents service abuse and ensures stability under load.
-    -   **Changes**: Increased transcription API call limits (to 1000 calls/hour) to accommodate large file processing.
--   **frontend/src/App.js**: The main React application file.
+-   **backend/server.py**: Main FastAPI application.
+    -   **Importance**: Central API for all functionalities.
+    -   **Changes**: Added  and  endpoints. Added  endpoint. Integrated . Modified AI report generation to use .
+-   **backend/providers.py**: Handles external API integrations (OpenAI).
+    -   **Importance**: Manages transcription and LLM interactions.
+    -   **Changes**: Original file; now  replaces direct calls.
+-   **backend/enhanced_providers.py (NEW)**: Dual-provider system for AI/LLM.
+    -   **Importance**: Provides resilience against API quota issues by using Emergent LLM key with multiple fallbacks (OpenAI, Anthropic, Google) for AI features. Contains the core logic for OpenAI Whisper transcription, now forced to English.
+    -   **Changes**: Implemented with  for LLMs. Includes mock transcription for live features (later removed for normal record). Added  for Whisper API.
+-   **backend/tasks.py**: Manages background tasks.
+    -   **Importance**: Orchestrates long-running processes like transcription and OCR.
+    -   **Changes**: Added  for user notifications. Updated transcription tasks to use .
+-   **backend/live_transcription.py (NEW)**: Core logic for live transcription state.
+    -   **Importance**: Manages the rolling transcript in Redis, including upsert, overlap resolution, commit window, and event accumulation.
+    -   **Changes**: Initial implementation, fixed Redis data type parsing (int from float string), and fixed event overwriting to allow accumulation.
+-   **backend/streaming_endpoints.py (NEW)**: New API endpoints for live transcription.
+    -   **Importance**: Handles real-time chunk uploads and event polling.
+    -   **Changes**: Implemented , , .
+-   **backend/.env**: Environment variables for the backend.
+    -   **Importance**: Stores critical configuration.
+    -   **Changes**: Added , .
+-   **frontend/src/App.js**: Main React application file.
     -   **Importance**: Orchestrates UI, routing, and client-side logic.
-    -   **Changes**: Updated  to utilize new backend comprehensive report export endpoints, correctly handles binary (blob) responses for Word/PDF. Modified UI text from Professional Report to Comprehensive Report and related button labels. Removed  and  client-side libraries after reverting to a backend-driven report generation. Enhanced error handling and debugging messages for report generation and AI chat. Fixed  to call the correct new backend endpoint.
--   **README.md**, **CHANGELOG.md**, **WORK_SUMMARY.md**: Core project documentation.
-    -   **Importance**: Provides project overview, version history, and development summary.
-    -   **Changes**: Updated with productivity metrics feature, recent enhancements, and versioning.
--   **PRODUCTIVITY_METRICS.md**: (NEW file) Dedicated documentation for the time-saved calculation.
-    -   **Importance**: Details the new, content-based productivity metric algorithm.
--   **DIRECTORY_STRUCTURE.md**: (NEW file) Documents the reorganized project layout.
-    -   **Importance**: Ensures clarity and consistency in the codebase structure.
--   **dev-tools/organize_files.py**: (NEW file) A utility script for ongoing file organization.
-    -   **Importance**: Automates the cleanup of development artifacts in the root directory.
+    -   **Changes**: Integrated Archive Management UI. Added cleanup button (, ). Added route for  and a corresponding navigation button. Added  function and UI button for stuck notes. Made retry button visible for all processing notes.
+-   **frontend/src/components/LiveTranscriptionRecorder.js (NEW)**: React component for recording and displaying live transcription.
+    -   **Importance**: Provides the UI and client-side logic for real-time audio capture, chunk uploading, and event polling.
+    -   **Changes**: Initial implementation, fixed missing imports, added extensive debugging for event polling and chunk uploads.
+-   **frontend/src/components/LiveTranscriptionScreen.js (NEW)**: React screen for live transcription.
+    -   **Importance**: Wraps the  and provides contextual information and instructions.
+    -   **Changes**: Initial implementation.
 </code_architecture>
 
 <pending_tasks>
--   Investigate and fix the issue where the deployed application is not rendering the React frontend correctly, specifically addressing why the  file might not be serving the application as expected.
+-   Investigate and remove confusing Speaker 1: references from large file transcription output without breaking the system.
+-   Further improve live transcription UI/UX with session validation, auto-restart capabilities, and clearer error messages for expired sessions.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing a critical deployment issue reported by the user. The user observed that their application, deployed at , was displaying a generic It works! page instead of the expected React application. This indicates a problem with how the  file (or the React build output) is being served or picked up during deployment. The AI engineer identified this as a potential misconfiguration or missing file in the deployment environment. The last action taken was to check the contents of the local source file  to understand its structure and content, which is a necessary preliminary step before diagnosing why it's not being deployed or rendered correctly in the production environment.
+Immediately before this summary request, the AI engineer was addressing a user report about confusing Speaker 1: references appearing in large file transcriptions. The user uploaded a sample text artifact () which the engineer inspected, confirming the presence of Speaker 1: and Speaker 2: labels along with repetitive phrases, making the output confusing.
+
+The current task involves identifying where this speaker diarization is being applied within the large file transcription system (likely in the backend processing pipeline, potentially within  or ) and removing it. This needs to be done carefully to ensure the core transcription functionality remains intact. This directly follows a series of fixes related to transcription language (forcing English) and general reliability of the normal voice capture process, which was previously impacted by issues introduced during the development of the live transcription feature.
 </current_work>
 
 <optional_next_step>
-Examine the content of  to diagnose the deployment issue.
+Investigate  files for speaker diarization logic in large file transcription and remove it.
 </optional_next_step>

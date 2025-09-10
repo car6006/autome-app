@@ -9,7 +9,7 @@ import json
 import time
 import uuid
 
-BACKEND_URL = "https://content-capture.preview.emergentagent.com/api"
+BACKEND_URL = "https://smart-transcript-1.preview.emergentagent.com/api"
 
 def test_complete_live_transcription_pipeline():
     """Test the complete live transcription pipeline as described in review request"""

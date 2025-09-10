@@ -14,7 +14,7 @@ def log(message):
     print(f"[{timestamp}] {message}")
 
 def main():
-    base_url = "https://content-capture.preview.emergentagent.com"
+    base_url = "https://smart-transcript-1.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     log("🔒 FINAL SECURITY AUDIT ANALYSIS - AUTO-ME PWA Backend")

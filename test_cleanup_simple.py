@@ -9,7 +9,7 @@ import uuid
 import time
 from datetime import datetime
 
-BACKEND_URL = "https://content-capture.preview.emergentagent.com/api"
+BACKEND_URL = "https://smart-transcript-1.preview.emergentagent.com/api"
 
 def test_cleanup_functionality():
     """Test cleanup functionality"""

@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timezone
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-capture.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://smart-transcript-1.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def investigate_lost_meeting():
