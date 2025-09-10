@@ -85,6 +85,13 @@ async def enqueue_transcription(note_id: str):
     if not note:
         logger.error(f"Note not found: {note_id}")
         return
+    
+    # Validate that the note has a media_key
+    if not note.get("media_key"):
+        logger.error(f"Transcription requested for note {note_id} without media_key")
+        await NotesStore.update_status(note_id, "failed")
+        await NotesStore.set_artifacts(note_id, {"error": "No audio file found to process. Please try uploading again."})
+        return
         
     try:
         signed = create_presigned_get_url(note["media_key"])
