@@ -107,12 +107,12 @@ class TranscriptionProvider:
             return None
 
     async def _transcribe_with_openai(self, audio_file_path: str, session_id: str = None, chunk_idx: int = None) -> dict:
-        """Transcribe using OpenAI Whisper API with enhanced retry logic"""
+        """Transcribe using OpenAI Whisper API with enhanced error handling"""
         try:
             with open(audio_file_path, 'rb') as audio_file:
                 # Create form data for OpenAI Whisper API
                 files = {
-                    'file': (f'chunk_{chunk_idx}.wav', audio_file, 'audio/wav')
+                    'file': (f'audio_{int(time.time())}.wav', audio_file, 'audio/wav')
                 }
                 data = {
                     'model': 'whisper-1',
@@ -124,67 +124,74 @@ class TranscriptionProvider:
                     'Authorization': f'Bearer {self.openai_key}'
                 }
                 
-                # Enhanced retry logic for live transcription
-                for attempt in range(3):
-                    try:
-                        async with httpx.AsyncClient(timeout=30) as client:
-                            response = await client.post(
-                                'https://api.openai.com/v1/audio/transcriptions',
-                                files=files,
-                                data=data,
-                                headers=headers
-                            )
-                            
-                            if response.status_code == 200:
-                                result = response.json()
-                                
-                                # Process the response into our standard format
-                                words = []
-                                if 'words' in result:
-                                    words = [
-                                        {
-                                            "word": word.get("word", ""),
-                                            "start": word.get("start", 0.0),
-                                            "end": word.get("end", 0.0),
-                                            "confidence": 1.0  # OpenAI doesn't provide confidence
-                                        }
-                                        for word in result.get("words", [])
-                                    ]
-                                
-                                return {
-                                    "text": result.get("text", ""),
-                                    "words": words,
-                                    "confidence": 0.95,  # Default confidence for OpenAI
-                                    "language": result.get("language", "en"),
-                                    "duration": result.get("duration", 0.0)
+                # Single attempt with clear error messages
+                async with httpx.AsyncClient(timeout=60) as client:
+                    response = await client.post(
+                        'https://api.openai.com/v1/audio/transcriptions',
+                        files=files,
+                        data=data,
+                        headers=headers
+                    )
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        
+                        # Process the response into our standard format
+                        words = []
+                        if 'words' in result:
+                            words = [
+                                {
+                                    "word": word.get("word", ""),
+                                    "start": word.get("start", 0.0),
+                                    "end": word.get("end", 0.0),
+                                    "confidence": 1.0  # OpenAI doesn't provide confidence
                                 }
-                                
-                            elif response.status_code == 429:
-                                # Rate limit - provide helpful message instead of fake text
-                                logger.warning(f"🚦 OpenAI rate limit hit for transcription")
-                                raise ValueError("OpenAI transcription service is currently rate limited. Please try again in a few minutes, or contact support to increase your quota.")
-                                    
-                            else:
-                                error_detail = response.text
-                                try:
-                                    error_data = response.json()
-                                    error_detail = error_data.get("error", {}).get("message", error_detail)
-                                except:
-                                    pass
-                                
-                                if response.status_code == 400:
-                                    raise ValueError(f"Invalid audio format: {error_detail}")
-                                else:
-                                    raise ValueError(f"OpenAI API error {response.status_code}: {error_detail}")
-                                    
-                    except httpx.TimeoutException:
-                        logger.warning(f"⏱️  Transcription timeout (attempt {attempt + 1}) for chunk {chunk_idx}")
-                        if attempt == 2:
-                            raise ValueError("Transcription timeout")
-                        await asyncio.sleep(2 ** attempt)
+                                for word in result.get("words", [])
+                            ]
+                        
+                        logger.info(f"✅ OpenAI transcription successful: '{result.get('text', '')[:50]}...'")
+                        return {
+                            "text": result.get("text", ""),
+                            "words": words,
+                            "confidence": 0.95,  # Default confidence for OpenAI
+                            "language": result.get("language", "en"),
+                            "duration": result.get("duration", 0.0),
+                            "provider": "openai_whisper"
+                        }
+                        
+                    elif response.status_code == 429:
+                        # Rate limit with clear message
+                        logger.warning(f"🚦 OpenAI rate limit hit")
+                        raise ValueError("OpenAI is currently rate limited. Since you topped up your account, this should resolve shortly. Please try again in a few minutes.")
+                            
+                    elif response.status_code == 401:
+                        # Authentication error
+                        raise ValueError("OpenAI API authentication failed. Please check your API key configuration.")
+                        
+                    elif response.status_code == 400:
+                        # Bad request - usually audio format issue
+                        error_detail = response.text
+                        try:
+                            error_data = response.json()
+                            error_detail = error_data.get("error", {}).get("message", error_detail)
+                        except:
+                            pass
+                        raise ValueError(f"Audio format issue: {error_detail}")
+                        
+                    else:
+                        # Other errors
+                        error_detail = response.text
+                        try:
+                            error_data = response.json()
+                            error_detail = error_data.get("error", {}).get("message", error_detail)
+                        except:
+                            pass
+                        
+                        logger.error(f"OpenAI API error {response.status_code}: {error_detail}")
+                        raise ValueError(f"OpenAI transcription failed: {error_detail}")
                         
         except Exception as e:
-            logger.error(f"❌ OpenAI transcription error for chunk {chunk_idx}: {e}")
+            logger.error(f"❌ OpenAI transcription error: {e}")
             raise
 
 class AIProvider:
