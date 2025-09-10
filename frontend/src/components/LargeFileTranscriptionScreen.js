@@ -316,36 +316,6 @@ const LargeFileTranscriptionScreen = () => {
     }
   };
 
-  // Download transcription
-  const downloadTranscription = async (jobId, format = 'txt') => {
-    try {
-      const response = await axios.get(`${API}/transcriptions/${jobId}/download?format=${format}`, {
-        responseType: 'blob'
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `transcript.${format}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Download Started",
-        description: `Downloading transcript as ${format.toUpperCase()}`
-      });
-    } catch (error) {
-      toast({
-        title: "Download Failed", 
-        description: error.response?.data?.detail || "Failed to download transcript",
-        variant: "destructive"
-      });
-    }
-  };
-
   // Format duration
   const formatDuration = (seconds) => {
     if (!seconds) return '--';
