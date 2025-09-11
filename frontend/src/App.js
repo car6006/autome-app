@@ -2599,13 +2599,24 @@ const NotesScreen = () => {
 
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {notes.filter(note => {
-            if (!searchQuery) return true;
-            const query = searchQuery.toLowerCase();
-            const titleMatch = note.title.toLowerCase().includes(query);
-            const contentMatch = note.artifacts?.transcript?.toLowerCase().includes(query) || 
-                                 note.artifacts?.text?.toLowerCase().includes(query) ||
-                                 false;
-            return titleMatch || contentMatch;
+            // Search filter
+            if (searchQuery) {
+              const query = searchQuery.toLowerCase();
+              const titleMatch = note.title.toLowerCase().includes(query);
+              const contentMatch = note.artifacts?.transcript?.toLowerCase().includes(query) || 
+                                   note.artifacts?.text?.toLowerCase().includes(query) ||
+                                   false;
+              if (!titleMatch && !contentMatch) return false;
+            }
+            
+            // Tag filter
+            if (selectedTags.length > 0) {
+              const noteTags = note.tags || [];
+              const hasSelectedTag = selectedTags.some(tag => noteTags.includes(tag));
+              if (!hasSelectedTag) return false;
+            }
+            
+            return true;
           }).map((note) => (
             <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass} w-full overflow-hidden`}>
               <CardHeader className="pb-3 px-3 sm:px-6 relative">
