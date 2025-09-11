@@ -835,7 +835,93 @@ async def retry_note_processing(
         logger.error(f"❌ Error retrying processing for note {note_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to retry processing: {str(e)}")
 
+# Tag Management Endpoints
 
+@api_router.post("/notes/{note_id}/tags")
+async def add_tag_to_note(
+    note_id: str,
+    tag_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a tag to a note"""
+    try:
+        # Get the note and verify ownership
+        note = await NotesStore.get(note_id)
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+        
+        if note.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to modify this note")
+        
+        tag = tag_data.get("tag", "").strip().lower()
+        if not tag:
+            raise HTTPException(status_code=400, detail="Tag cannot be empty")
+        
+        if len(tag) > 50:
+            raise HTTPException(status_code=400, detail="Tag must be 50 characters or less")
+        
+        success = await NotesStore.add_tag(note_id, tag)
+        if success:
+            return {"message": "Tag added successfully", "tag": tag}
+        else:
+            return {"message": "Tag already exists", "tag": tag}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error adding tag to note {note_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add tag")
+
+@api_router.delete("/notes/{note_id}/tags/{tag}")
+async def remove_tag_from_note(
+    note_id: str,
+    tag: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove a tag from a note"""
+    try:
+        # Get the note and verify ownership
+        note = await NotesStore.get(note_id)
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+        
+        if note.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to modify this note")
+        
+        success = await NotesStore.remove_tag(note_id, tag)
+        if success:
+            return {"message": "Tag removed successfully", "tag": tag}
+        else:
+            return {"message": "Tag not found on note", "tag": tag}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error removing tag from note {note_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to remove tag")
+
+@api_router.get("/notes/tags")
+async def get_all_user_tags(current_user: dict = Depends(get_current_user)):
+    """Get all unique tags for the current user"""
+    try:
+        tags = await NotesStore.get_all_tags(current_user["id"])
+        return {"tags": tags}
+    except Exception as e:
+        logger.error(f"Error getting user tags: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get tags")
+
+@api_router.get("/notes/by-tag/{tag}")
+async def get_notes_by_tag(
+    tag: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all notes with a specific tag"""
+    try:
+        notes = await NotesStore.get_notes_by_tag(tag, current_user["id"])
+        return notes
+    except Exception as e:
+        logger.error(f"Error getting notes by tag {tag}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get notes by tag")
 
 
 @api_router.post("/user/professional-context")
