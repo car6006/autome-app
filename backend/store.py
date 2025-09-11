@@ -36,6 +36,7 @@ class Note(BaseModel):
     auto_emailed: bool = False
     auto_git: bool = False
     user_id: Optional[str] = None  # Link to user who created the note
+    tags: List[str] = Field(default_factory=list)  # Tags for categorizing notes
 
 class NotesStore:
     @staticmethod
