@@ -2307,15 +2307,6 @@ const NotesScreen = () => {
     return formatted;
   };
 
-  const syncToGit = async (noteId) => {
-    try {
-      await axios.post(`${API}/notes/${noteId}/git-sync`);
-      toast({ title: "🔄 Git sync started", description: "Note will be pushed to repository" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to sync to Git", variant: "destructive" });
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'ready': return 'bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-white border-amber-300';
