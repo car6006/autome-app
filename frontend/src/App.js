@@ -2066,7 +2066,6 @@ const NotesScreen = () => {
         variant: "destructive" 
       });
     } finally {
-      setGeneratingActionItems(prev => ({...prev, [note.id]: false}));
     }
   };
 
