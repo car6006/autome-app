@@ -51,6 +51,9 @@ class Template(BaseModel):
     usage_count: int = 0  # Track how often template is used
     is_favorite: bool = False  # User can mark templates as favorites
 
+    class Config:
+        populate_by_name = True
+
 class NotesStore:
     @staticmethod
     async def create(title: str, kind: str, user_id: Optional[str] = None) -> str:
