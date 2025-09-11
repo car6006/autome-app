@@ -38,6 +38,19 @@ class Note(BaseModel):
     user_id: Optional[str] = None  # Link to user who created the note
     tags: List[str] = Field(default_factory=list)  # Tags for categorizing notes
 
+class Template(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # Template name (e.g., "Weekly Team Meeting")
+    description: Optional[str] = None  # Optional description
+    title_template: str  # Template for note titles (e.g., "Team Meeting - {date}")
+    tags: List[str] = Field(default_factory=list)  # Default tags for this template
+    category: str = "general"  # Category (meeting, call, project, etc.)
+    content_template: Optional[str] = None  # Optional pre-filled content
+    user_id: str  # Owner of the template
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    usage_count: int = 0  # Track how often template is used
+    is_favorite: bool = False  # User can mark templates as favorites
+
 class NotesStore:
     @staticmethod
     async def create(title: str, kind: str, user_id: Optional[str] = None) -> str:
