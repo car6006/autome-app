@@ -1289,6 +1289,399 @@ class BackendTester:
         except Exception as e:
             self.log_result("OCR Timeout Optimization", False, f"OCR timeout optimization test error: {str(e)}")
 
+    def test_transcript_editing_save_functionality(self):
+        """Test the new transcript editing save functionality - PUT /api/notes/{note_id} endpoint"""
+        if not self.auth_token:
+            self.log_result("Transcript Editing Save Functionality", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # First, create a note with some initial content
+            note_data = {
+                "title": f"Transcript Edit Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "This is the original transcript content that will be edited."
+            }
+            
+            create_response = self.session.post(
+                f"{BACKEND_URL}/notes",
+                json=note_data,
+                timeout=10
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result("Transcript Editing Save Functionality", False, f"Failed to create test note: HTTP {create_response.status_code}")
+                return
+                
+            created_note = create_response.json()
+            test_note_id = created_note.get("id")
+            
+            if not test_note_id:
+                self.log_result("Transcript Editing Save Functionality", False, "No note ID returned from creation")
+                return
+            
+            # Test 1: Valid transcript update with proper artifacts
+            edited_transcript = "This is the EDITED transcript content with important changes and new information."
+            update_data = {
+                "artifacts": {
+                    "transcript": edited_transcript,
+                    "text": edited_transcript,
+                    "last_edited": datetime.now().isoformat(),
+                    "edit_count": 1
+                }
+            }
+            
+            update_response = self.session.put(
+                f"{BACKEND_URL}/notes/{test_note_id}",
+                json=update_data,
+                timeout=10
+            )
+            
+            if update_response.status_code == 200:
+                # Verify the update was saved by retrieving the note
+                get_response = self.session.get(f"{BACKEND_URL}/notes/{test_note_id}", timeout=10)
+                
+                if get_response.status_code == 200:
+                    updated_note = get_response.json()
+                    artifacts = updated_note.get("artifacts", {})
+                    saved_transcript = artifacts.get("transcript", "")
+                    
+                    if saved_transcript == edited_transcript:
+                        self.log_result("Transcript Editing Save Functionality", True, 
+                                      "✅ Transcript editing save working - artifacts updated successfully", 
+                                      {"note_id": test_note_id, "transcript_length": len(saved_transcript)})
+                    else:
+                        self.log_result("Transcript Editing Save Functionality", False, 
+                                      f"Transcript not saved correctly. Expected: '{edited_transcript[:50]}...', Got: '{saved_transcript[:50]}...'")
+                else:
+                    self.log_result("Transcript Editing Save Functionality", False, 
+                                  f"Could not retrieve updated note: HTTP {get_response.status_code}")
+            else:
+                self.log_result("Transcript Editing Save Functionality", False, 
+                              f"PUT request failed: HTTP {update_response.status_code}: {update_response.text}")
+                
+        except Exception as e:
+            self.log_result("Transcript Editing Save Functionality", False, f"Transcript editing test error: {str(e)}")
+
+    def test_transcript_editing_user_ownership_validation(self):
+        """Test that transcript editing validates user ownership and rejects unauthorized updates"""
+        if not self.auth_token:
+            self.log_result("Transcript Editing User Ownership", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a second user to test unauthorized access
+            unique_id = uuid.uuid4().hex[:8]
+            second_user_data = {
+                "email": f"seconduser_{unique_id}@example.com",
+                "username": f"seconduser{unique_id}",
+                "password": TEST_USER_PASSWORD,
+                "first_name": "Second",
+                "last_name": "User"
+            }
+            
+            # Register second user
+            register_response = self.session.post(
+                f"{BACKEND_URL}/auth/register",
+                json=second_user_data,
+                timeout=10
+            )
+            
+            if register_response.status_code != 200:
+                self.log_result("Transcript Editing User Ownership", False, "Could not create second user for ownership test")
+                return
+                
+            second_user_token = register_response.json().get("access_token")
+            
+            # Create a note with the first user (current authenticated user)
+            note_data = {
+                "title": f"Ownership Test Note {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text", 
+                "text_content": "This note belongs to the first user."
+            }
+            
+            create_response = self.session.post(
+                f"{BACKEND_URL}/notes",
+                json=note_data,
+                timeout=10
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result("Transcript Editing User Ownership", False, "Could not create test note")
+                return
+                
+            test_note_id = create_response.json().get("id")
+            
+            # Now try to update the note with the second user's token
+            original_auth = self.session.headers.get("Authorization")
+            self.session.headers["Authorization"] = f"Bearer {second_user_token}"
+            
+            unauthorized_update = {
+                "artifacts": {
+                    "transcript": "This is an UNAUTHORIZED edit attempt!",
+                    "text": "This should not be allowed!"
+                }
+            }
+            
+            unauthorized_response = self.session.put(
+                f"{BACKEND_URL}/notes/{test_note_id}",
+                json=unauthorized_update,
+                timeout=10
+            )
+            
+            # Restore original auth
+            self.session.headers["Authorization"] = original_auth
+            
+            # Should get 403 Forbidden
+            if unauthorized_response.status_code == 403:
+                self.log_result("Transcript Editing User Ownership", True, 
+                              "✅ User ownership validation working - unauthorized update rejected with HTTP 403")
+            elif unauthorized_response.status_code == 404:
+                self.log_result("Transcript Editing User Ownership", True, 
+                              "✅ User ownership validation working - note not found for unauthorized user (HTTP 404)")
+            else:
+                self.log_result("Transcript Editing User Ownership", False, 
+                              f"Expected HTTP 403 or 404, got HTTP {unauthorized_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Transcript Editing User Ownership", False, f"User ownership validation test error: {str(e)}")
+
+    def test_transcript_editing_error_handling(self):
+        """Test error handling for invalid note IDs, missing notes, and malformed requests"""
+        if not self.auth_token:
+            self.log_result("Transcript Editing Error Handling", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test 1: Invalid/non-existent note ID
+            fake_note_id = "nonexistent-note-id-12345"
+            update_data = {
+                "artifacts": {
+                    "transcript": "This should fail because note doesn't exist"
+                }
+            }
+            
+            invalid_id_response = self.session.put(
+                f"{BACKEND_URL}/notes/{fake_note_id}",
+                json=update_data,
+                timeout=10
+            )
+            
+            if invalid_id_response.status_code == 404:
+                self.log_result("Transcript Editing Error Handling - Invalid ID", True, 
+                              "✅ Invalid note ID properly returns HTTP 404")
+            else:
+                self.log_result("Transcript Editing Error Handling - Invalid ID", False, 
+                              f"Expected HTTP 404 for invalid note ID, got HTTP {invalid_id_response.status_code}")
+            
+            # Test 2: Malformed request data
+            if hasattr(self, 'note_id') and self.note_id:
+                # Test with invalid JSON structure
+                malformed_data = {
+                    "invalid_field": "this should not cause a crash",
+                    "artifacts": "this should be a dict, not a string"
+                }
+                
+                malformed_response = self.session.put(
+                    f"{BACKEND_URL}/notes/{self.note_id}",
+                    json=malformed_data,
+                    timeout=10
+                )
+                
+                # Should handle gracefully (either 400 or 500, but not crash)
+                if malformed_response.status_code in [400, 422, 500]:
+                    self.log_result("Transcript Editing Error Handling - Malformed Data", True, 
+                                  f"✅ Malformed request handled gracefully with HTTP {malformed_response.status_code}")
+                else:
+                    self.log_result("Transcript Editing Error Handling - Malformed Data", False, 
+                                  f"Unexpected response to malformed data: HTTP {malformed_response.status_code}")
+            else:
+                self.log_result("Transcript Editing Error Handling - Malformed Data", False, 
+                              "Skipped - no valid note ID available for malformed data test")
+            
+            # Test 3: Empty update data
+            empty_response = self.session.put(
+                f"{BACKEND_URL}/notes/{fake_note_id}",
+                json={},
+                timeout=10
+            )
+            
+            # Should still return 404 for non-existent note, even with empty data
+            if empty_response.status_code == 404:
+                self.log_result("Transcript Editing Error Handling - Empty Data", True, 
+                              "✅ Empty update data handled correctly (HTTP 404 for non-existent note)")
+            else:
+                self.log_result("Transcript Editing Error Handling - Empty Data", False, 
+                              f"Unexpected response to empty data: HTTP {empty_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Transcript Editing Error Handling", False, f"Error handling test error: {str(e)}")
+
+    def test_transcript_editing_database_persistence(self):
+        """Test that artifacts are properly saved to database via NotesStore.set_artifacts()"""
+        if not self.auth_token:
+            self.log_result("Transcript Editing Database Persistence", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a note for testing database persistence
+            note_data = {
+                "title": f"DB Persistence Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "Original content for database persistence test."
+            }
+            
+            create_response = self.session.post(
+                f"{BACKEND_URL}/notes",
+                json=note_data,
+                timeout=10
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result("Transcript Editing Database Persistence", False, "Could not create test note")
+                return
+                
+            test_note_id = create_response.json().get("id")
+            
+            # Perform multiple updates to test database persistence
+            updates = [
+                {
+                    "artifacts": {
+                        "transcript": "First edit - testing database persistence",
+                        "text": "First edit - testing database persistence",
+                        "edit_number": 1,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                },
+                {
+                    "artifacts": {
+                        "transcript": "Second edit - verifying data persists across updates",
+                        "text": "Second edit - verifying data persists across updates", 
+                        "edit_number": 2,
+                        "timestamp": datetime.now().isoformat(),
+                        "additional_field": "Testing complex artifact structure"
+                    }
+                }
+            ]
+            
+            for i, update_data in enumerate(updates, 1):
+                # Apply update
+                update_response = self.session.put(
+                    f"{BACKEND_URL}/notes/{test_note_id}",
+                    json=update_data,
+                    timeout=10
+                )
+                
+                if update_response.status_code != 200:
+                    self.log_result("Transcript Editing Database Persistence", False, 
+                                  f"Update {i} failed: HTTP {update_response.status_code}")
+                    return
+                
+                # Wait a moment for database write
+                time.sleep(0.5)
+                
+                # Verify persistence by retrieving the note
+                get_response = self.session.get(f"{BACKEND_URL}/notes/{test_note_id}", timeout=10)
+                
+                if get_response.status_code != 200:
+                    self.log_result("Transcript Editing Database Persistence", False, 
+                                  f"Could not retrieve note after update {i}")
+                    return
+                
+                retrieved_note = get_response.json()
+                artifacts = retrieved_note.get("artifacts", {})
+                expected_transcript = update_data["artifacts"]["transcript"]
+                actual_transcript = artifacts.get("transcript", "")
+                
+                if actual_transcript != expected_transcript:
+                    self.log_result("Transcript Editing Database Persistence", False, 
+                                  f"Update {i} not persisted correctly. Expected: '{expected_transcript}', Got: '{actual_transcript}'")
+                    return
+            
+            # Final verification - check that all fields from the last update are present
+            final_artifacts = retrieved_note.get("artifacts", {})
+            expected_fields = ["transcript", "text", "edit_number", "timestamp", "additional_field"]
+            missing_fields = [field for field in expected_fields if field not in final_artifacts]
+            
+            if not missing_fields:
+                self.log_result("Transcript Editing Database Persistence", True, 
+                              "✅ Database persistence working - all updates saved correctly with complex artifact structure", 
+                              {"final_edit_number": final_artifacts.get("edit_number"), 
+                               "artifact_fields": list(final_artifacts.keys())})
+            else:
+                self.log_result("Transcript Editing Database Persistence", False, 
+                              f"Missing artifact fields after persistence: {missing_fields}")
+                
+        except Exception as e:
+            self.log_result("Transcript Editing Database Persistence", False, f"Database persistence test error: {str(e)}")
+
+    def test_transcript_editing_response_format(self):
+        """Test that the PUT endpoint returns appropriate HTTP status codes and response messages"""
+        if not self.auth_token:
+            self.log_result("Transcript Editing Response Format", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Create a test note
+            note_data = {
+                "title": f"Response Format Test {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "kind": "text",
+                "text_content": "Testing response format for transcript editing."
+            }
+            
+            create_response = self.session.post(
+                f"{BACKEND_URL}/notes",
+                json=note_data,
+                timeout=10
+            )
+            
+            if create_response.status_code != 200:
+                self.log_result("Transcript Editing Response Format", False, "Could not create test note")
+                return
+                
+            test_note_id = create_response.json().get("id")
+            
+            # Test successful update response format
+            update_data = {
+                "artifacts": {
+                    "transcript": "Testing response format for successful update",
+                    "text": "Testing response format for successful update"
+                }
+            }
+            
+            success_response = self.session.put(
+                f"{BACKEND_URL}/notes/{test_note_id}",
+                json=update_data,
+                timeout=10
+            )
+            
+            # Check status code
+            if success_response.status_code == 200:
+                # Check response format
+                try:
+                    response_data = success_response.json()
+                    if isinstance(response_data, dict) and "message" in response_data:
+                        success_message = response_data.get("message", "")
+                        if "updated successfully" in success_message.lower() or "success" in success_message.lower():
+                            self.log_result("Transcript Editing Response Format", True, 
+                                          "✅ Success response format correct - HTTP 200 with success message", 
+                                          {"status_code": 200, "message": success_message})
+                        else:
+                            self.log_result("Transcript Editing Response Format", False, 
+                                          f"Success message format unexpected: '{success_message}'")
+                    else:
+                        self.log_result("Transcript Editing Response Format", False, 
+                                      f"Success response format unexpected: {response_data}")
+                except:
+                    self.log_result("Transcript Editing Response Format", False, 
+                                  "Success response is not valid JSON")
+            else:
+                self.log_result("Transcript Editing Response Format", False, 
+                              f"Expected HTTP 200 for successful update, got HTTP {success_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Transcript Editing Response Format", False, f"Response format test error: {str(e)}")
+
     def test_ocr_faster_processing_notifications(self):
         """Test that user notifications are appropriate for faster OCR processing times"""
         if not self.auth_token:
