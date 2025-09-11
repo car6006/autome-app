@@ -6300,6 +6300,17 @@ class BackendTester:
         self.test_list_notes()
         self.test_get_specific_note()
         
+        # 🎯 TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS (NEW - REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("✏️ TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS - PUT /api/notes/{note_id} Endpoint")
+        print("=" * 60)
+        
+        self.test_transcript_editing_save_functionality()
+        self.test_transcript_editing_user_ownership_validation()
+        self.test_transcript_editing_error_handling()
+        self.test_transcript_editing_database_persistence()
+        self.test_transcript_editing_response_format()
+        
         # System tests
         self.test_system_metrics()
         
