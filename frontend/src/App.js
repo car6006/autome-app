@@ -1230,6 +1230,8 @@ const NotesScreen = () => {
     tags: [],
     content_template: ''
   });
+  const [tagInput, setTagInput] = useState('');
+  const [suggestedTags, setSuggestedTags] = useState([]);
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentReport, setCurrentReport] = useState(null);
   const [showBatchReportMenu, setShowBatchReportMenu] = useState(false);
