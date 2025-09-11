@@ -2025,6 +2025,59 @@ const NotesScreen = () => {
     }
   };
 
+  // Tag Management Functions
+  const addTag = async (noteId, tag) => {
+    if (!tag.trim()) return;
+    
+    setAddingTag(prev => ({ ...prev, [noteId]: true }));
+    try {
+      await axios.post(`${API}/notes/${noteId}/tags`, { tag: tag.trim() });
+      await fetchNotes(showArchived); // Refresh notes to show new tag
+      toast({
+        title: "Tag Added",
+        description: `Tag "${tag}" added successfully`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to add tag",
+        variant: "destructive"
+      });
+    } finally {
+      setAddingTag(prev => ({ ...prev, [noteId]: false }));
+    }
+  };
+
+  const removeTag = async (noteId, tag) => {
+    setRemovingTag(prev => ({ ...prev, [`${noteId}-${tag}`]: true }));
+    try {
+      await axios.delete(`${API}/notes/${noteId}/tags/${encodeURIComponent(tag)}`);
+      await fetchNotes(showArchived); // Refresh notes to remove tag
+      toast({
+        title: "Tag Removed",
+        description: `Tag "${tag}" removed successfully`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to remove tag",
+        variant: "destructive"
+      });
+    } finally {
+      setRemovingTag(prev => ({ ...prev, [`${noteId}-${tag}`]: false }));
+    }
+  };
+
+  const toggleTagFilter = (tag) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      } else {
+        return [...prev, tag];
+      }
+    });
+  };
+
   const exportMeetingMinutes = async (format = 'pdf', noteId) => {
     try {
       const response = await axios.get(`${API}/notes/${noteId}/ai-conversations/export?format=${format}`, {
