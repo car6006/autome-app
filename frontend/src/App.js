@@ -2989,7 +2989,7 @@ const NotesScreen = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-56">
-                          {/* Professional Report */}
+                          {/* Detailed Report */}
                           <DropdownMenuItem 
                             onClick={() => generateProfessionalReport(note.id)}
                             disabled={generatingReport[note.id]}
@@ -3002,7 +3002,7 @@ const NotesScreen = () => {
                             ) : (
                               <>
                                 <FileBarChart className="w-4 h-4 mr-3" />
-                                Professional Report
+                                Detailed Report
                               </>
                             )}
                           </DropdownMenuItem>
