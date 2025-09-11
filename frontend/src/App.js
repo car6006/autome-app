@@ -2158,8 +2158,9 @@ const NotesScreen = () => {
 
   // Update suggestions when category changes
   useEffect(() => {
-    setSuggestedTags(getTagSuggestions(templateForm.category));
-  }, [templateForm.category, user]);
+    const { user } = useAuth();
+    setSuggestedTags(getTagSuggestions(templateForm.category, user?.profile));
+  }, [templateForm.category]);
 
   // Template Management Functions
   const fetchTemplates = async () => {
