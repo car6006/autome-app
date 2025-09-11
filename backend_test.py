@@ -5784,6 +5784,13 @@ class BackendTester:
         self.test_status_update_mechanism()
         self.test_regular_vs_live_transcription()
         
+        # 🎯 M4A FILE FORMAT INVESTIGATION (CURRENT REVIEW REQUEST)
+        print("\n" + "=" * 60)
+        print("🔬 M4A FILE FORMAT INVESTIGATION - OpenAI Invalid File Format Issue")
+        print("=" * 60)
+        
+        self.test_m4a_file_format_investigation()
+        
         # Summary
         return self.print_summary()
     
