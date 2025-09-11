@@ -2168,10 +2168,11 @@ const NotesScreen = () => {
 
   // Load templates on component mount
   useEffect(() => {
-    if (isAuthenticated) {
+    const token = localStorage.getItem('auto_me_token');
+    if (token) {
       fetchTemplates();
     }
-  }, [isAuthenticated]);
+  }, []);
 
   // Tag Management Functions
   const addTag = async (noteId, tag) => {
