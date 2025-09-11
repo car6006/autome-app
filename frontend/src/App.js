@@ -1508,9 +1508,15 @@ const NotesScreen = () => {
 
     setSaving(true);
     try {
-      // Update note with edited transcript
-      // Note: This would require a backend endpoint to update artifacts
-      // For now, we'll just update locally and show success
+      // Update note with edited transcript via backend API
+      await axios.put(`${API}/notes/${editingNote}`, {
+        artifacts: {
+          transcript: editedTranscript,
+          text: editedTranscript
+        }
+      });
+      
+      // Update local notes state
       const updatedNotes = notes.map(note => {
         if (note.id === editingNote) {
           return {
@@ -1518,7 +1524,7 @@ const NotesScreen = () => {
             artifacts: {
               ...note.artifacts,
               transcript: editedTranscript,
-              text: note.artifacts?.text || editedTranscript
+              text: editedTranscript
             }
           };
         }
@@ -1531,7 +1537,12 @@ const NotesScreen = () => {
       
       toast({ title: "✅ Saved!", description: "Transcript updated successfully" });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to save transcript", variant: "destructive" });
+      console.error('Error saving transcript:', error);
+      toast({ 
+        title: "Error", 
+        description: error.response?.data?.detail || "Failed to save transcript", 
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }
