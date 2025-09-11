@@ -2873,42 +2873,6 @@ const NotesScreen = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-56">
-                          {/* Meeting Minutes */}
-                          <DropdownMenuItem 
-                            onClick={() => generateMeetingMinutes(note)}
-                            disabled={generatingMinutes[note.id]}
-                          >
-                            {generatingMinutes[note.id] ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
-                                Generating Minutes...
-                              </>
-                            ) : (
-                              <>
-                                <FileText className="w-4 h-4 mr-3" />
-                                Generate Meeting Minutes
-                              </>
-                            )}
-                          </DropdownMenuItem>
-
-                          {/* Action Items */}
-                          <DropdownMenuItem 
-                            onClick={() => generateActionItems(note)}
-                            disabled={generatingActionItems[note.id]}
-                          >
-                            {generatingActionItems[note.id] ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
-                                Generating Actions...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-3" />
-                                Generate Action Items
-                              </>
-                            )}
-                          </DropdownMenuItem>
-
                           {/* Professional Report */}
                           <DropdownMenuItem 
                             onClick={() => generateProfessionalReport(note.id)}
