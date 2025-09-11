@@ -2973,7 +2973,7 @@ const NotesScreen = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedNote(selectedNote === note.id ? null : note.id)}
-                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-2"
+                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-1"
                       >
                         <Mail className="w-4 h-4" />
                         <span className="hidden sm:inline">Email</span>
@@ -2983,7 +2983,7 @@ const NotesScreen = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => shareNote(note)}
-                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-2"
+                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-1"
                       >
                         <MessageSquare className="w-4 h-4" />
                         <span className="hidden sm:inline">Share</span>
@@ -2993,7 +2993,7 @@ const NotesScreen = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => openAiChat(note)}
-                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-2"
+                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-1"
                       >
                         <Bot className="w-4 h-4" />
                         <span className="hidden sm:inline">Ask AI</span>
