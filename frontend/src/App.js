@@ -2040,7 +2040,6 @@ const NotesScreen = () => {
         variant: "destructive" 
       });
     } finally {
-      setGeneratingMinutes(prev => ({...prev, [note.id]: false}));
     }
   };
 
