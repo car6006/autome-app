@@ -5791,6 +5791,19 @@ class BackendTester:
         
         self.test_m4a_file_format_investigation()
         
+        # 🎯 M4A TO WAV CONVERSION TESTS (NEW - REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🎵 M4A TO WAV CONVERSION TESTS - Testing M4A Conversion Fix Implementation")
+        print("=" * 60)
+        
+        self.test_ffmpeg_availability_for_m4a()
+        self.test_m4a_conversion_functionality()
+        self.test_m4a_processing_pipeline()
+        self.test_m4a_conversion_parameters()
+        self.test_audio_format_regression()
+        self.test_m4a_error_handling()
+        self.test_m4a_cleanup_verification()
+        
         # Summary
         return self.print_summary()
     
