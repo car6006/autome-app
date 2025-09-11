@@ -2021,7 +2021,6 @@ const NotesScreen = () => {
   };
 
   const generateMeetingMinutes = async (note) => {
-    setGeneratingMinutes(prev => ({...prev, [note.id]: true}));
     try {
       const response = await axios.post(`${API}/notes/${note.id}/generate-meeting-minutes`);
       
