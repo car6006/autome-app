@@ -1250,6 +1250,7 @@ const NotesScreen = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [failedNotesCount, setFailedNotesCount] = useState(0);
   const [cleaningUp, setCleaningUp] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
