@@ -22,6 +22,18 @@
           agent: "testing"
           comment: "✅ TRANSCRIPTION SYSTEM FIX SUCCESSFULLY VERIFIED: Comprehensive testing confirms the large file handling fix for enhanced_providers.py is working correctly. Key findings: 1) ✅ ENHANCED PROVIDERS IMPORT: tasks.py is correctly importing from enhanced_providers.py instead of providers.py - backend logs confirm 'enhanced_providers - INFO' messages throughout transcription processing, 2) ✅ LARGE FILE CHUNKING LOGIC: split_large_audio_file function successfully added to enhanced_providers.py with ffmpeg chunking capability - file size checking logic working (logs show '🎵 Audio file size: X MB' and '📝 File size OK, processing directly' for small files), 3) ✅ FFMPEG AVAILABILITY: FFmpeg version 5.1.7 confirmed available for audio chunking with 240-second segments, 4) ✅ RATE LIMITING BETWEEN CHUNKS: 3-second delays implemented correctly between chunk processing to prevent API rate limit cascades, 5) ✅ BACKWARD COMPATIBILITY: Normal voice capture transcription maintains expected return format with transcript, summary, and actions fields, 6) ✅ URL DOWNLOAD HANDLING: Enhanced transcribe_audio function properly handles both local files and URL downloads with proper cleanup, 7) ✅ DUAL-PROVIDER FALLBACK: System correctly attempts Emergent transcription first, then falls back to OpenAI with proper error handling and retry logic (3 attempts with exponential backoff). The fix successfully resolves the '413: Maximum content size limit exceeded' error for large audio files (>24MB) by implementing chunking while maintaining full compatibility with existing small file processing. All 6 test requirements from the review request have been successfully verified with 100% test success rate."
 
+  - task: "M4A File Format Transcription Issue Investigation"
+    implemented: true
+    working: false
+    file: "backend/enhanced_providers.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL M4A FORMAT ISSUE CONFIRMED: Comprehensive investigation reveals that OpenAI Whisper API rejects specific M4A file encodings despite listing M4A as a supported format. ROOT CAUSE ANALYSIS: 1) ❌ OPENAI M4A REJECTION: Found 154 recent 'Invalid file format' errors in backend logs for M4A files, confirming widespread issue, 2) ❌ SPECIFIC ENCODING PROBLEM: The problematic M4A file (1.11MB, 69 seconds, 3gp4 codec) is rejected by OpenAI despite being a valid M4A file that FFmpeg can process, 3) ❌ INCONSISTENT BEHAVIOR: OpenAI lists M4A as supported (['flac', 'm4a', 'mp3', 'mp4', 'mpeg', 'mpga', 'oga', 'ogg', 'wav', 'webm']) but rejects certain M4A container variants, particularly 3GP4 brand M4A files, 4) ✅ SYSTEM RESILIENCE: The transcription system handles the rejection gracefully - files upload successfully, processing completes, but transcripts are empty rather than crashing, 5) ✅ FFMPEG COMPATIBILITY: FFmpeg version 5.1.7 is available and can successfully convert M4A files to WAV format using: 'ffmpeg -i input.m4a -acodec pcm_s16le -ar 16000 -ac 1 output.wav', 6) ✅ DETECTION CAPABILITY: System can detect M4A files and their specific encoding (3gp4, mov,mp4,m4a,3gp,3g2,mj2 format family). SOLUTION REQUIRED: Implement automatic M4A to WAV conversion in enhanced_providers.py before sending to OpenAI API to ensure compatibility with all M4A variants and eliminate the 'Invalid file format' errors."
+
 backend:
   - task: "Health Check Endpoint"
     implemented: true
