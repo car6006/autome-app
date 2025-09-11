@@ -2936,6 +2936,16 @@ const NotesScreen = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => shareNote(note)}
+                        className="w-full text-xs px-2"
+                      >
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        <span className="hidden sm:inline">Share</span>
+                        <span className="sm:hidden">Share</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => openAiChat(note)}
                         className="w-full text-xs px-2"
                       >
