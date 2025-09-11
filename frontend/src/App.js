@@ -2087,6 +2087,84 @@ const NotesScreen = () => {
     }
   };
 
+  // Generate tag suggestions based on user profile and category
+  const getTagSuggestions = (category) => {
+    const { user } = useAuth();
+    
+    // Base suggestions by category
+    const categorySuggestions = {
+      meeting: ['meeting', 'team', 'discussion', 'agenda', 'notes', 'weekly', 'monthly', 'standup'],
+      call: ['call', 'client', 'followup', 'phone', 'discussion', 'important', 'urgent'],
+      project: ['project', 'milestone', 'task', 'deadline', 'progress', 'update', 'review'],
+      interview: ['interview', 'candidate', 'hr', 'hiring', 'questions', 'feedback', 'assessment'],
+      personal: ['personal', 'ideas', 'thoughts', 'journal', 'reminder', 'todo', 'private'],
+      general: ['note', 'important', 'reminder', 'draft', 'review', 'action']
+    };
+
+    let suggestions = [...(categorySuggestions[category] || categorySuggestions.general)];
+
+    // Add profile-based suggestions
+    if (user?.profile) {
+      const profile = user.profile;
+      
+      // Add company/organization tags
+      if (profile.company_name) {
+        suggestions.push(profile.company_name.toLowerCase().replace(/[^a-z0-9]/g, ''));
+      }
+      
+      // Add industry-specific tags
+      if (profile.industry) {
+        suggestions.push(profile.industry.toLowerCase());
+      }
+      
+      // Add role-based tags  
+      if (profile.role) {
+        const roleTags = profile.role.toLowerCase().split(' ').filter(word => word.length > 2);
+        suggestions.push(...roleTags);
+      }
+      
+      // Add team/department tags
+      if (profile.team) {
+        suggestions.push(profile.team.toLowerCase());
+      }
+    }
+
+    // Remove duplicates and return unique suggestions
+    return [...new Set(suggestions)].slice(0, 8); // Limit to 8 suggestions
+  };
+
+  // Add tag to template form
+  const addTagToTemplate = (tag) => {
+    if (tag && !templateForm.tags.includes(tag)) {
+      setTemplateForm({
+        ...templateForm, 
+        tags: [...templateForm.tags, tag]
+      });
+    }
+    setTagInput('');
+  };
+
+  // Remove tag from template form
+  const removeTagFromTemplate = (tagToRemove) => {
+    setTemplateForm({
+      ...templateForm,
+      tags: templateForm.tags.filter(tag => tag !== tagToRemove)
+    });
+  };
+
+  // Handle tag input key press
+  const handleTagKeyPress = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      addTagToTemplate(tagInput.trim());
+    }
+  };
+
+  // Update suggestions when category changes
+  useEffect(() => {
+    setSuggestedTags(getTagSuggestions(templateForm.category));
+  }, [templateForm.category, user]);
+
   // Template Management Functions
   const fetchTemplates = async () => {
     try {
