@@ -4330,15 +4330,55 @@ const NotesScreen = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Default Tags (comma-separated)
+                      Default Tags
                     </label>
+                    
+                    {/* Current tags display */}
+                    {templateForm.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {templateForm.tags.map((tag, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => removeTagFromTemplate(tag)}
+                              className="ml-2 hover:text-red-600"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Tag input */}
                     <Input
-                      placeholder="e.g., meeting, team, weekly"
-                      onChange={(e) => {
-                        const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-                        setTemplateForm({...templateForm, tags});
-                      }}
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyPress={handleTagKeyPress}
+                      placeholder="Type a tag and press Enter"
                     />
+                    
+                    {/* Suggested tags */}
+                    {suggestedTags.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-2">Suggested tags:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {suggestedTags
+                            .filter(tag => !templateForm.tags.includes(tag))
+                            .map((tag, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => addTagToTemplate(tag)}
+                              className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                            >
+                              + {tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
