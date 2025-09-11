@@ -2084,6 +2084,84 @@ const NotesScreen = () => {
     }
   };
 
+  // Template Management Functions
+  const fetchTemplates = async () => {
+    try {
+      const response = await axios.get(`${API}/templates`);
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const createTemplate = async () => {
+    try {
+      await axios.post(`${API}/templates`, templateForm);
+      await fetchTemplates();
+      setShowTemplateModal(false);
+      setTemplateForm({
+        name: '',
+        description: '',
+        title_template: '',
+        category: 'general',
+        tags: [],
+        content_template: ''
+      });
+      toast({
+        title: "Template Created",
+        description: `Template "${templateForm.name}" created successfully`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to create template",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const useTemplate = async (template) => {
+    try {
+      await axios.post(`${API}/templates/${template.id}/use`);
+      
+      // Apply template to current note creation
+      const currentDate = new Date().toLocaleDateString();
+      const titleWithDate = template.title_template.replace('{date}', currentDate);
+      
+      toast({
+        title: "Template Applied",
+        description: `Using template: ${template.name}`,
+      });
+      
+      setSelectedTemplate(template);
+      setShowTemplateLibrary(false);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to apply template",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteTemplate = async (templateId) => {
+    try {
+      await axios.delete(`${API}/templates/${templateId}`);
+      await fetchTemplates();
+      toast({
+        title: "Template Deleted",
+        description: "Template deleted successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to delete template",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Tag Management Functions
   const addTag = async (noteId, tag) => {
     if (!tag.trim()) return;
