@@ -2833,6 +2833,71 @@ const NotesScreen = () => {
                 
                 {(note.status === 'ready' || note.status === 'completed') && (
                   <div className="space-y-2 sm:space-y-3">
+                    {/* Tags Section */}
+                    <div className="space-y-2">
+                      {/* Display existing tags */}
+                      {note.tags && note.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {note.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 cursor-pointer hover:bg-blue-200 transition-colors"
+                              onClick={() => toggleTagFilter(tag)}
+                            >
+                              <Tag className="w-3 h-3 mr-1" />
+                              {tag}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeTag(note.id, tag);
+                                }}
+                                disabled={removingTag[`${note.id}-${tag}`]}
+                                className="ml-1 hover:text-red-600"
+                              >
+                                {removingTag[`${note.id}-${tag}`] ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <X className="w-3 h-3" />
+                                )}
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Add new tag */}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add tag..."
+                          value={newTag}
+                          onChange={(e) => setNewTag(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              addTag(note.id, newTag);
+                              setNewTag('');
+                            }
+                          }}
+                          className="text-xs h-8"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            addTag(note.id, newTag);
+                            setNewTag('');
+                          }}
+                          disabled={!newTag.trim() || addingTag[note.id]}
+                          className="h-8 px-2"
+                        >
+                          {addingTag[note.id] ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Plus className="w-3 h-3" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
                     {/* Mobile-first action buttons layout */}
                     <div className="grid grid-cols-2 gap-2">
                       <Button
