@@ -2180,6 +2180,8 @@ const NotesScreen = () => {
       await axios.post(`${API}/templates`, templateForm);
       await fetchTemplates();
       setShowTemplateModal(false);
+      
+      // Reset form completely
       setTemplateForm({
         name: '',
         description: '',
@@ -2188,6 +2190,9 @@ const NotesScreen = () => {
         tags: [],
         content_template: ''
       });
+      setTagInput('');
+      setSuggestedTags(getTagSuggestions('general'));
+      
       toast({
         title: "Template Created",
         description: `Template "${templateForm.name}" created successfully`
