@@ -849,24 +849,24 @@ const PhotoScanScreen = () => {
     <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-green-50 via-white to-blue-50'}`}>
       <div className="max-w-md mx-auto">
         {/* Enhanced header with Profile and Help */}
-        {user && (
-          <div className="mb-4">
-            {/* Header with Profile and Help buttons */}
-            <div className="flex items-center justify-between mb-3">
-              {/* Logo section */}
-              <div className="flex items-center">
-                {branding.showLogo && (
-                  <img 
-                    src={branding.logoPath} 
-                    alt="Expeditors" 
-                    className="expeditors-logo h-6 mr-3"
-                  />
-                )}
-              </div>
-              
-              {/* Profile and Help buttons */}
-              <div className="flex items-center space-x-2">
-                {/* Profile Button */}
+        <div className="mb-4">
+          {/* Header with Profile and Help buttons */}
+          <div className="flex items-center justify-between mb-3">
+            {/* Logo section */}
+            <div className="flex items-center">
+              {branding.showLogo && (
+                <img 
+                  src={branding.logoPath} 
+                  alt="Expeditors" 
+                  className="expeditors-logo h-6 mr-3"
+                />
+              )}
+            </div>
+            
+            {/* Profile and Help buttons - Always visible */}
+            <div className="flex items-center space-x-2">
+              {/* Profile/Login Button */}
+              {user ? (
                 <Link to="/profile" className="p-2">
                   <Avatar className={`w-8 h-8 border-2 ${
                     theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
@@ -881,21 +881,36 @@ const PhotoScanScreen = () => {
                     </AvatarFallback>
                   </Avatar>
                 </Link>
-                
-                {/* Help Button */}
-                <Link to="/help" className="p-2">
+              ) : (
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="p-2"
+                >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     theme.isExpeditors 
                       ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                      : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                      : 'bg-gradient-to-r from-violet-500 to-pink-600'
                   }`}>
-                    <HelpCircle className="w-4 h-4 text-white" />
+                    <User className="w-4 h-4 text-white" />
                   </div>
-                </Link>
-              </div>
+                </button>
+              )}
+              
+              {/* Help Button - Always visible */}
+              <Link to="/help" className="p-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  theme.isExpeditors 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                }`}>
+                  <HelpCircle className="w-4 h-4 text-white" />
+                </div>
+              </Link>
             </div>
-            
-            {/* Greeting text - centered */}
+          </div>
+          
+          {/* Greeting text - centered */}
+          {user && (
             <div className="text-center">
               <p className={`text-sm ${theme.isExpeditors ? 'text-gray-700' : 'text-gray-600'}`}>
                 Capture magic, <span className={`font-semibold ${theme.isExpeditors ? 'text-red-600' : 'text-emerald-600'}`}>
@@ -903,8 +918,8 @@ const PhotoScanScreen = () => {
                 </span>! ✨
               </p>
             </div>
-          </div>
-        )}
+          )}
+        </div>
         
         <Card className={`${theme.cardClass}`}>
           <CardHeader className={`${theme.isExpeditors ? 'text-center pb-6' : 'text-center pb-6'}`}>
