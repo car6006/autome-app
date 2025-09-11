@@ -2226,39 +2226,29 @@ async def generate_professional_report(
 """
         
         prompt = f"""
-        You are a senior executive assistant creating a professional business report{" for Expeditors International" if is_expeditors_user else ""}. Based on the following content, create a clean, well-formatted business analysis.
+        You are creating a clean, professional document from a transcribed conversation. Based on the following content, create a well-structured, readable document that maintains the natural flow of the conversation while organizing it into clear paragraphs.
 
-        Content to analyze:
+        Content to format:
         {content}
 
-        Create a comprehensive professional report with these sections. Use clean formatting with clear headings and bullet points - NO MARKDOWN SYMBOLS like ### or **. Format as clean text with proper structure:
+        Create a clean, structured report with the following format (NO MARKDOWN SYMBOLS like ### or ** - use clean text formatting):
 
-        EXECUTIVE SUMMARY
-        Write 2-3 sentences highlighting the main points and overall situation
+        {note.get("title", "Voice Recording")}
+        Generated on: {datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")}
 
-        KEY INSIGHTS  
-        List 4-6 important findings as bullet points starting with •
+        CONVERSATION SUMMARY
 
-        STRATEGIC RECOMMENDATIONS
-        List 3-5 high-impact recommendations as bullet points starting with •
+        Transform the transcript into well-organized paragraphs that flow naturally. Group related topics together and create smooth transitions between different subjects discussed. Maintain the essential content and meaning while presenting it in a clean, professional format.
 
-        ACTION ITEMS
-        List specific, actionable next steps as bullet points starting with •
-        - Include timeframes where appropriate (immediate, 1-3 months, etc.)
-        - Be specific about who should be responsible
+        Structure the content into 3-5 coherent paragraphs that capture:
+        - The main topics and themes discussed
+        - Key points and decisions mentioned  
+        - Important details and context
+        - Any conclusions or next steps
 
-        PRIORITIES
-        Categorize the action items:
-        HIGH PRIORITY (next 2 weeks):
-        • [list items]
-        
-        MEDIUM PRIORITY (next 1-3 months):
-        • [list items]
+        Write in clear, professional language with proper paragraph structure. Each paragraph should focus on a specific theme or topic from the conversation. Use complete sentences and maintain a professional tone throughout.
 
-        FOLLOW-UP & MONITORING
-        List key metrics to track and review schedule as bullet points starting with •
-
-        Use professional business language. Make it executive-ready. Use clear section headings in CAPS, bullet points with •, and write in complete sentences. Do NOT use markdown formatting symbols.
+        Do NOT include bullet points, action items, or business analysis sections. Focus on creating a clean, readable document that presents the conversation content in an organized, paragraph-based format.
         """
         
         # Use enhanced AI provider with dual-provider support
