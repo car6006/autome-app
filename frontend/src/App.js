@@ -2922,7 +2922,7 @@ const NotesScreen = () => {
                     </div>
                     
                     {/* Mobile-first action buttons layout */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <Button
                         size="sm"
                         variant="outline"
