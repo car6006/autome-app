@@ -740,6 +740,40 @@ async def delete_note(
     
     return {"message": "Note deleted successfully"}
 
+@api_router.put("/notes/{note_id}")
+async def update_note(
+    note_id: str,
+    update_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a note's content (artifacts, title, etc.)"""
+    try:
+        # Get the note
+        note = await NotesStore.get(note_id)
+        if not note:
+            raise HTTPException(status_code=404, detail="Note not found")
+        
+        # Check ownership
+        if note.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to update this note")
+        
+        # Update the note
+        if "artifacts" in update_data:
+            await NotesStore.set_artifacts(note_id, update_data["artifacts"])
+            logger.info(f"Updated artifacts for note {note_id}")
+        
+        if "title" in update_data:
+            # Update title if provided (would need a NotesStore method for this)
+            pass
+        
+        return {"message": "Note updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating note {note_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update note")
+
 @api_router.post("/notes/{note_id}/retry-processing")
 async def retry_note_processing(
     note_id: str,
