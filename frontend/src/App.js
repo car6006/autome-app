@@ -2044,7 +2044,6 @@ const NotesScreen = () => {
   };
 
   const generateActionItems = async (note) => {
-    setGeneratingActionItems(prev => ({...prev, [note.id]: true}));
     try {
       const response = await axios.post(`${API}/notes/${note.id}/generate-action-items`);
       
