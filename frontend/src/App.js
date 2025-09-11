@@ -2541,7 +2541,15 @@ const NotesScreen = () => {
         </div>
 
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {notes.map((note) => (
+          {notes.filter(note => {
+            if (!searchQuery) return true;
+            const query = searchQuery.toLowerCase();
+            const titleMatch = note.title.toLowerCase().includes(query);
+            const contentMatch = note.artifacts?.transcript?.toLowerCase().includes(query) || 
+                                 note.artifacts?.text?.toLowerCase().includes(query) ||
+                                 false;
+            return titleMatch || contentMatch;
+          }).map((note) => (
             <Card key={note.id} className={`hover:shadow-xl transition-all duration-300 ${theme.cardClass} w-full overflow-hidden`}>
               <CardHeader className="pb-3 px-3 sm:px-6 relative">
                 {/* Batch indicator - positioned with perfect micro-adjustment */}
