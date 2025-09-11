@@ -208,7 +208,16 @@ class TranscriptionProvider:
                         
         except Exception as e:
             logger.error(f"❌ OpenAI transcription error: {e}")
-            raise
+            raise e
+        finally:
+            # Clean up temporary WAV file if created
+            if temp_wav_path and temp_wav_path != audio_file_path:
+                try:
+                    os.unlink(temp_wav_path)
+                    logger.info(f"🧹 Cleaned up temporary WAV file: {temp_wav_path}")
+                except Exception as cleanup_error:
+                    logger.warning(f"⚠️ Failed to cleanup temp WAV file {temp_wav_path}: {cleanup_error}")
+                    pass
 
 class AIProvider:
     """Enhanced AI provider for GPT analysis with dual-provider support"""
