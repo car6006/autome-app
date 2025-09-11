@@ -3111,7 +3111,7 @@ const NotesScreen = () => {
           </Card>
         )}
         
-        {/* Professional Report Modal */}
+        {/* Detailed Report Modal */}
         {showReportModal && currentReport && (
           <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-2 sm:p-4 pt-4">
             <div className="bg-white rounded-lg w-full max-w-6xl max-h-[96vh] overflow-hidden">
@@ -3119,7 +3119,7 @@ const NotesScreen = () => {
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
                     <FileBarChart className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-indigo-600" />
-                    <span className="truncate">Comprehensive Business Report</span>
+                    <span className="truncate">Detailed Report</span>
                   </h2>
                   <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">
                     {currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
