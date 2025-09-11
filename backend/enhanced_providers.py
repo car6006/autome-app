@@ -219,6 +219,74 @@ class TranscriptionProvider:
                     logger.warning(f"⚠️ Failed to cleanup temp WAV file {temp_wav_path}: {cleanup_error}")
                     pass
 
+    async def _convert_m4a_to_wav(self, m4a_file_path: str) -> str:
+        """Convert M4A file to WAV format using FFmpeg for OpenAI compatibility"""
+        try:
+            import subprocess
+            import tempfile
+            
+            # Create temporary WAV file
+            temp_fd, temp_wav_path = tempfile.mkstemp(suffix='.wav')
+            os.close(temp_fd)
+            
+            logger.info(f"🔄 Converting M4A to WAV: {m4a_file_path} -> {temp_wav_path}")
+            
+            # FFmpeg command for M4A to WAV conversion
+            cmd = [
+                'ffmpeg',
+                '-i', m4a_file_path,           # Input M4A file
+                '-acodec', 'pcm_s16le',        # Use WAV PCM encoding
+                '-ar', '16000',                # 16kHz sample rate (optimal for Whisper)
+                '-ac', '1',                    # Mono audio
+                '-y',                          # Overwrite output file
+                temp_wav_path                  # Output WAV file
+            ]
+            
+            # Execute FFmpeg conversion
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=120  # 2 minute timeout for conversion
+            )
+            
+            if result.returncode == 0:
+                # Verify the output file was created and has content
+                if os.path.exists(temp_wav_path) and os.path.getsize(temp_wav_path) > 0:
+                    file_size = os.path.getsize(temp_wav_path)
+                    logger.info(f"✅ M4A conversion successful: {file_size} bytes WAV file created")
+                    return temp_wav_path
+                else:
+                    logger.error(f"❌ M4A conversion failed: Output WAV file is empty or missing")
+                    try:
+                        os.unlink(temp_wav_path)
+                    except:
+                        pass
+                    return None
+            else:
+                logger.error(f"❌ FFmpeg M4A conversion failed: {result.stderr}")
+                try:
+                    os.unlink(temp_wav_path)
+                except:
+                    pass
+                return None
+                
+        except subprocess.TimeoutExpired:
+            logger.error(f"❌ M4A conversion timeout after 120 seconds")
+            try:
+                os.unlink(temp_wav_path)
+            except:
+                pass
+            return None
+        except Exception as e:
+            logger.error(f"❌ M4A conversion error: {e}")
+            try:
+                if 'temp_wav_path' in locals():
+                    os.unlink(temp_wav_path)
+            except:
+                pass
+            return None
+
 class AIProvider:
     """Enhanced AI provider for GPT analysis with dual-provider support"""
     
