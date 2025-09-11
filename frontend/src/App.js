@@ -4487,6 +4487,195 @@ const Navigation = () => {
         </div>
       </Link>
       
+      {/* Template Library Modal */}
+      {showTemplateLibrary && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Layout className="w-5 h-5 mr-2 text-blue-600" />
+                  Template Library
+                </h2>
+                <p className="text-gray-600 text-sm">Create and manage your note templates</p>
+              </div>
+              <button
+                onClick={() => setShowTemplateLibrary(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 border-b">
+              <Button
+                onClick={() => setShowTemplateModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create New Template
+              </Button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              {templates.length === 0 ? (
+                <div className="text-center py-8">
+                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No templates yet. Create your first template to get started!</p>
+                </div>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {templates.map((template) => (
+                    <div key={template.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{template.name}</h3>
+                          <p className="text-sm text-gray-600">{template.description}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => useTemplate(template)}
+                            className="p-1 hover:bg-blue-100 rounded text-blue-600"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteTemplate(template.id)}
+                            className="p-1 hover:bg-red-100 rounded text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-gray-500 mb-2">
+                        <span className="bg-gray-100 px-2 py-1 rounded text-xs">{template.category}</span>
+                        <span className="ml-2">Used {template.usage_count} times</span>
+                      </div>
+                      
+                      {template.tags && template.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {template.tags.map((tag, index) => (
+                            <span key={index} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Template Modal */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <Plus className="w-5 h-5 mr-2 text-green-600" />
+                Create Template
+              </h2>
+              <button
+                onClick={() => setShowTemplateModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Template Name *
+                  </label>
+                  <Input
+                    value={templateForm.name}
+                    onChange={(e) => setTemplateForm({...templateForm, name: e.target.value})}
+                    placeholder="e.g., Weekly Team Meeting"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <Input
+                    value={templateForm.description}
+                    onChange={(e) => setTemplateForm({...templateForm, description: e.target.value})}
+                    placeholder="Brief description of this template"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Title Template *
+                  </label>
+                  <Input
+                    value={templateForm.title_template}
+                    onChange={(e) => setTemplateForm({...templateForm, title_template: e.target.value})}
+                    placeholder="e.g., Team Meeting - {date}"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Use {date} to insert current date</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={templateForm.category}
+                    onChange={(e) => setTemplateForm({...templateForm, category: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="general">General</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="call">Call</option>
+                    <option value="project">Project</option>
+                    <option value="interview">Interview</option>
+                    <option value="personal">Personal</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Default Tags
+                  </label>
+                  <Input
+                    placeholder="Enter tags separated by commas"
+                    onChange={(e) => {
+                      const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+                      setTemplateForm({...templateForm, tags});
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowTemplateModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={createTemplate}
+                disabled={!templateForm.name || !templateForm.title_template}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Create Template
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </>
   );
