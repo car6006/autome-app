@@ -1251,6 +1251,10 @@ const NotesScreen = () => {
   const [failedNotesCount, setFailedNotesCount] = useState(0);
   const [cleaningUp, setCleaningUp] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [newTag, setNewTag] = useState('');
+  const [addingTag, setAddingTag] = useState({});
+  const [removingTag, setRemovingTag] = useState({});
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
