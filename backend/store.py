@@ -334,7 +334,7 @@ class TemplateStore:
     async def get(template_id: str) -> Optional[Dict[str, Any]]:
         """Get a template by ID"""
         try:
-            template = await db()["templates"].find_one({"id": template_id})
+            template = await db()["templates"].find_one({"id": template_id}, {"_id": 0})
             return template
         except Exception as e:
             logger.error(f"Failed to get template {template_id}: {e}")
