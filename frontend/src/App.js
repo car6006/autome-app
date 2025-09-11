@@ -848,23 +848,61 @@ const PhotoScanScreen = () => {
   return (
     <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-green-50 via-white to-blue-50'}`}>
       <div className="max-w-md mx-auto">
-        {/* User greeting */}
+        {/* Enhanced header with Profile and Help */}
         {user && (
-          <div className="mb-4 text-center">
-            {branding.showLogo && (
-              <div className="mb-3 flex justify-center">
-                <img 
-                  src={branding.logoPath} 
-                  alt="Expeditors" 
-                  className="expeditors-logo h-8"
-                />
+          <div className="mb-4">
+            {/* Header with Profile and Help buttons */}
+            <div className="flex items-center justify-between mb-3">
+              {/* Logo section */}
+              <div className="flex items-center">
+                {branding.showLogo && (
+                  <img 
+                    src={branding.logoPath} 
+                    alt="Expeditors" 
+                    className="expeditors-logo h-6 mr-3"
+                  />
+                )}
               </div>
-            )}
-            <p className={`text-sm ${theme.isExpeditors ? 'text-gray-700' : 'text-gray-600'}`}>
-              Capture magic, <span className={`font-semibold ${theme.isExpeditors ? 'text-red-600' : 'text-emerald-600'}`}>
-                {user.profile?.first_name || user.username}
-              </span>! ✨
-            </p>
+              
+              {/* Profile and Help buttons */}
+              <div className="flex items-center space-x-2">
+                {/* Profile Button */}
+                <Link to="/profile" className="p-2">
+                  <Avatar className={`w-8 h-8 border-2 ${
+                    theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
+                  }`}>
+                    <AvatarImage src={user?.profile?.avatar_url} />
+                    <AvatarFallback className={`text-white text-xs font-bold ${
+                      theme.isExpeditors 
+                        ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                        : 'bg-gradient-to-r from-violet-500 to-pink-500'
+                    }`}>
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+                
+                {/* Help Button */}
+                <Link to="/help" className="p-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    theme.isExpeditors 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                  }`}>
+                    <HelpCircle className="w-4 h-4 text-white" />
+                  </div>
+                </Link>
+              </div>
+            </div>
+            
+            {/* Greeting text - centered */}
+            <div className="text-center">
+              <p className={`text-sm ${theme.isExpeditors ? 'text-gray-700' : 'text-gray-600'}`}>
+                Capture magic, <span className={`font-semibold ${theme.isExpeditors ? 'text-red-600' : 'text-emerald-600'}`}>
+                  {user.profile?.first_name || user.username}
+                </span>! ✨
+              </p>
+            </div>
           </div>
         )}
         
