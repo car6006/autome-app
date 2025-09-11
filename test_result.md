@@ -671,8 +671,8 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.6"
-  test_sequence: 7
+  version: "1.7"
+  test_sequence: 8
   run_ui: true
 
 test_plan:
