@@ -2088,9 +2088,7 @@ const NotesScreen = () => {
   };
 
   // Generate tag suggestions based on user profile and category
-  const getTagSuggestions = (category) => {
-    const { user } = useAuth();
-    
+  const getTagSuggestions = (category, userProfile) => {
     // Base suggestions by category
     const categorySuggestions = {
       meeting: ['meeting', 'team', 'discussion', 'agenda', 'notes', 'weekly', 'monthly', 'standup'],
@@ -2104,28 +2102,26 @@ const NotesScreen = () => {
     let suggestions = [...(categorySuggestions[category] || categorySuggestions.general)];
 
     // Add profile-based suggestions
-    if (user?.profile) {
-      const profile = user.profile;
-      
+    if (userProfile) {      
       // Add company/organization tags
-      if (profile.company_name) {
-        suggestions.push(profile.company_name.toLowerCase().replace(/[^a-z0-9]/g, ''));
+      if (userProfile.company_name) {
+        suggestions.push(userProfile.company_name.toLowerCase().replace(/[^a-z0-9]/g, ''));
       }
       
       // Add industry-specific tags
-      if (profile.industry) {
-        suggestions.push(profile.industry.toLowerCase());
+      if (userProfile.industry) {
+        suggestions.push(userProfile.industry.toLowerCase());
       }
       
       // Add role-based tags  
-      if (profile.role) {
-        const roleTags = profile.role.toLowerCase().split(' ').filter(word => word.length > 2);
+      if (userProfile.role) {
+        const roleTags = userProfile.role.toLowerCase().split(' ').filter(word => word.length > 2);
         suggestions.push(...roleTags);
       }
       
       // Add team/department tags
-      if (profile.team) {
-        suggestions.push(profile.team.toLowerCase());
+      if (userProfile.team) {
+        suggestions.push(userProfile.team.toLowerCase());
       }
     }
 
