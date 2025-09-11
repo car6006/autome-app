@@ -3007,9 +3007,9 @@ const NotesScreen = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => exportNote(note.id, 'txt')}
-                        className="w-full text-xs px-2"
+                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-2"
                       >
-                        <FileText className="w-3 h-3 mr-1" />
+                        <FileText className="w-4 h-4" />
                         <span className="hidden sm:inline">Export TXT</span>
                         <span className="sm:hidden">TXT</span>
                       </Button>
@@ -3017,9 +3017,9 @@ const NotesScreen = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => exportNote(note.id, 'rtf')}
-                        className="w-full text-xs px-2"
+                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-2"
                       >
-                        <Download className="w-3 h-3 mr-1" />
+                        <Download className="w-4 h-4" />
                         <span className="hidden sm:inline">Export RTF</span>
                         <span className="sm:hidden">RTF</span>
                       </Button>
