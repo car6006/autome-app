@@ -877,7 +877,7 @@ const PhotoScanScreen = () => {
                         ? 'bg-gradient-to-r from-red-500 to-red-600' 
                         : 'bg-gradient-to-r from-violet-500 to-pink-500'
                     }`}>
-                      {getInitials()}
+                      {(user?.profile?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Link>
