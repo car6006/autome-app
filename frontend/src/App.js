@@ -2020,55 +2020,6 @@ const NotesScreen = () => {
     }
   };
 
-  const generateMeetingMinutes = async (note) => {
-    try {
-      const response = await axios.post(`${API}/notes/${note.id}/generate-meeting-minutes`);
-      
-      setMeetingMinutes(response.data.meeting_minutes);
-      setCurrentNoteForMinutes(note); // Store the note for export
-      setShowMeetingMinutesPreview(true);
-      
-      toast({ 
-        title: "📋 Meeting Minutes Generated", 
-        description: "Professional meeting minutes are ready for preview!" 
-      });
-      
-    } catch (error) {
-      toast({ 
-        title: "Error", 
-        description: "Failed to generate meeting minutes. Please try again.", 
-        variant: "destructive" 
-      });
-    } finally {
-    }
-  };
-
-  const generateActionItems = async (note) => {
-    try {
-      const response = await axios.post(`${API}/notes/${note.id}/generate-action-items`);
-      
-      setCurrentActionItems({
-        data: response.data,
-        noteId: note.id,
-        note_title: note.title
-      });
-      setShowActionItemsModal(true);
-      
-      toast({ 
-        title: "📋 Action Items Generated", 
-        description: "Structured action items table is ready for review!" 
-      });
-      
-    } catch (error) {
-      toast({ 
-        title: "Error", 
-        description: "Failed to generate action items. Please try again.", 
-        variant: "destructive" 
-      });
-    } finally {
-    }
-  };
-
   const exportMeetingMinutes = async (format = 'pdf', noteId) => {
     try {
       const response = await axios.get(`${API}/notes/${noteId}/ai-conversations/export?format=${format}`, {
