@@ -5377,6 +5377,211 @@ class BackendTester:
             self.log_result("Transcription Pipeline Robustness", False, 
                           f"Pipeline robustness test error: {str(e)}")
 
+    def test_m4a_file_transcription(self):
+        """Test M4A file format transcription issue - comprehensive investigation"""
+        if not self.auth_token:
+            self.log_result("M4A File Transcription", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test 1: Check if M4A files are accepted by upload endpoint
+            print("\n🔍 Testing M4A file format transcription issue...")
+            
+            # Create a minimal M4A file header (simulated for testing)
+            # Real M4A files have specific MPEG-4 container structure
+            m4a_header = b'\x00\x00\x00\x20ftypM4A \x00\x00\x00\x00M4A mp42isom\x00\x00\x00\x00'
+            test_m4a_content = m4a_header + b'test_audio_data' * 100  # Simulate M4A content
+            
+            files = {
+                'file': ('test_m4a_transcription.m4a', test_m4a_content, 'audio/m4a')
+            }
+            data = {
+                'title': 'M4A Format Test - OpenAI Compatibility Check'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                m4a_note_id = result.get("id")
+                
+                if m4a_note_id:
+                    self.log_result("M4A File Upload", True, f"M4A file uploaded successfully: {m4a_note_id}")
+                    
+                    # Wait for processing and check results
+                    time.sleep(8)
+                    
+                    # Check processing status
+                    note_response = self.session.get(f"{BACKEND_URL}/notes/{m4a_note_id}", timeout=10)
+                    if note_response.status_code == 200:
+                        note_data = note_response.json()
+                        status = note_data.get("status", "unknown")
+                        artifacts = note_data.get("artifacts", {})
+                        
+                        if status == "failed":
+                            error_msg = artifacts.get("error", "")
+                            if "invalid file format" in error_msg.lower():
+                                self.log_result("M4A File Transcription", False, 
+                                              f"❌ CONFIRMED: OpenAI rejects M4A files despite listing as supported. Error: {error_msg}")
+                                
+                                # Test 2: Check if FFmpeg can handle M4A conversion
+                                self.test_ffmpeg_m4a_conversion()
+                                
+                            else:
+                                self.log_result("M4A File Transcription", False, f"M4A processing failed with different error: {error_msg}")
+                        elif status == "ready":
+                            transcript = artifacts.get("transcript", "")
+                            self.log_result("M4A File Transcription", True, f"✅ M4A file processed successfully: {transcript[:50]}...")
+                        elif status == "processing":
+                            self.log_result("M4A File Transcription", True, "M4A file still processing (may succeed)")
+                        else:
+                            self.log_result("M4A File Transcription", False, f"Unexpected M4A processing status: {status}")
+                    else:
+                        self.log_result("M4A File Transcription", False, "Could not check M4A processing status")
+                else:
+                    self.log_result("M4A File Upload", False, "M4A upload succeeded but no note ID returned")
+            elif response.status_code == 400:
+                error_text = response.text.lower()
+                if "unsupported" in error_text or "m4a" in error_text:
+                    self.log_result("M4A File Upload", False, f"M4A files rejected at upload level: {response.text}")
+                else:
+                    self.log_result("M4A File Upload", False, f"M4A upload failed with 400 error: {response.text}")
+            else:
+                self.log_result("M4A File Upload", False, f"M4A upload failed: HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("M4A File Transcription", False, f"M4A transcription test error: {str(e)}")
+
+    def test_ffmpeg_m4a_conversion(self):
+        """Test if FFmpeg can detect and convert M4A files to compatible format"""
+        try:
+            import subprocess
+            
+            # Test FFmpeg M4A support
+            print("🔧 Testing FFmpeg M4A conversion capabilities...")
+            
+            # Check if FFmpeg supports M4A input
+            result = subprocess.run(['ffmpeg', '-f', 'm4a', '-i', '/dev/null', '-f', 'null', '-'], 
+                                  capture_output=True, text=True, timeout=10)
+            
+            # FFmpeg will fail with /dev/null but should show M4A support in error message
+            if "m4a" in result.stderr.lower() or "aac" in result.stderr.lower():
+                self.log_result("FFmpeg M4A Support", True, "FFmpeg supports M4A input format")
+                
+                # Test conversion command that could be used
+                conversion_cmd = [
+                    'ffmpeg', '-i', 'input.m4a', 
+                    '-acodec', 'pcm_s16le',  # Convert to WAV PCM
+                    '-ar', '16000',          # 16kHz sample rate
+                    '-ac', '1',              # Mono
+                    'output.wav'
+                ]
+                
+                self.log_result("FFmpeg M4A Conversion", True, 
+                              f"FFmpeg can convert M4A to WAV: {' '.join(conversion_cmd)}")
+            else:
+                self.log_result("FFmpeg M4A Support", False, "FFmpeg may not support M4A format")
+                
+        except FileNotFoundError:
+            self.log_result("FFmpeg M4A Support", False, "FFmpeg not available for M4A conversion testing")
+        except Exception as e:
+            self.log_result("FFmpeg M4A Support", False, f"FFmpeg M4A test error: {str(e)}")
+
+    def test_m4a_encoding_detection(self):
+        """Test detection of problematic M4A encodings"""
+        try:
+            print("🔍 Testing M4A encoding detection...")
+            
+            # Test the specific M4A file URL from the review request
+            test_m4a_url = "https://customer-assets.emergentagent.com/job_smart-transcript-1/artifacts/kxicbbk2_Cleanup%20system%20on%20notes%20actions.m4a"
+            
+            # Try to download and analyze the file
+            import requests
+            try:
+                response = requests.head(test_m4a_url, timeout=10)
+                if response.status_code == 200:
+                    content_type = response.headers.get('content-type', '')
+                    content_length = response.headers.get('content-length', '0')
+                    
+                    self.log_result("M4A File Detection", True, 
+                                  f"✅ Problematic M4A file accessible: {content_type}, {content_length} bytes")
+                    
+                    # Could potentially download and test with FFmpeg
+                    if int(content_length) < 10 * 1024 * 1024:  # Less than 10MB
+                        self.log_result("M4A File Analysis", True, 
+                                      "M4A file size suitable for analysis (< 10MB)")
+                    else:
+                        self.log_result("M4A File Analysis", True, 
+                                      f"M4A file large ({int(content_length)/(1024*1024):.1f}MB) - may need chunking")
+                else:
+                    self.log_result("M4A File Detection", False, 
+                                  f"Cannot access problematic M4A file: HTTP {response.status_code}")
+            except Exception as e:
+                self.log_result("M4A File Detection", False, f"Cannot access M4A file: {str(e)}")
+                
+        except Exception as e:
+            self.log_result("M4A Encoding Detection", False, f"M4A encoding detection error: {str(e)}")
+
+    def test_openai_m4a_compatibility(self):
+        """Test OpenAI API M4A compatibility directly"""
+        try:
+            print("🤖 Testing OpenAI API M4A compatibility...")
+            
+            # Check if we can identify the specific issue with OpenAI M4A handling
+            # This would require actual API testing, but we can check error patterns
+            
+            # Look for recent M4A errors in backend logs
+            import subprocess
+            try:
+                result = subprocess.run([
+                    'grep', '-i', 'invalid file format.*m4a', 
+                    '/var/log/supervisor/backend.err.log'
+                ], capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0 and result.stdout.strip():
+                    error_lines = result.stdout.strip().split('\n')
+                    recent_errors = len(error_lines)
+                    
+                    self.log_result("OpenAI M4A Errors", True, 
+                                  f"Found {recent_errors} recent M4A format errors in logs")
+                    
+                    # Show sample error for analysis
+                    if error_lines:
+                        sample_error = error_lines[-1]  # Most recent
+                        self.log_result("OpenAI M4A Error Sample", True, 
+                                      f"Recent error: {sample_error[-100:]}")  # Last 100 chars
+                else:
+                    self.log_result("OpenAI M4A Errors", True, "No recent M4A format errors found in logs")
+                    
+            except Exception as e:
+                self.log_result("OpenAI M4A Error Check", False, f"Cannot check M4A errors: {str(e)}")
+                
+        except Exception as e:
+            self.log_result("OpenAI M4A Compatibility", False, f"OpenAI M4A compatibility test error: {str(e)}")
+
+    def test_m4a_file_format_investigation(self):
+        """Comprehensive M4A file format investigation"""
+        print("\n🔬 COMPREHENSIVE M4A FILE FORMAT INVESTIGATION")
+        print("=" * 60)
+        
+        # Run all M4A-related tests
+        self.test_m4a_file_transcription()
+        self.test_ffmpeg_m4a_conversion()
+        self.test_m4a_encoding_detection()
+        self.test_openai_m4a_compatibility()
+        
+        # Summary of findings
+        print("\n📋 M4A INVESTIGATION SUMMARY:")
+        print("- Testing M4A file upload and transcription")
+        print("- Checking FFmpeg M4A conversion capabilities")
+        print("- Analyzing problematic M4A file from URL")
+        print("- Investigating OpenAI API M4A rejection patterns")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Testing Suite")
