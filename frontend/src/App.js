@@ -2945,7 +2945,7 @@ const NotesScreen = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openAiChat(note.id)}
+                        onClick={() => openAiChat(note)}
                         className="w-full text-xs px-2"
                       >
                         <Bot className="w-3 h-3 mr-1" />
