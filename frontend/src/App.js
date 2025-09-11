@@ -1569,7 +1569,7 @@ const NotesScreen = () => {
       setShowReportModal(true);
       
       toast({ 
-        title: "📊 Professional Report Generated", 
+        title: "📊 Detailed Report Generated", 
         description: "Your AI-powered business analysis is ready" 
       });
       
