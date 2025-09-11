@@ -24,7 +24,7 @@ import {
   Zap, BarChart3, Loader2, User, Settings, UserPlus, LogIn, Sparkles,
   Heart, Download, Edit, Save, HelpCircle, Trash2, Archive, Target,
   FileBarChart, Users, FileDown, Bot, CheckCircle, ChevronDown,
-  MessageSquare, RefreshCw, Search, X
+  MessageSquare, RefreshCw, Search, X, Tag, Plus
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
