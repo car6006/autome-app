@@ -2025,6 +2025,52 @@ const NotesScreen = () => {
     }
   };
 
+  // Share Note Function
+  const shareNote = async (note) => {
+    try {
+      const content = note.artifacts?.transcript || note.artifacts?.text || 'No content available';
+      const shareData = {
+        title: note.title,
+        text: `${note.title}\n\n${content}`,
+        url: window.location.href
+      };
+
+      // Check if Web Share API is supported (mobile)
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared Successfully",
+          description: "Note shared via your device's sharing options"
+        });
+      } else {
+        // Fallback: Copy to clipboard (desktop)
+        const textToCopy = `${note.title}\n\n${content}`;
+        await navigator.clipboard.writeText(textToCopy);
+        toast({
+          title: "Copied to Clipboard",
+          description: "Note content copied. You can now paste it anywhere"
+        });
+      }
+    } catch (error) {
+      // If sharing fails, fallback to clipboard
+      try {
+        const content = note.artifacts?.transcript || note.artifacts?.text || 'No content available';
+        const textToCopy = `${note.title}\n\n${content}`;
+        await navigator.clipboard.writeText(textToCopy);
+        toast({
+          title: "Copied to Clipboard", 
+          description: "Note content copied. You can now paste it anywhere"
+        });
+      } catch (clipboardError) {
+        toast({
+          title: "Share Failed",
+          description: "Unable to share or copy the note",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
   // Tag Management Functions
   const addTag = async (noteId, tag) => {
     if (!tag.trim()) return;
