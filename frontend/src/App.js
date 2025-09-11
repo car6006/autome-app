@@ -4227,7 +4227,7 @@ const NotesScreen = () => {
                       onChange={(e) => setTemplateForm({...templateForm, title_template: e.target.value})}
                       placeholder="e.g., Team Meeting - {date}"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Use {date} to insert current date</p>
+                    <p className="text-xs text-gray-500 mt-1">Use {"{date}"} to insert current date</p>
                   </div>
                   
                   <div>
