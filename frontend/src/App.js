@@ -1218,6 +1218,18 @@ const NotesScreen = () => {
   const [saving, setSaving] = useState(false);
   const [processingTimes, setProcessingTimes] = useState({});
   const [generatingReport, setGeneratingReport] = useState({});
+  const [templates, setTemplates] = useState([]);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [templateForm, setTemplateForm] = useState({
+    name: '',
+    description: '',
+    title_template: '',
+    category: 'general',
+    tags: [],
+    content_template: ''
+  });
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentReport, setCurrentReport] = useState(null);
   const [showBatchReportMenu, setShowBatchReportMenu] = useState(false);
