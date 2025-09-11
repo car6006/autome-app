@@ -25,7 +25,7 @@ import {
   Heart, Download, Edit, Save, HelpCircle, Trash2, Archive, Target,
   FileBarChart, Users, FileDown, Bot, CheckCircle, ChevronDown,
   MessageSquare, RefreshCw, Search, X, Tag, Plus, Layout, BookOpen, 
-  Star, Copy, Bookmark
+  Star, Copy, Bookmark, ZoomIn, ZoomOut
 } from "lucide-react";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
