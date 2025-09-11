@@ -1208,7 +1208,6 @@ const LiveTranscriptionScreen = () => {
 };
 
 const NotesScreen = () => {
-  const { user } = useAuth(); // Get user at component level
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedNote, setSelectedNote] = useState(null);
