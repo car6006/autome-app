@@ -924,6 +924,179 @@ async def get_notes_by_tag(
         raise HTTPException(status_code=500, detail="Failed to get notes by tag")
 
 
+# Template Management Endpoints
+
+@api_router.post("/templates")
+async def create_template(
+    template_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new note template"""
+    try:
+        # Validate required fields
+        required_fields = ["name", "title_template"]
+        for field in required_fields:
+            if not template_data.get(field):
+                raise HTTPException(status_code=400, detail=f"'{field}' is required")
+        
+        # Add user ID and validate data
+        template_data["user_id"] = current_user["id"]
+        template_data.setdefault("category", "general")
+        template_data.setdefault("tags", [])
+        template_data.setdefault("usage_count", 0)
+        template_data.setdefault("is_favorite", False)
+        
+        # Clean tags
+        template_data["tags"] = [tag.strip().lower() for tag in template_data["tags"] if tag.strip()]
+        
+        template_id = await TemplateStore.create(template_data)
+        return {"message": "Template created successfully", "template_id": template_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating template: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create template")
+
+@api_router.get("/templates")
+async def get_user_templates(
+    category: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all templates for the current user"""
+    try:
+        templates = await TemplateStore.get_user_templates(current_user["id"], category)
+        return templates
+    except Exception as e:
+        logger.error(f"Error getting templates for user {current_user['id']}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get templates")
+
+@api_router.get("/templates/categories")
+async def get_template_categories(current_user: dict = Depends(get_current_user)):
+    """Get all unique template categories for the current user"""
+    try:
+        categories = await TemplateStore.get_categories(current_user["id"])
+        return {"categories": categories}
+    except Exception as e:
+        logger.error(f"Error getting template categories: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get template categories")
+
+@api_router.get("/templates/{template_id}")
+async def get_template(
+    template_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a specific template"""
+    try:
+        template = await TemplateStore.get(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        if template.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to access this template")
+        
+        return template
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting template {template_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get template")
+
+@api_router.put("/templates/{template_id}")
+async def update_template(
+    template_id: str,
+    updates: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a template"""
+    try:
+        # Get template and verify ownership
+        template = await TemplateStore.get(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        if template.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to modify this template")
+        
+        # Clean tags if provided
+        if "tags" in updates:
+            updates["tags"] = [tag.strip().lower() for tag in updates["tags"] if tag.strip()]
+        
+        # Remove fields that shouldn't be updated
+        protected_fields = ["id", "user_id", "created_at", "usage_count"]
+        for field in protected_fields:
+            updates.pop(field, None)
+        
+        success = await TemplateStore.update(template_id, updates)
+        if success:
+            return {"message": "Template updated successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update template")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating template {template_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update template")
+
+@api_router.delete("/templates/{template_id}")
+async def delete_template(
+    template_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a template"""
+    try:
+        # Get template and verify ownership
+        template = await TemplateStore.get(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        if template.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this template")
+        
+        success = await TemplateStore.delete(template_id)
+        if success:
+            return {"message": "Template deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete template")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting template {template_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete template")
+
+@api_router.post("/templates/{template_id}/use")
+async def use_template(
+    template_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Use a template and increment its usage count"""
+    try:
+        # Get template and verify ownership
+        template = await TemplateStore.get(template_id)
+        if not template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        if template.get("user_id") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Not authorized to use this template")
+        
+        # Increment usage count
+        await TemplateStore.increment_usage(template_id)
+        
+        # Return template data for use
+        return {
+            "template": template,
+            "message": "Template usage recorded"
+        }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error using template {template_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to use template")
+
+
 @api_router.post("/user/professional-context")
 async def update_professional_context(
     context_data: dict,
