@@ -348,8 +348,17 @@ class TemplateStore:
             if category:
                 query["category"] = category
             
-            cursor = db()["templates"].find(query).sort("usage_count", -1)  # Sort by most used
-            return await cursor.to_list(length=None)
+            cursor = db()["templates"].find(query, {"_id": 0}).sort("usage_count", -1)  # Sort by most used, exclude _id
+            templates = await cursor.to_list(length=None)
+            
+            # Ensure all templates have required fields with defaults
+            for template in templates:
+                template.setdefault("usage_count", 0)
+                template.setdefault("tags", [])
+                template.setdefault("category", "general")
+                template.setdefault("description", "")
+            
+            return templates
         except Exception as e:
             logger.error(f"Failed to get templates for user {user_id}: {e}")
             return []
