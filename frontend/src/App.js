@@ -1277,6 +1277,7 @@ const NotesScreen = () => {
     fetchNotes(showArchived);
     if (user) {
       fetchFailedNotesCount();
+      fetchTemplates(); // Load templates when user is available
     }
     
     const interval = setInterval(() => fetchNotes(showArchived), 3000); // Poll every 3 seconds instead of 5
