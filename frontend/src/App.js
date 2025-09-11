@@ -2597,6 +2597,38 @@ const NotesScreen = () => {
           </div>
         </div>
 
+        {/* Tag Filters */}
+        {selectedTags.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Active filters:</span>
+              <button
+                onClick={() => setSelectedTags([])}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                Clear all
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {selectedTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-600 text-white"
+                >
+                  <Tag className="w-3 h-3 mr-1" />
+                  {tag}
+                  <button
+                    onClick={() => toggleTagFilter(tag)}
+                    className="ml-2 hover:text-gray-200"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {notes.filter(note => {
             // Search filter
