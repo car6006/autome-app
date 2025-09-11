@@ -19,7 +19,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 
-from store import NotesStore
+from store import NotesStore, TemplateStore
 from storage import store_file
 from tasks import enqueue_transcription, enqueue_ocr, enqueue_email, enqueue_git_sync, enqueue_iisb_processing
 from auth import (
