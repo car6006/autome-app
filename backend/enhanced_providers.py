@@ -109,9 +109,22 @@ class TranscriptionProvider:
             return None
 
     async def _transcribe_with_openai(self, audio_file_path: str, session_id: str = None, chunk_idx: int = None) -> dict:
-        """Transcribe using OpenAI Whisper API with enhanced error handling"""
+        """Transcribe using OpenAI Whisper API with enhanced error handling and M4A conversion"""
+        actual_file_path = audio_file_path
+        temp_wav_path = None
+        
         try:
-            with open(audio_file_path, 'rb') as audio_file:
+            # Check if file is M4A and convert to WAV if needed
+            if audio_file_path.lower().endswith('.m4a'):
+                logger.info(f"🔄 M4A file detected, converting to WAV for OpenAI compatibility")
+                temp_wav_path = await self._convert_m4a_to_wav(audio_file_path)
+                if temp_wav_path:
+                    actual_file_path = temp_wav_path
+                    logger.info(f"✅ M4A converted to WAV: {temp_wav_path}")
+                else:
+                    logger.warning(f"⚠️ M4A conversion failed, trying original file")
+            
+            with open(actual_file_path, 'rb') as audio_file:
                 # Create form data for OpenAI Whisper API
                 files = {
                     'file': (f'audio_{int(time.time())}.wav', audio_file, 'audio/wav')
