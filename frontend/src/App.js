@@ -882,10 +882,7 @@ const PhotoScanScreen = () => {
                   </Avatar>
                 </Link>
               ) : (
-                <button 
-                  onClick={() => setShowAuthModal(true)}
-                  className="p-2"
-                >
+                <Link to="/login" className="p-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     theme.isExpeditors 
                       ? 'bg-gradient-to-r from-red-500 to-red-600' 
@@ -893,7 +890,7 @@ const PhotoScanScreen = () => {
                   }`}>
                     <User className="w-4 h-4 text-white" />
                   </div>
-                </button>
+                </Link>
               )}
               
               {/* Help Button - Always visible */}
