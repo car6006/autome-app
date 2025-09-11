@@ -46,7 +46,7 @@ class TranscriptEditingTester:
             # Generate unique email and username for this test
             unique_id = uuid.uuid4().hex[:8]
             unique_email = f"transcript_test_{unique_id}@example.com"
-            unique_username = f"transcript_test{unique_id}"
+            unique_username = f"transcripttest{unique_id}"
             
             user_data = {
                 "email": unique_email,
