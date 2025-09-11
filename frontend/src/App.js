@@ -4807,6 +4807,17 @@ const Navigation = () => {
         </div>
       </div>
       
+      {/* Temporary floating Help button until header is fixed */}
+      <Link to="/help" className="fixed top-4 right-4 z-50">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
+          theme.isExpeditors 
+            ? 'bg-gradient-to-r from-red-500 to-red-600' 
+            : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+        }`}>
+          <HelpCircle className="w-5 h-5 text-white" />
+        </div>
+      </Link>
+      
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </>
   );
