@@ -4707,8 +4707,10 @@ const Navigation = () => {
 
   return (
     <>
-      <div className={`fixed bottom-0 left-0 right-0 ${theme.navClass} px-4 py-3`}>
-        <div className={`flex justify-around items-center max-w-md mx-auto ${hasExpeditorsAccess ? 'max-w-lg' : ''}`}>
+      {/* Bottom Navigation - Enhanced for mobile */}
+      <div className={`fixed bottom-0 left-0 right-0 ${theme.navClass} px-2 py-2 pb-safe`}>
+        <div className="flex justify-around items-center max-w-md mx-auto"
+             style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
           
           <Link to="/capture" className="flex flex-col items-center space-y-1 p-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
