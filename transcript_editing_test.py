@@ -439,7 +439,7 @@ class TranscriptEditingTester:
         # Setup authentication
         if not self.setup_authentication():
             print("❌ Authentication setup failed - cannot proceed with tests")
-            return
+            return 0, 1
         
         print("\n" + "=" * 80)
         print("✏️ TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS - PUT /api/notes/{note_id} Endpoint")
