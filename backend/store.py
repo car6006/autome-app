@@ -229,3 +229,71 @@ class NotesStore:
         
         cursor = db()["notes"].find(query).sort("created_at", -1).limit(limit)
         return await cursor.to_list(length=None)
+
+    @staticmethod
+    async def add_tag(note_id: str, tag: str) -> bool:
+        """Add a tag to a note"""
+        try:
+            # Clean and validate tag
+            tag = tag.strip().lower()
+            if not tag or len(tag) > 50:  # Max tag length
+                return False
+            
+            result = await db()["notes"].update_one(
+                {"id": note_id},
+                {"$addToSet": {"tags": tag}}  # $addToSet prevents duplicates
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Failed to add tag {tag} to note {note_id}: {e}")
+            return False
+
+    @staticmethod
+    async def remove_tag(note_id: str, tag: str) -> bool:
+        """Remove a tag from a note"""
+        try:
+            result = await db()["notes"].update_one(
+                {"id": note_id},
+                {"$pull": {"tags": tag}}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Failed to remove tag {tag} from note {note_id}: {e}")
+            return False
+
+    @staticmethod
+    async def get_all_tags(user_id: Optional[str] = None) -> List[str]:
+        """Get all unique tags across all notes for a user"""
+        try:
+            query = {}
+            if user_id:
+                query["user_id"] = user_id
+            
+            # Use aggregation to get unique tags
+            pipeline = [
+                {"$match": query},
+                {"$unwind": {"path": "$tags", "preserveNullAndEmptyArrays": False}},
+                {"$group": {"_id": "$tags"}},
+                {"$sort": {"_id": 1}}
+            ]
+            
+            cursor = db()["notes"].aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            return [item["_id"] for item in result]
+        except Exception as e:
+            logger.error(f"Failed to get all tags for user {user_id}: {e}")
+            return []
+
+    @staticmethod
+    async def get_notes_by_tag(tag: str, user_id: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get notes that have a specific tag"""
+        try:
+            query = {"tags": tag}
+            if user_id:
+                query["user_id"] = user_id
+            
+            cursor = db()["notes"].find(query).sort("created_at", -1).limit(limit)
+            return await cursor.to_list(length=None)
+        except Exception as e:
+            logger.error(f"Failed to get notes by tag {tag} for user {user_id}: {e}")
+            return []
