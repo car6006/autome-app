@@ -1255,6 +1255,18 @@ const NotesScreen = () => {
   const [newTag, setNewTag] = useState('');
   const [addingTag, setAddingTag] = useState({});
   const [removingTag, setRemovingTag] = useState({});
+  const [templates, setTemplates] = useState([]);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [templateForm, setTemplateForm] = useState({
+    name: '',
+    description: '',
+    title_template: '',
+    category: 'general',
+    tags: [],
+    content_template: ''
+  });
   const { toast } = useToast();
   const { user } = useAuth();
   const theme = getThemeClasses(user);
