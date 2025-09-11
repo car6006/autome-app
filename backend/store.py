@@ -310,3 +310,96 @@ class NotesStore:
         except Exception as e:
             logger.error(f"Failed to get notes by tag {tag} for user {user_id}: {e}")
             return []
+
+
+class TemplateStore:
+    """Store for managing note templates"""
+    
+    @staticmethod
+    async def create(template_data: dict) -> str:
+        """Create a new template"""
+        try:
+            template = Template(**template_data)
+            await db()["templates"].insert_one(template.dict())
+            logger.info(f"Template created: {template.id}")
+            return template.id
+        except Exception as e:
+            logger.error(f"Failed to create template: {e}")
+            raise e
+
+    @staticmethod
+    async def get(template_id: str) -> Optional[Dict[str, Any]]:
+        """Get a template by ID"""
+        try:
+            template = await db()["templates"].find_one({"id": template_id})
+            return template
+        except Exception as e:
+            logger.error(f"Failed to get template {template_id}: {e}")
+            return None
+
+    @staticmethod
+    async def get_user_templates(user_id: str, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get all templates for a user, optionally filtered by category"""
+        try:
+            query = {"user_id": user_id}
+            if category:
+                query["category"] = category
+            
+            cursor = db()["templates"].find(query).sort("usage_count", -1)  # Sort by most used
+            return await cursor.to_list(length=None)
+        except Exception as e:
+            logger.error(f"Failed to get templates for user {user_id}: {e}")
+            return []
+
+    @staticmethod
+    async def update(template_id: str, updates: dict) -> bool:
+        """Update a template"""
+        try:
+            result = await db()["templates"].update_one(
+                {"id": template_id},
+                {"$set": updates}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Failed to update template {template_id}: {e}")
+            return False
+
+    @staticmethod
+    async def delete(template_id: str) -> bool:
+        """Delete a template"""
+        try:
+            result = await db()["templates"].delete_one({"id": template_id})
+            return result.deleted_count > 0
+        except Exception as e:
+            logger.error(f"Failed to delete template {template_id}: {e}")
+            return False
+
+    @staticmethod
+    async def increment_usage(template_id: str) -> bool:
+        """Increment the usage count for a template"""
+        try:
+            result = await db()["templates"].update_one(
+                {"id": template_id},
+                {"$inc": {"usage_count": 1}}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Failed to increment usage for template {template_id}: {e}")
+            return False
+
+    @staticmethod
+    async def get_categories(user_id: str) -> List[str]:
+        """Get all unique template categories for a user"""
+        try:
+            pipeline = [
+                {"$match": {"user_id": user_id}},
+                {"$group": {"_id": "$category"}},
+                {"$sort": {"_id": 1}}
+            ]
+            
+            cursor = db()["templates"].aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            return [item["_id"] for item in result if item["_id"]]
+        except Exception as e:
+            logger.error(f"Failed to get categories for user {user_id}: {e}")
+            return []
