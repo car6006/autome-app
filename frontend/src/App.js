@@ -2945,12 +2945,12 @@ const NotesScreen = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => syncToGit(note.id)}
+                        onClick={() => openAiChat(note.id)}
                         className="w-full text-xs px-2"
                       >
-                        <GitBranch className="w-3 h-3 mr-1" />
-                        <span className="hidden sm:inline">Sync</span>
-                        <span className="sm:hidden">Git</span>
+                        <Bot className="w-3 h-3 mr-1" />
+                        <span className="hidden sm:inline">Ask AI</span>
+                        <span className="sm:hidden">AI</span>
                       </Button>
                     </div>
 
