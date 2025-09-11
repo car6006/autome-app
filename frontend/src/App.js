@@ -4790,38 +4790,6 @@ const Navigation = () => {
             </Link>
           )}
           
-          {/* Profile/Auth Button */}
-          {isAuthenticated ? (
-            <Link to="/profile" className="flex flex-col items-center space-y-1 p-2">
-              <Avatar className={`w-10 h-10 border-2 ${
-                theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
-              }`}>
-                <AvatarImage src={user?.profile?.avatar_url} />
-                <AvatarFallback className={`text-white text-xs font-bold ${
-                  theme.isExpeditors 
-                    ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                    : 'bg-gradient-to-r from-violet-500 to-pink-500'
-                }`}>
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <span className={`text-xs ${theme.navItemClass}`}>Profile</span>
-            </Link>
-          ) : (
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className="flex flex-col items-center space-y-1 p-2"
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                theme.isExpeditors 
-                  ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                  : 'bg-gradient-to-r from-violet-500 to-pink-600'
-              }`}>
-                <UserPlus className="w-5 h-5 text-white" />
-              </div>
-              <span className={`text-xs ${theme.navItemClass}`}>Join</span>
-            </button>
-          )}
         </div>
       </div>
       
