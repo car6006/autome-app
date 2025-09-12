@@ -6510,6 +6510,16 @@ class BackendTester:
         self.test_m4a_error_handling()
         self.test_m4a_cleanup_verification()
         
+        # 🎯 TRANSCRIPTION ERROR FIX TESTS (NEW - CURRENT REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🔧 TRANSCRIPTION ERROR FIX TESTS - Configurable Chunk Duration & Error Processing Fix")
+        print("=" * 60)
+        
+        self.test_transcription_error_fix()
+        self.test_configurable_chunk_duration()
+        self.test_duration_parsing_error_fix()
+        self.test_large_file_chunking_fix()
+        
         # Summary
         return self.print_summary()
     
