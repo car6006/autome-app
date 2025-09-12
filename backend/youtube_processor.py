@@ -267,7 +267,15 @@ class YouTubeProcessor:
                         await asyncio.sleep(2)
                         return await self.extract_audio(url, output_path, retry_count + 1)
                     else:
-                        raise RuntimeError(f"YouTube audio extraction failed after trying multiple methods. This may be temporary - please try again later. Details: {error_msg[:200]}")
+                        # Provide helpful alternatives when all methods fail
+                        raise RuntimeError(
+                            f"YouTube audio extraction failed after trying 5 different methods. "
+                            f"This video may have strong anti-download protections. "
+                            f"Alternatives: (1) Try a different YouTube video, "
+                            f"(2) Use AUTO-ME's file upload feature to upload audio directly, "
+                            f"(3) Try again later as YouTube protections change frequently. "
+                            f"Technical details: {error_msg[:150]}"
+                        )
             
             # Find the extracted audio file
             output_dir = os.path.dirname(output_path)
