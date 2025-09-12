@@ -182,7 +182,18 @@ class YouTubeProcessor:
             if process.returncode != 0:
                 error_msg = stderr.decode('utf-8')
                 logger.error(f"❌ Audio extraction failed: {error_msg}")
-                raise RuntimeError(f"Audio extraction failed: {error_msg}")
+                
+                # Check for specific YouTube errors and provide better messages
+                if "403: Forbidden" in error_msg or "HTTP Error 403" in error_msg:
+                    raise RuntimeError("YouTube blocked this video download. This may be due to copyright restrictions or geographic limitations. Please try a different video or try again later.")
+                elif "unavailable" in error_msg.lower():
+                    raise RuntimeError("This YouTube video is unavailable or has been removed. Please try a different video.")
+                elif "private" in error_msg.lower():
+                    raise RuntimeError("This YouTube video is private and cannot be processed. Please try a public video.")
+                elif "age-restricted" in error_msg.lower():
+                    raise RuntimeError("This YouTube video is age-restricted and cannot be processed automatically.")
+                else:
+                    raise RuntimeError(f"YouTube audio extraction failed. This may be temporary - please try again later. Details: {error_msg[:200]}")
             
             # Find the extracted audio file
             output_dir = os.path.dirname(output_path)
