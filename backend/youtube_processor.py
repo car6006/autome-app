@@ -25,24 +25,42 @@ class YouTubeProcessor:
     
     def _check_youtube_dl(self) -> Optional[str]:
         """Check if yt-dlp is available"""
-        try:
-            result = subprocess.run(['yt-dlp', '--version'], 
-                                  capture_output=True, text=True, timeout=10)
-            if result.returncode == 0:
-                logger.info(f"✅ yt-dlp found: {result.stdout.strip()}")
-                return 'yt-dlp'
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            pass
+        # Try common paths for yt-dlp
+        possible_paths = [
+            'yt-dlp',
+            '/usr/local/bin/yt-dlp',
+            '/usr/bin/yt-dlp',
+            '/root/.venv/bin/yt-dlp',
+            '/opt/venv/bin/yt-dlp'
+        ]
+        
+        for path in possible_paths:
+            try:
+                result = subprocess.run([path, '--version'], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    logger.info(f"✅ yt-dlp found at {path}: {result.stdout.strip()}")
+                    return path
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                continue
         
         # Fallback to youtube-dl
-        try:
-            result = subprocess.run(['youtube-dl', '--version'], 
-                                  capture_output=True, text=True, timeout=10)
-            if result.returncode == 0:
-                logger.info(f"✅ youtube-dl found: {result.stdout.strip()}")
-                return 'youtube-dl'
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            pass
+        youtube_dl_paths = [
+            'youtube-dl',
+            '/usr/local/bin/youtube-dl',
+            '/usr/bin/youtube-dl',
+            '/root/.venv/bin/youtube-dl'
+        ]
+        
+        for path in youtube_dl_paths:
+            try:
+                result = subprocess.run([path, '--version'], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    logger.info(f"✅ youtube-dl found at {path}: {result.stdout.strip()}")
+                    return path
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                continue
         
         logger.error("❌ Neither yt-dlp nor youtube-dl found. Install with: pip install yt-dlp")
         return None
