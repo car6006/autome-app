@@ -179,6 +179,7 @@ const YouTubeProcessor = ({ onSuccess, onError }) => {
         variant: "destructive"
       });
       setCurrentStatus('');
+      setLastError(error.message);
       onError?.(error.message);
     } finally {
       setProcessing(false);
