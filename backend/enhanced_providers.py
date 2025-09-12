@@ -456,7 +456,7 @@ class AIProvider:
 transcription_provider = TranscriptionProvider()
 ai_provider = AIProvider()
 
-async def split_large_audio_file(file_path: str, chunk_duration: int = 240) -> list[str]:
+async def split_large_audio_file(file_path: str, chunk_duration: int | None = None) -> list[str]:
     """Split audio file into smaller chunks using ffmpeg"""
     chunks = []
     
