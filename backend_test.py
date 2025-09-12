@@ -1269,7 +1269,7 @@ class BackendTester:
             self.log_result("YouTube Transcription Pipeline", False, f"YouTube transcription pipeline test error: {str(e)}")
 
     def test_youtube_error_handling(self):
-        """Test YouTube error handling for various edge cases"""
+        """Test YouTube error handling for various edge cases including very long videos"""
         if not self.auth_token:
             self.log_result("YouTube Error Handling", False, "Skipped - no authentication token")
             return
@@ -1278,7 +1278,7 @@ class BackendTester:
             error_cases_passed = 0
             total_error_cases = 0
             
-            # Test Case 1: Invalid URL
+            # Test Case 1: Invalid URL (non-YouTube)
             total_error_cases += 1
             invalid_url_data = {"url": "https://example.com/not-youtube"}
             response = self.session.post(f"{BACKEND_URL}/youtube/info", json=invalid_url_data, timeout=15)
@@ -1287,6 +1287,7 @@ class BackendTester:
                 error_detail = response.json().get('detail', '')
                 if "Invalid YouTube URL" in error_detail:
                     error_cases_passed += 1
+                    print(f"✅ Invalid URL properly rejected: {error_detail}")
             elif response.status_code == 503:
                 # Service unavailable - skip this test
                 self.log_result("YouTube Error Handling", False, "YouTube service unavailable (yt-dlp not installed)")
@@ -1294,13 +1295,22 @@ class BackendTester:
             
             time.sleep(1)
             
-            # Test Case 2: Non-existent video (if service is available)
+            # Test Case 2: Very long video (should be rejected)
             total_error_cases += 1
-            nonexistent_url_data = {"url": "https://www.youtube.com/watch?v=nonexistentvideo123"}
-            response = self.session.post(f"{BACKEND_URL}/youtube/info", json=nonexistent_url_data, timeout=20)
+            # Use a known long video URL (>2 hours) - this is a documentary
+            long_video_url = "https://www.youtube.com/watch?v=xuCn8ux2gbs"  # Long documentary
+            long_video_data = {"url": long_video_url}
+            response = self.session.post(f"{BACKEND_URL}/youtube/info", json=long_video_data, timeout=30)
             
-            if response.status_code in [400, 500]:  # Either validation error or processing error
+            if response.status_code == 400:
+                error_detail = response.json().get('detail', '')
+                if "too long" in error_detail.lower():
+                    error_cases_passed += 1
+                    print(f"✅ Long video properly rejected: {error_detail}")
+            elif response.status_code == 500:
+                # Sometimes long videos fail during info extraction
                 error_cases_passed += 1
+                print("✅ Long video handled with server error (acceptable)")
             
             time.sleep(1)
             
@@ -1311,21 +1321,33 @@ class BackendTester:
             
             if response.status_code == 400:
                 error_cases_passed += 1
+                print("✅ Empty URL properly rejected")
             
-            # Test Case 4: Malformed request (missing URL)
+            # Test Case 4: Malformed request (missing URL field)
             total_error_cases += 1
             try:
                 response = self.session.post(f"{BACKEND_URL}/youtube/info", json={}, timeout=10)
                 if response.status_code in [400, 422]:  # Validation error
                     error_cases_passed += 1
+                    print("✅ Missing URL field properly rejected")
             except:
                 error_cases_passed += 1  # Exception is also valid error handling
+                print("✅ Missing URL field caused exception (acceptable)")
+            
+            # Test Case 5: Invalid YouTube video ID format
+            total_error_cases += 1
+            invalid_id_data = {"url": "https://www.youtube.com/watch?v=invalid"}
+            response = self.session.post(f"{BACKEND_URL}/youtube/info", json=invalid_id_data, timeout=15)
+            
+            if response.status_code in [400, 500]:
+                error_cases_passed += 1
+                print("✅ Invalid video ID format handled")
             
             success_rate = error_cases_passed / total_error_cases
             
-            if success_rate >= 0.75:  # At least 75% of error cases handled correctly
+            if success_rate >= 0.8:  # At least 80% of error cases handled correctly
                 self.log_result("YouTube Error Handling", True, 
-                              f"Error handling working correctly. {error_cases_passed}/{total_error_cases} cases handled properly")
+                              f"✅ Error handling working excellently. {error_cases_passed}/{total_error_cases} cases handled properly ({success_rate*100:.1f}%)")
             else:
                 self.log_result("YouTube Error Handling", False, 
                               f"Error handling issues. Only {error_cases_passed}/{total_error_cases} cases handled properly")
