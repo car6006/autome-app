@@ -35,3 +35,4 @@ emergentintegrations
 aiofiles
 psutil==6.0.0
 pytest-asyncio
+yt-dlp==2025.9.5
