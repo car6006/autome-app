@@ -6912,6 +6912,19 @@ class BackendTester:
         self.test_duration_parsing_error_fix()
         self.test_large_file_chunking_fix()
         
+        # 🎯 YOUTUBE PROCESSING FUNCTIONALITY TESTS (NEW - CURRENT REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("📺 YOUTUBE PROCESSING FUNCTIONALITY TESTS - YouTube URL Processing & Transcription")
+        print("=" * 60)
+        
+        self.test_yt_dlp_availability()
+        self.test_youtube_info_endpoint()
+        self.test_youtube_url_validation()
+        self.test_youtube_process_endpoint()
+        self.test_youtube_transcription_pipeline()
+        self.test_youtube_error_handling()
+        self.test_youtube_duration_limits()
+        
         # Summary
         return self.print_summary()
     
