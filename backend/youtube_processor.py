@@ -207,9 +207,13 @@ class YouTubeProcessor:
                 error_msg = stderr.decode('utf-8')
                 logger.error(f"❌ Audio extraction failed: {error_msg}")
                 
-                # Check for specific YouTube errors and provide better messages
-                if "403: Forbidden" in error_msg or "HTTP Error 403" in error_msg:
-                    raise RuntimeError("YouTube blocked this video download. This may be due to copyright restrictions or geographic limitations. Please try a different video or try again later.")
+                # Check for specific YouTube errors and retry with different strategy
+                if ("403: Forbidden" in error_msg or "HTTP Error 403" in error_msg) and retry_count < 2:
+                    logger.warning(f"⚠️ Strategy '{current_strategy['name']}' blocked, trying different approach...")
+                    await asyncio.sleep(2)  # Brief delay before retry
+                    return await self.extract_audio(url, output_path, retry_count + 1)
+                elif "403: Forbidden" in error_msg or "HTTP Error 403" in error_msg:
+                    raise RuntimeError("YouTube blocked this video download after trying multiple methods. This may be due to copyright restrictions, geographic limitations, or temporary YouTube protections. Please try a different video or try again later.")
                 elif "unavailable" in error_msg.lower():
                     raise RuntimeError("This YouTube video is unavailable or has been removed. Please try a different video.")
                 elif "private" in error_msg.lower():
@@ -217,7 +221,12 @@ class YouTubeProcessor:
                 elif "age-restricted" in error_msg.lower():
                     raise RuntimeError("This YouTube video is age-restricted and cannot be processed automatically.")
                 else:
-                    raise RuntimeError(f"YouTube audio extraction failed. This may be temporary - please try again later. Details: {error_msg[:200]}")
+                    if retry_count < 2:
+                        logger.warning(f"⚠️ Extraction failed with '{current_strategy['name']}', trying different approach...")
+                        await asyncio.sleep(2)
+                        return await self.extract_audio(url, output_path, retry_count + 1)
+                    else:
+                        raise RuntimeError(f"YouTube audio extraction failed after trying multiple methods. This may be temporary - please try again later. Details: {error_msg[:200]}")
             
             # Find the extracted audio file
             output_dir = os.path.dirname(output_path)
