@@ -23,6 +23,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Default chunk duration in seconds (configurable via CHUNK_DURATION_SECONDS env var)
+CHUNK_DURATION_SECONDS = int(os.getenv("CHUNK_DURATION_SECONDS", "5"))
+
 # Import Emergent integrations
 try:
     from emergentintegrations.llm.chat import LlmChat, UserMessage
