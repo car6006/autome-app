@@ -22,6 +22,7 @@ from openai import OpenAI
 from store import NotesStore, TemplateStore
 from storage import store_file
 from tasks import enqueue_transcription, enqueue_ocr, enqueue_email, enqueue_git_sync, enqueue_iisb_processing
+from youtube_processor import youtube_processor
 from auth import (
     AuthService, User, UserCreate, UserLogin, UserResponse, UserProfileUpdate, 
     Token, get_current_user, get_current_user_optional
