@@ -192,6 +192,16 @@ const YouTubeProcessor = ({ onSuccess, onError }) => {
     setProgress(0);
     setCurrentStatus('');
     setProcessing(false);
+    setLastError(null);
+  };
+
+  const handleTryAgain = () => {
+    reset();
+  };
+
+  const handleUploadInstead = () => {
+    // Navigate to file upload
+    window.location.href = '/large-file';
   };
 
   return (
