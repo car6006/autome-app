@@ -29,6 +29,7 @@ const YouTubeProcessor = ({ onSuccess, onError }) => {
   const [videoInfo, setVideoInfo] = useState(null);
   const [progress, setProgress] = useState(0);
   const [currentStatus, setCurrentStatus] = useState('');
+  const [lastError, setLastError] = useState(null);
   const { toast } = useToast();
 
   const validateYouTubeUrl = (url) => {
