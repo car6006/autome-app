@@ -38,6 +38,8 @@ import HelpGuide from "./components/HelpGuide";
 import ProfessionalContextSetup from "./components/ProfessionalContextSetup";
 import LargeFileTranscriptionScreen from "./components/LargeFileTranscriptionScreen";
 import LiveTranscriptionRecorder from "./components/LiveTranscriptionRecorder";
+import FeatureMenu from "./components/FeatureMenu";
+import YouTubeProcessor from "./components/YouTubeProcessor";
 import { getThemeClasses, getBrandingElements, isExpeditorsUser } from "./utils/themeUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
