@@ -167,28 +167,56 @@ class YouTubeProcessor:
             temp_dir = tempfile.mkdtemp(prefix='autome_youtube_')
             output_path = os.path.join(temp_dir, '%(title)s.%(ext)s')
         
-        # Different extraction strategies to try
+        # Different extraction strategies to try (ordered from most to least sophisticated)
         strategies = [
-            # Strategy 1: Standard with browser spoofing
+            # Strategy 1: Advanced spoofing with format selection
             {
-                'name': 'Browser Spoofing',
+                'name': 'Advanced Browser Spoofing',
                 'extra_args': [
                     '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     '--referer', 'https://www.youtube.com/',
-                    '--add-header', 'Accept-Language:en-US,en;q=0.9'
+                    '--add-header', 'Accept-Language:en-US,en;q=0.9',
+                    '--add-header', 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    '--format', 'bestaudio[ext=m4a]/bestaudio/best',
+                    '--extract-flat', 'False',
+                    '--no-check-certificate'
                 ]
             },
-            # Strategy 2: Different user agent
+            # Strategy 2: Mobile user agent approach
             {
-                'name': 'Alternative User Agent', 
+                'name': 'Mobile User Agent',
                 'extra_args': [
-                    '--user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15'
+                    '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+                    '--referer', 'https://m.youtube.com/',
+                    '--format', 'bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio',
+                    '--no-check-certificate'
                 ]
             },
-            # Strategy 3: No extra headers (basic)
+            # Strategy 3: Alternative desktop browser
             {
-                'name': 'Basic Extraction',
-                'extra_args': []
+                'name': 'Firefox User Agent', 
+                'extra_args': [
+                    '--user-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0',
+                    '--format', 'bestaudio[ext=webm]/bestaudio',
+                    '--no-check-certificate'
+                ]
+            },
+            # Strategy 4: Basic with format fallback
+            {
+                'name': 'Basic with Format Fallback',
+                'extra_args': [
+                    '--format', 'worst[ext=webm]/worst',
+                    '--no-check-certificate'
+                ]
+            },
+            # Strategy 5: Last resort - any available format
+            {
+                'name': 'Last Resort',
+                'extra_args': [
+                    '--format', 'best/worst',
+                    '--no-check-certificate',
+                    '--ignore-errors'
+                ]
             }
         ]
         
