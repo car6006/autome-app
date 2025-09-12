@@ -387,6 +387,15 @@ const YouTubeProcessor = ({ onSuccess, onError }) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Troubleshooting Component */}
+      {lastError && (
+        <YouTubeTroubleshooting 
+          error={lastError}
+          onTryAgain={handleTryAgain}
+          onUploadInstead={handleUploadInstead}
+        />
+      )}
     </div>
   );
 };
