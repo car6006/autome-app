@@ -4737,19 +4737,17 @@ const Navigation = () => {
             <span className={`text-xs ${theme.navItemClass}`}>Record</span>
           </Link>
           
-          {/* Live Transcription - only show to authenticated users */}
-          {isAuthenticated && (
-            <Link to="/live-transcription" className="flex flex-col items-center space-y-1 p-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                theme.isExpeditors 
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-700' 
-                  : 'bg-gradient-to-r from-pink-500 to-red-600'
-              }`}>
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className={`text-xs ${theme.navItemClass}`}>Live</span>
-            </Link>
-          )}
+          {/* Features Menu */}
+          <Link to="/features" className="flex flex-col items-center space-y-1 p-2">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              theme.isExpeditors 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-700' 
+                : 'bg-gradient-to-r from-pink-500 to-red-600'
+            }`}>
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <span className={`text-xs ${theme.navItemClass}`}>Features</span>
+          </Link>
 
           {/* Large File Transcription - only show to authenticated users */}
           {isAuthenticated && (
