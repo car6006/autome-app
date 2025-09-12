@@ -13,7 +13,7 @@ import struct
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://smart-transcript-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
 
 def create_test_audio_chunk(duration_ms=5000, sample_rate=16000):
     """Create a test audio chunk"""

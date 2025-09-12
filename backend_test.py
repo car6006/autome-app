@@ -12,7 +12,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = "https://smart-transcript-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "testuser@example.com"
 TEST_USER_PASSWORD = "TestPassword123"  # Updated to meet requirements
 TEST_USER_NAME = "Test User"

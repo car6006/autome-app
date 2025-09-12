@@ -8,7 +8,7 @@ import json
 import uuid
 from datetime import datetime, timedelta, timezone
 
-BACKEND_URL = "https://smart-transcript-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
 
 def test_cleanup_endpoints():
     """Test the cleanup endpoints specifically"""
