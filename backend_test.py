@@ -6950,6 +6950,10 @@ class BackendTester:
         self.test_youtube_error_handling()
         self.test_youtube_duration_limits()
         
+        # NEW COMPREHENSIVE YOUTUBE TESTS
+        self.test_youtube_end_to_end_processing()
+        self.test_youtube_audio_extraction_verification()
+        
         # Summary
         return self.print_summary()
     
