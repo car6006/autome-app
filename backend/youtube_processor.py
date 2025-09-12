@@ -24,7 +24,7 @@ class YouTubeProcessor:
         self.youtube_dl_path = self._check_youtube_dl()
     
     def _check_youtube_dl(self) -> Optional[str]:
-        """Check if yt-dlp is available"""
+        """Check if yt-dlp is available and update it"""
         # Try common paths for yt-dlp
         possible_paths = [
             'yt-dlp',
@@ -39,7 +39,20 @@ class YouTubeProcessor:
                 result = subprocess.run([path, '--version'], 
                                       capture_output=True, text=True, timeout=10)
                 if result.returncode == 0:
-                    logger.info(f"✅ yt-dlp found at {path}: {result.stdout.strip()}")
+                    version = result.stdout.strip()
+                    logger.info(f"✅ yt-dlp found at {path}: {version}")
+                    
+                    # Try to update yt-dlp to latest version for better YouTube compatibility
+                    try:
+                        update_result = subprocess.run([path, '-U'], 
+                                                     capture_output=True, text=True, timeout=30)
+                        if update_result.returncode == 0:
+                            logger.info("✅ yt-dlp updated to latest version")
+                        else:
+                            logger.info("ℹ️ yt-dlp update not needed or failed (this is normal)")
+                    except Exception:
+                        logger.info("ℹ️ Could not update yt-dlp (this is normal in some environments)")
+                    
                     return path
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 continue
