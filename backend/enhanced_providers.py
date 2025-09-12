@@ -474,7 +474,12 @@ async def split_large_audio_file(file_path: str, chunk_duration: int | None = No
             return [file_path]  # Return original file if can't split
         
         data = json.loads(result.stdout)
-        duration = float(data['format']['duration'])
+        # Handle potential missing duration key
+        format_data = data.get('format', {})
+        if 'duration' not in format_data:
+            logger.warning(f"No duration found in audio metadata for {file_path}")
+            return [file_path]
+        duration = float(format_data['duration'])
         
         if duration <= chunk_duration:
             return [file_path]  # File is already small enough
