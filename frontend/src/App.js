@@ -4858,6 +4858,121 @@ const Navigation = () => {
   );
 };
 
+// Feature Menu Screen Component
+function FeatureMenuScreen() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const handleFeatureSelect = (featureId) => {
+    switch (featureId) {
+      case 'youtube-processing':
+        navigate('/youtube');
+        break;
+      case 'voice-recording':
+        navigate('/capture');
+        break;
+      case 'photo-capture':
+        navigate('/scan');
+        break;
+      case 'file-upload':
+        navigate('/large-file');
+        break;
+      case 'live-transcription':
+        navigate('/live-transcription');
+        break;
+      case 'advanced-search':
+        navigate('/notes');
+        break;
+      case 'analytics':
+        navigate('/metrics');
+        break;
+      default:
+        console.log(`Feature ${featureId} selected but not yet implemented`);
+        // For features not yet implemented, show a coming soon message
+        alert(`${featureId} is coming soon! This feature is in development.`);
+    }
+  };
+  
+  return <FeatureMenu onFeatureSelect={handleFeatureSelect} currentUser={user} />;
+}
+
+// YouTube Processor Screen Component
+function YouTubeProcessorScreen() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const handleSuccess = (result) => {
+    console.log('YouTube processing successful:', result);
+    // Navigate to notes to see the processed video
+    navigate('/notes');
+  };
+  
+  const handleError = (error) => {
+    console.error('YouTube processing error:', error);
+  };
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/features')}
+              className="text-slate-600 hover:text-slate-900"
+            >
+              ← Back to Features
+            </Button>
+          </div>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">YouTube Video Processor</h1>
+            <p className="text-lg text-slate-600">
+              Extract audio from YouTube videos and get AI-powered transcriptions
+            </p>
+          </div>
+        </div>
+        
+        {/* YouTube Processor Component */}
+        <YouTubeProcessor onSuccess={handleSuccess} onError={handleError} />
+        
+        {/* Features */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Youtube className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">YouTube Support</h3>
+              <p className="text-sm text-gray-600">
+                Works with regular videos, YouTube Shorts, and embedded links
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Clock className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">Fast Processing</h3>
+              <p className="text-sm text-gray-600">
+                5-second chunking for near real-time transcription results
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Zap className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">AI-Powered</h3>
+              <p className="text-sm text-gray-600">
+                Automatic summaries, action items, and key topic extraction
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
