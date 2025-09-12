@@ -562,8 +562,8 @@ async def transcribe_audio(file_path: str, session_id: str = None) -> dict:
             # Large file - need to split into chunks
             logger.info(f"📁 File too large ({file_size / (1024*1024):.1f} MB), splitting into chunks")
             
-            # Split audio file into chunks
-            chunks = await split_large_audio_file(file_path)
+            # Split audio file into chunks with configurable duration
+            chunks = await split_large_audio_file(file_path, chunk_duration=CHUNK_DURATION_SECONDS)
             if not chunks:
                 return {"text": "", "summary": "", "actions": [], "note": "Failed to split audio file"}
             
