@@ -4001,7 +4001,9 @@ async def get_youtube_info(
 ):
     """Get YouTube video information without downloading"""
     try:
+        logger.info(f"🎬 YouTube endpoint called. Processor path: {youtube_processor.youtube_dl_path}")
         if not youtube_processor.youtube_dl_path:
+            logger.error(f"❌ YouTube processor path is None or empty: {youtube_processor.youtube_dl_path}")
             raise HTTPException(
                 status_code=503, 
                 detail="YouTube processing service unavailable. Please contact support."
