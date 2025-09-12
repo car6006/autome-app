@@ -1141,24 +1141,24 @@ class BackendTester:
             self.log_result("YouTube URL Validation", False, f"YouTube URL validation test error: {str(e)}")
 
     def test_youtube_process_endpoint(self):
-        """Test YouTube video processing endpoint"""
+        """Test YouTube video processing endpoint with the specific short video"""
         if not self.auth_token:
             self.log_result("YouTube Process Endpoint", False, "Skipped - no authentication token")
             return
             
         try:
-            # Use a very short YouTube video for testing
-            test_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Rick Roll
+            # Use the same short video for processing
+            test_url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"  # "Me at the zoo" - first YouTube video
             
             request_data = {
                 "url": test_url,
-                "title": "YouTube Processing Test Video"
+                "title": "Me at the zoo - YouTube Processing Test"
             }
             
             response = self.session.post(
                 f"{BACKEND_URL}/youtube/process",
                 json=request_data,
-                timeout=60  # Longer timeout for processing
+                timeout=90  # Longer timeout for processing
             )
             
             if response.status_code == 200:
@@ -1168,13 +1168,14 @@ class BackendTester:
                 if all(field in data for field in required_fields):
                     self.youtube_note_id = data['note_id']
                     self.log_result("YouTube Process Endpoint", True, 
-                                  f"YouTube video processing started: {data['title']} (Note ID: {data['note_id']})", 
+                                  f"✅ YouTube video processing started successfully: {data['title']} (Note ID: {data['note_id']})", 
                                   {
                                       "note_id": data['note_id'],
                                       "title": data['title'],
                                       "status": data['status'],
                                       "duration": data.get('duration', 'unknown'),
-                                      "estimated_processing_time": data.get('estimated_processing_time', 'unknown')
+                                      "estimated_processing_time": data.get('estimated_processing_time', 'unknown'),
+                                      "message": data.get('message', '')
                                   })
                 else:
                     missing_fields = [f for f in required_fields if f not in data]
