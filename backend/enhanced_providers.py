@@ -127,6 +127,16 @@ class TranscriptionProvider:
                 else:
                     logger.warning(f"⚠️ M4A conversion failed, trying original file")
             
+            # Validate audio file before processing
+            file_size = os.path.getsize(actual_file_path)
+            if file_size < 1000:  # Less than 1KB is likely corrupted
+                raise ValueError(f"Audio file too small ({file_size} bytes) - likely corrupted or incomplete")
+            
+            if file_size > 25 * 1024 * 1024:  # Greater than 25MB (OpenAI limit)
+                raise ValueError(f"Audio file too large ({file_size / (1024*1024):.1f} MB) - OpenAI limit is 25MB")
+            
+            logger.info(f"🎵 Processing audio file: {file_size / 1024:.1f} KB")
+            
             with open(actual_file_path, 'rb') as audio_file:
                 # Create form data for OpenAI Whisper API
                 files = {
