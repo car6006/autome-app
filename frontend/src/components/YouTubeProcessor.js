@@ -19,6 +19,7 @@ import {
   Play
 } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
+import YouTubeTroubleshooting from "./YouTubeTroubleshooting";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
