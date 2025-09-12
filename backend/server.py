@@ -3984,6 +3984,142 @@ async def get_metrics(
         "metrics_auto_tracked": True  # Indicates metrics are automatically updated
     }
 
+# YouTube Processing Models
+class YouTubeInfoRequest(BaseModel):
+    url: str
+
+class YouTubeProcessRequest(BaseModel):
+    url: str
+    title: Optional[str] = None
+
+# YouTube Processing Endpoints
+
+@api_router.post("/youtube/info")
+async def get_youtube_info(
+    request: YouTubeInfoRequest,
+    current_user: dict = Depends(get_current_user_optional)
+):
+    """Get YouTube video information without downloading"""
+    try:
+        if not youtube_processor.youtube_dl_path:
+            raise HTTPException(
+                status_code=503, 
+                detail="YouTube processing service unavailable. Please contact support."
+            )
+        
+        # Validate URL
+        if not youtube_processor.validate_youtube_url(request.url):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid YouTube URL. Please provide a valid YouTube video URL."
+            )
+        
+        # Get video information
+        video_info = await youtube_processor.get_video_info(request.url)
+        
+        # Check duration limits (max 2 hours)
+        max_duration = 7200  # 2 hours
+        if video_info['duration'] > max_duration:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Video too long ({video_info['duration']/60:.1f} minutes). Maximum allowed: {max_duration/60} minutes."
+            )
+        
+        logger.info(f"📺 YouTube info requested: {video_info['title']} ({video_info['duration']/60:.1f} min)")
+        
+        return video_info
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting YouTube info: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get video information: {str(e)}")
+
+@api_router.post("/youtube/process")
+async def process_youtube_video(
+    request: YouTubeProcessRequest,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user_optional)
+):
+    """Process YouTube video for transcription"""
+    try:
+        if not youtube_processor.youtube_dl_path:
+            raise HTTPException(
+                status_code=503,
+                detail="YouTube processing service unavailable. Please contact support."
+            )
+        
+        user_id = current_user["id"] if current_user else "anonymous"
+        
+        # Validate URL
+        if not youtube_processor.validate_youtube_url(request.url):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid YouTube URL. Please provide a valid YouTube video URL."
+            )
+        
+        # Process the YouTube URL
+        result = await youtube_processor.process_youtube_url(request.url, user_id)
+        
+        if not result['success']:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        # Create a note entry
+        video_info = result['video_info']
+        note_title = request.title or video_info['title'] or "YouTube Video"
+        
+        # Store the audio file and create note
+        with open(result['audio_file_path'], 'rb') as audio_file:
+            media_key = store_file(audio_file.read(), f"{note_title}.wav")
+        
+        # Create note in database
+        note_id = await NotesStore.create(note_title, "audio", user_id)
+        await NotesStore.update_media_key(note_id, media_key)
+        
+        # Add metadata
+        metadata = {
+            "youtube_url": request.url,
+            "youtube_video_id": video_info['id'],
+            "duration": video_info['duration'],
+            "uploader": video_info['uploader'],
+            "view_count": video_info.get('view_count', 0),
+            "original_description": video_info.get('description', '')
+        }
+        
+        # Update note with metadata and tags
+        await db["notes"].update_one(
+            {"id": note_id},
+            {
+                "$set": {
+                    "metadata": metadata,
+                    "tags": ["youtube", "video"]
+                }
+            }
+        )
+        
+        # Enqueue transcription
+        background_tasks.add_task(enqueue_transcription, note_id)
+        
+        # Clean up temporary audio file
+        background_tasks.add_task(youtube_processor.cleanup_temp_files, result['audio_file_path'])
+        
+        logger.info(f"🎬 YouTube video processed successfully: {note_title}")
+        
+        return {
+            "message": "YouTube video processed successfully",
+            "note_id": note_id,
+            "title": note_title,
+            "duration": video_info['duration'],
+            "estimated_processing_time": result.get('estimated_processing_time', 300),
+            "status": "processing"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error processing YouTube video: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process video: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 app.include_router(upload_router, prefix="/api")  # New resumable upload API
