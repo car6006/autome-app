@@ -4885,6 +4885,8 @@ function AppContent() {
             <Route path="/iisb" element={<IISBAnalysisScreen />} />
             <Route path="/large-file" element={<LargeFileTranscriptionScreen />} />
             <Route path="/live-transcription" element={<LiveTranscriptionScreen />} />
+            <Route path="/features" element={<FeatureMenuScreen />} />
+            <Route path="/youtube" element={<YouTubeProcessorScreen />} />
             <Route path="/help" element={<HelpGuide />} />
           </Routes>
         </div>
