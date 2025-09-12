@@ -255,3 +255,4 @@ class YouTubeProcessor:
 
 # Global instance
 youtube_processor = YouTubeProcessor()
+logger.info(f"🎬 YouTube processor initialized with path: {youtube_processor.youtube_dl_path}")
