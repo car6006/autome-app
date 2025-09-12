@@ -209,8 +209,11 @@ class TranscriptionProvider:
                         logger.error(f"OpenAI API error {response.status_code}: {error_detail}")
                         raise ValueError(f"OpenAI transcription failed: {error_detail}")
                         
+        except ValueError as ve:
+            logger.error(f"❌ OpenAI transcription validation error: {str(ve)}")
+            raise ve
         except Exception as e:
-            logger.error(f"❌ OpenAI transcription error: {e}")
+            logger.error(f"❌ OpenAI transcription unexpected error: {str(e)}")
             raise e
         finally:
             # Clean up temporary WAV file if created
