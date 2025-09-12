@@ -1015,14 +1015,14 @@ class BackendTester:
             self.log_result("Enhanced Providers Import", False, f"Enhanced providers import test error: {str(e)}")
 
     def test_youtube_info_endpoint(self):
-        """Test YouTube video information endpoint"""
+        """Test YouTube video information endpoint with the specific short video"""
         if not self.auth_token:
             self.log_result("YouTube Info Endpoint", False, "Skipped - no authentication token")
             return
             
         try:
-            # Test with a short public YouTube video
-            test_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Rick Roll - short and always available
+            # Test with the specific short video mentioned in the review request
+            test_url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"  # "Me at the zoo" - first YouTube video
             
             request_data = {
                 "url": test_url
@@ -1041,12 +1041,14 @@ class BackendTester:
                 if all(field in data for field in required_fields):
                     duration_minutes = data['duration'] / 60
                     self.log_result("YouTube Info Endpoint", True, 
-                                  f"Video info retrieved: '{data['title']}' by {data['uploader']} ({duration_minutes:.1f} min)", 
+                                  f"✅ Video info extracted successfully: '{data['title']}' by {data['uploader']} ({duration_minutes:.1f} min)", 
                                   {
                                       "video_id": data['id'],
                                       "title": data['title'],
                                       "duration": f"{duration_minutes:.1f} minutes",
-                                      "uploader": data['uploader']
+                                      "uploader": data['uploader'],
+                                      "view_count": data.get('view_count', 0),
+                                      "description_preview": data.get('description', '')[:100] + '...' if data.get('description') else 'No description'
                                   })
                 else:
                     missing_fields = [f for f in required_fields if f not in data]
