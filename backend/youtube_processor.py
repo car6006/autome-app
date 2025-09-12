@@ -141,8 +141,8 @@ class YouTubeProcessor:
             logger.error(f"❌ Unexpected error getting video info: {str(e)}")
             raise RuntimeError(f"Unexpected error: {str(e)}")
     
-    async def extract_audio(self, url: str, output_path: Optional[str] = None) -> str:
-        """Extract audio from YouTube video"""
+    async def extract_audio(self, url: str, output_path: Optional[str] = None, retry_count: int = 0) -> str:
+        """Extract audio from YouTube video with multiple fallback strategies"""
         if not self.youtube_dl_path:
             raise RuntimeError("YouTube download tool not available")
         
@@ -153,6 +153,34 @@ class YouTubeProcessor:
         if output_path is None:
             temp_dir = tempfile.mkdtemp(prefix='autome_youtube_')
             output_path = os.path.join(temp_dir, '%(title)s.%(ext)s')
+        
+        # Different extraction strategies to try
+        strategies = [
+            # Strategy 1: Standard with browser spoofing
+            {
+                'name': 'Browser Spoofing',
+                'extra_args': [
+                    '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    '--referer', 'https://www.youtube.com/',
+                    '--add-header', 'Accept-Language:en-US,en;q=0.9'
+                ]
+            },
+            # Strategy 2: Different user agent
+            {
+                'name': 'Alternative User Agent', 
+                'extra_args': [
+                    '--user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15'
+                ]
+            },
+            # Strategy 3: No extra headers (basic)
+            {
+                'name': 'Basic Extraction',
+                'extra_args': []
+            }
+        ]
+        
+        current_strategy = strategies[min(retry_count, len(strategies) - 1)]
+        logger.info(f"🎵 Trying extraction strategy: {current_strategy['name']}")
         
         try:
             cmd = [
