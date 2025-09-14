@@ -7129,7 +7129,10 @@ class BackendTester:
         self.test_youtube_error_handling()
         self.test_youtube_duration_limits()
         
-        # NEW COMPREHENSIVE YOUTUBE TESTS
+        # NEW COMPREHENSIVE YOUTUBE TESTS (COOKIE-BASED AUTHENTICATION FOCUS)
+        self.test_youtube_cookie_authentication()
+        self.test_youtube_blocked_video_handling()
+        self.test_youtube_integration_with_notes()
         self.test_youtube_end_to_end_processing()
         self.test_youtube_audio_extraction_verification()
         
