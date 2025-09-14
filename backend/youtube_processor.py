@@ -128,8 +128,34 @@ class YouTubeProcessor:
             
             if process.returncode != 0:
                 error_msg = stderr.decode('utf-8')
-                logger.error(f"❌ Video info extraction failed: {error_msg}")
-                raise RuntimeError(f"Failed to get video info: {error_msg}")
+                logger.error(f"❌ Video info extraction failed with cookies: {error_msg}")
+                
+                # Try without cookies as fallback
+                if "cookies" in error_msg.lower() or "browser" in error_msg.lower():
+                    logger.info("🔄 Retrying video info extraction without cookies...")
+                    cmd_fallback = [
+                        self.youtube_dl_path,
+                        '--dump-json',
+                        '--no-playlist',
+                        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        '--referer', 'https://www.youtube.com/',
+                        url
+                    ]
+                    
+                    process_fallback = await asyncio.create_subprocess_exec(
+                        *cmd_fallback,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    
+                    stdout, stderr = await asyncio.wait_for(process_fallback.communicate(), timeout=30)
+                    
+                    if process_fallback.returncode != 0:
+                        error_msg = stderr.decode('utf-8')
+                        logger.error(f"❌ Video info extraction failed: {error_msg}")
+                        raise RuntimeError(f"Failed to get video info: {error_msg}")
+                else:
+                    raise RuntimeError(f"Failed to get video info: {error_msg}")
             
             video_info = json.loads(stdout.decode('utf-8'))
             
