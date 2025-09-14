@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 
 # Configuration
-BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-capture-1.preview.emergentagent.com/api"
 
 class OCRTester:
     def __init__(self):

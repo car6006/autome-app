@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-capture-1.preview.emergentagent.com/api"
 SESSION_ID = "m0uevvygg"
 
 def debug_session():

@@ -13,7 +13,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-capture-1.preview.emergentagent.com/api"
 
 class EnhancedYouTubeTester:
     def __init__(self):

@@ -12,7 +12,7 @@ from datetime import datetime
 import uuid
 
 # Configuration
-BACKEND_URL = "https://transcript-master.preview.emergentagent.com/api"
+BACKEND_URL = "https://content-capture-1.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"livetestuser_{uuid.uuid4().hex[:8]}@example.com"
 TEST_USER_PASSWORD = "TestPassword123"
 

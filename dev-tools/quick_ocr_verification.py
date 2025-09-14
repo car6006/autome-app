@@ -13,7 +13,7 @@ import base64
 from PIL import Image, ImageDraw, ImageFont
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://transcript-master.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-capture-1.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def test_ocr_with_real_content():
