@@ -169,16 +169,14 @@ class YouTubeProcessor:
         
         # Different extraction strategies to try (ordered from most to least sophisticated)
         strategies = [
-            # Strategy 1: Advanced spoofing with format selection
+            # Strategy 1: Cookie-based authentication (Primary)
             {
-                'name': 'Advanced Browser Spoofing',
+                'name': 'Browser Cookie Authentication',
                 'extra_args': [
+                    '--cookies-from-browser', 'chrome',
                     '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     '--referer', 'https://www.youtube.com/',
-                    '--add-header', 'Accept-Language:en-US,en;q=0.9',
-                    '--add-header', 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                     '--format', 'bestaudio[ext=m4a]/bestaudio/best',
-                    '--extract-flat', 'False',
                     '--no-check-certificate'
                 ]
             },
