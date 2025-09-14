@@ -420,7 +420,7 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
           </div>
         </div>
 
-        {/* Competitive Advantage Banner */}
+        {/* Key Capabilities Banner */}
         <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
           <CardContent className="p-8">
             <div className="flex items-center justify-between">
@@ -429,16 +429,16 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
                   <TrendingUp className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold mb-2">Superior to Competition</h3>
+                  <h3 className="text-2xl font-bold mb-2">Advanced AI-Powered Features</h3>
                   <p className="text-blue-100 text-lg">
-                    AUTO-ME offers real-time 5-second chunking, larger file support (500MB), 
-                    and advanced search capabilities that outperform Smart Notes and similar platforms.
+                    AUTO-ME delivers cutting-edge real-time 5-second chunking, supports files up to 500MB, 
+                    and provides intelligent search capabilities with multi-language support.
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-right">
                 <CheckCircle className="h-6 w-6 text-green-300" />
-                <span className="text-lg font-semibold">Better Than Smart Notes</span>
+                <span className="text-lg font-semibold">Production Ready</span>
               </div>
             </div>
           </CardContent>
