@@ -190,9 +190,9 @@ class YouTubeProcessor:
                     '--no-check-certificate'
                 ]
             },
-            # Strategy 3: Alternative desktop browser
+            # Strategy 3: Legacy User Agent (Fallback)
             {
-                'name': 'Firefox User Agent', 
+                'name': 'Legacy User Agent', 
                 'extra_args': [
                     '--user-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0',
                     '--format', 'bestaudio[ext=webm]/bestaudio',
