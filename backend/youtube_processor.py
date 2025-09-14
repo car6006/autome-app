@@ -180,12 +180,12 @@ class YouTubeProcessor:
                     '--no-check-certificate'
                 ]
             },
-            # Strategy 2: Mobile user agent approach
+            # Strategy 2: Firefox Cookie Authentication
             {
-                'name': 'Mobile User Agent',
+                'name': 'Firefox Cookie Authentication',
                 'extra_args': [
-                    '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-                    '--referer', 'https://m.youtube.com/',
+                    '--cookies-from-browser', 'firefox',
+                    '--user-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0',
                     '--format', 'bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio',
                     '--no-check-certificate'
                 ]
