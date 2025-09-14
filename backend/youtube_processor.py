@@ -252,7 +252,28 @@ class YouTubeProcessor:
                     await asyncio.sleep(2)  # Brief delay before retry
                     return await self.extract_audio(url, output_path, retry_count + 1)
                 elif "403: Forbidden" in error_msg or "HTTP Error 403" in error_msg:
-                    raise RuntimeError("YouTube blocked this video download after trying multiple methods. This may be due to copyright restrictions, geographic limitations, or temporary YouTube protections. Please try a different video or try again later.")
+                    # Enhanced error message with cookie guidance
+                    raise RuntimeError(
+                        "YouTube blocked this video download after trying multiple methods including cookie authentication. "
+                        "This may be due to:\n"
+                        "1. Strong copyright restrictions on this specific video\n"
+                        "2. Geographic limitations in your region\n"
+                        "3. YouTube requiring browser login cookies (ensure Chrome/Firefox has active YouTube session)\n"
+                        "4. Temporary YouTube protections\n\n"
+                        "Suggested solutions:\n"
+                        "• Try a different, less restricted video (educational content works better)\n"
+                        "• Ensure you're logged into YouTube in your browser\n"
+                        "• Use the file upload feature instead\n"
+                        "• Try again later as protections change frequently"
+                    )
+                elif "Sign in to confirm you're not a bot" in error_msg or "cookies" in error_msg.lower():
+                    raise RuntimeError(
+                        "YouTube requires browser authentication cookies. Please:\n"
+                        "1. Open Chrome or Firefox and sign into YouTube\n"
+                        "2. Visit the video you want to process\n"
+                        "3. Try the extraction again\n"
+                        "If you don't have browser cookies available, use the file upload feature instead."
+                    )
                 elif "unavailable" in error_msg.lower():
                     raise RuntimeError("This YouTube video is unavailable or has been removed. Please try a different video.")
                 elif "private" in error_msg.lower():
