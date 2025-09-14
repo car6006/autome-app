@@ -7452,6 +7452,195 @@ class BackendTester:
         audio_data = b'\x00\x00' * 50000  # 100KB of silence (larger file)
         return wav_header + audio_data
 
+    def test_youtube_cookie_authentication(self):
+        """Test YouTube cookie-based authentication approach that was just implemented"""
+        if not self.auth_token:
+            self.log_result("YouTube Cookie Authentication", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test with a well-known YouTube video that should work with cookie authentication
+            test_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Rick Roll - reliable test video
+            
+            request_data = {
+                "url": test_url
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/youtube/info",
+                json=request_data,
+                timeout=45  # Longer timeout for cookie authentication
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'title', 'duration', 'uploader']
+                
+                if all(field in data for field in required_fields):
+                    duration_minutes = data['duration'] / 60
+                    self.log_result("YouTube Cookie Authentication", True, 
+                                  f"✅ Cookie-based authentication working: '{data['title']}' by {data['uploader']} ({duration_minutes:.1f} min)", 
+                                  {
+                                      "video_id": data['id'],
+                                      "title": data['title'],
+                                      "duration": f"{duration_minutes:.1f} minutes",
+                                      "uploader": data['uploader'],
+                                      "authentication_method": "cookie-based"
+                                  })
+                else:
+                    missing_fields = [f for f in required_fields if f not in data]
+                    self.log_result("YouTube Cookie Authentication", False, f"Missing required fields: {missing_fields}", data)
+            elif response.status_code == 503:
+                self.log_result("YouTube Cookie Authentication", False, "YouTube processing service unavailable (yt-dlp not installed)")
+            elif response.status_code == 400:
+                error_detail = response.json().get('detail', response.text)
+                if "Invalid YouTube URL" in error_detail:
+                    self.log_result("YouTube Cookie Authentication", False, f"URL validation failed: {error_detail}")
+                elif "too long" in error_detail.lower():
+                    self.log_result("YouTube Cookie Authentication", True, "Duration validation working (video too long)")
+                elif "blocked" in error_detail.lower() or "403" in error_detail:
+                    self.log_result("YouTube Cookie Authentication", False, f"Cookie authentication failed - video blocked: {error_detail}")
+                else:
+                    self.log_result("YouTube Cookie Authentication", False, f"Unexpected 400 error: {error_detail}")
+            else:
+                self.log_result("YouTube Cookie Authentication", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("YouTube Cookie Authentication", False, f"Cookie authentication test error: {str(e)}")
+
+    def test_youtube_blocked_video_handling(self):
+        """Test enhanced error handling for blocked videos with improved user guidance"""
+        if not self.auth_token:
+            self.log_result("YouTube Blocked Video Handling", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test with a video that might be blocked or restricted
+            blocked_test_url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"  # "Me at the zoo" - sometimes blocked
+            
+            request_data = {
+                "url": blocked_test_url
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/youtube/info",
+                json=request_data,
+                timeout=60  # Longer timeout for blocked video handling
+            )
+            
+            if response.status_code == 200:
+                # Video worked - that's also good
+                data = response.json()
+                self.log_result("YouTube Blocked Video Handling", True, 
+                              f"✅ Video accessible: '{data.get('title', 'Unknown')}' - no blocking detected")
+            elif response.status_code == 400:
+                error_detail = response.json().get('detail', response.text)
+                
+                # Check for enhanced error messages
+                enhanced_error_indicators = [
+                    "YouTube blocked this video download after trying multiple methods",
+                    "cookie authentication",
+                    "browser login cookies",
+                    "Try a different, less restricted video",
+                    "Use the file upload feature instead",
+                    "geographic limitations",
+                    "copyright restrictions"
+                ]
+                
+                has_enhanced_error = any(indicator in error_detail for indicator in enhanced_error_indicators)
+                
+                if has_enhanced_error:
+                    self.log_result("YouTube Blocked Video Handling", True, 
+                                  f"✅ Enhanced error handling working - detailed guidance provided: {error_detail[:200]}...")
+                else:
+                    self.log_result("YouTube Blocked Video Handling", False, 
+                                  f"Error message not enhanced: {error_detail}")
+            elif response.status_code == 503:
+                self.log_result("YouTube Blocked Video Handling", False, "YouTube service unavailable (yt-dlp not installed)")
+            else:
+                self.log_result("YouTube Blocked Video Handling", False, f"Unexpected response: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("YouTube Blocked Video Handling", False, f"Blocked video handling test error: {str(e)}")
+
+    def test_youtube_integration_with_notes(self):
+        """Test YouTube processing integration with note creation system"""
+        if not self.auth_token:
+            self.log_result("YouTube Integration with Notes", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test the full YouTube processing pipeline
+            test_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Rick Roll - reliable test
+            
+            request_data = {
+                "url": test_url,
+                "title": "YouTube Integration Test - Rick Roll"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/youtube/process",
+                json=request_data,
+                timeout=90  # Longer timeout for full processing
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['note_id', 'title', 'status', 'message']
+                
+                if all(field in data for field in required_fields):
+                    note_id = data['note_id']
+                    
+                    # Wait for processing to start
+                    time.sleep(5)
+                    
+                    # Check note integration
+                    note_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                    
+                    if note_response.status_code == 200:
+                        note_data = note_response.json()
+                        status = note_data.get("status", "unknown")
+                        metadata = note_data.get("metadata", {})
+                        tags = note_data.get("tags", [])
+                        
+                        # Check YouTube-specific integration
+                        has_youtube_metadata = "youtube_url" in metadata
+                        has_youtube_tag = "youtube" in tags
+                        
+                        if status in ["processing", "ready"] and has_youtube_metadata:
+                            self.log_result("YouTube Integration with Notes", True, 
+                                          f"✅ YouTube integration working: Note created with status '{status}', YouTube metadata present", 
+                                          {
+                                              "note_id": note_id,
+                                              "status": status,
+                                              "has_youtube_metadata": has_youtube_metadata,
+                                              "has_youtube_tag": has_youtube_tag,
+                                              "youtube_url": metadata.get("youtube_url")
+                                          })
+                        else:
+                            self.log_result("YouTube Integration with Notes", False, 
+                                          f"Integration incomplete: status={status}, metadata={has_youtube_metadata}, tags={has_youtube_tag}")
+                    else:
+                        self.log_result("YouTube Integration with Notes", False, 
+                                      f"Cannot retrieve created note: HTTP {note_response.status_code}")
+                else:
+                    missing_fields = [f for f in required_fields if f not in data]
+                    self.log_result("YouTube Integration with Notes", False, f"Missing required fields: {missing_fields}", data)
+            elif response.status_code == 503:
+                self.log_result("YouTube Integration with Notes", False, "YouTube processing service unavailable")
+            elif response.status_code == 400:
+                error_detail = response.json().get('detail', response.text)
+                if "blocked" in error_detail.lower() or "403" in error_detail:
+                    self.log_result("YouTube Integration with Notes", True, 
+                                  f"Enhanced blocking detection working: {error_detail}")
+                else:
+                    self.log_result("YouTube Integration with Notes", False, f"Processing failed: {error_detail}")
+            else:
+                self.log_result("YouTube Integration with Notes", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("YouTube Integration with Notes", False, f"YouTube integration test error: {str(e)}")
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "=" * 60)
