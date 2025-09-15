@@ -5122,7 +5122,6 @@ function AppContent() {
             <Route path="/features" element={<FeatureMenuScreen />} />
             <Route path="/youtube" element={<YouTubeProcessorScreen />} />
             <Route path="/help" element={<HelpGuide />} />
-            <Route path="/login" element={<AuthModal />} />
           </Routes>
         </div>
         <Navigation />
