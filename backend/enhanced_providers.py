@@ -596,37 +596,52 @@ async def transcribe_audio(file_path: str, session_id: str = None) -> dict:
             logger.info(f"🔄 Processing {len(chunks)} audio chunks")
             transcriptions = []
             
-            # Process each chunk sequentially
+            # Process each chunk sequentially with enhanced reliability
             for i, chunk_path in enumerate(chunks):
-                try:
-                    logger.info(f"🎤 Transcribing chunk {i+1}/{len(chunks)}")
-                    result = await transcription_provider.transcribe_audio_chunk(chunk_path, f"{session_id}_chunk_{i}")
-                    
-                    chunk_text = result.get("text", "").strip()
-                    if chunk_text:
-                        # Add chunk number for long transcriptions
-                        if len(chunks) > 1:
-                            transcriptions.append(f"[Part {i+1}] {chunk_text}")
-                        else:
-                            transcriptions.append(chunk_text)
-                    else:
-                        logger.warning(f"⚠️ Empty transcription for chunk {i+1}")
-                    
-                    # Add delay between chunks to respect rate limits
-                    if i < len(chunks) - 1:
-                        logger.info(f"⏳ Waiting 3 seconds before processing next chunk...")
-                        await asyncio.sleep(3)
-                    
-                except Exception as e:
-                    logger.error(f"❌ Error processing chunk {i+1}: {e}")
-                    transcriptions.append(f"[Part {i+1}] Error processing this segment")
+                max_retries = 3
+                retry_delay = 5  # Start with 5 seconds
                 
-                finally:
-                    # Clean up chunk file
+                for attempt in range(max_retries):
                     try:
-                        os.unlink(chunk_path)
-                    except:
-                        pass
+                        logger.info(f"🎤 Transcribing chunk {i+1}/{len(chunks)} (attempt {attempt+1})")
+                        result = await transcription_provider.transcribe_audio_chunk(chunk_path, f"{session_id}_chunk_{i}")
+                        
+                        chunk_text = result.get("text", "").strip()
+                        if chunk_text:
+                            # Add chunk number for long transcriptions
+                            if len(chunks) > 1:
+                                transcriptions.append(f"[Part {i+1}] {chunk_text}")
+                            else:
+                                transcriptions.append(chunk_text)
+                        else:
+                            logger.warning(f"⚠️ Empty transcription for chunk {i+1}")
+                        
+                        # Success - break out of retry loop
+                        break
+                        
+                    except Exception as e:
+                        logger.error(f"❌ Error processing chunk {i+1} (attempt {attempt+1}): {e}")
+                        
+                        if attempt < max_retries - 1:
+                            logger.info(f"🔄 Retrying chunk {i+1} in {retry_delay} seconds...")
+                            await asyncio.sleep(retry_delay)
+                            retry_delay *= 2  # Exponential backoff
+                        else:
+                            # Final attempt failed
+                            logger.error(f"💥 Failed to process chunk {i+1} after {max_retries} attempts")
+                            transcriptions.append(f"[Part {i+1}] Error processing this segment after multiple attempts")
+                
+                # Add delay between chunks to respect rate limits and prevent overwhelming the API
+                if i < len(chunks) - 1:
+                    delay = 2 if len(chunks) > 50 else 3  # Shorter delay for very long files
+                    logger.info(f"⏳ Waiting {delay} seconds before processing next chunk...")
+                    await asyncio.sleep(delay)
+                
+                # Clean up chunk file immediately to save disk space
+                try:
+                    os.unlink(chunk_path)
+                except:
+                    pass
             
             # Combine all transcriptions
             full_text = " ".join(transcriptions).strip()
