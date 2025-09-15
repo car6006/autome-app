@@ -575,8 +575,21 @@ async def transcribe_audio(file_path: str, session_id: str = None) -> dict:
             # Large file - need to split into chunks
             logger.info(f"📁 File too large ({file_size / (1024*1024):.1f} MB), splitting into chunks")
             
-            # Split audio file into chunks with configurable duration
-            chunks = await split_large_audio_file(file_path, chunk_duration=CHUNK_DURATION_SECONDS)
+            # For very long recordings, use larger chunks to reduce API calls and improve reliability
+            # Calculate optimal chunk duration based on file size
+            file_size_mb = file_size / (1024*1024)
+            if file_size_mb > 50:  # Files larger than 50MB (likely very long recordings)
+                chunk_duration = 120  # 2 minutes per chunk for very long files
+                logger.info(f"🕒 Using 2-minute chunks for very long recording ({file_size_mb:.1f} MB)")
+            elif file_size_mb > 20:  # Files larger than 20MB
+                chunk_duration = 60   # 1 minute per chunk for long files
+                logger.info(f"🕒 Using 1-minute chunks for long recording ({file_size_mb:.1f} MB)")
+            else:
+                chunk_duration = CHUNK_DURATION_SECONDS  # Use default for smaller files
+                logger.info(f"🕒 Using {chunk_duration}-second chunks for standard file ({file_size_mb:.1f} MB)")
+            
+            # Split audio file into chunks with optimal duration
+            chunks = await split_large_audio_file(file_path, chunk_duration=chunk_duration)
             if not chunks:
                 return {"text": "", "summary": "", "actions": [], "note": "Failed to split audio file"}
             
