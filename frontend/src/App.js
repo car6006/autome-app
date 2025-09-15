@@ -5004,6 +5004,25 @@ const GlobalHeader = ({ user, theme, branding }) => {
                     </Link>
                   </DropdownMenuItem>
                   
+                  {/* Stats - Show to authenticated users */}
+                  {user && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/metrics" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-gray-700 to-gray-800' 
+                            : 'bg-gradient-to-r from-orange-500 to-red-600'
+                        }`}>
+                          <BarChart3 className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">Analytics & Stats</p>
+                          <p className="text-xs text-gray-500">View usage metrics</p>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuSeparator />
                   
                   {/* User Actions */}
