@@ -5108,11 +5108,15 @@ function App() {
 function AppContent() {
   const { user } = useAuth();
   const theme = getThemeClasses(user);
+  const branding = getBrandingElements(user);
   
   return (
     <div className={`App ${theme.mainTheme}`}>
       <BrowserRouter>
-        <div className="pb-20"> {/* Bottom padding for navigation */}
+        {/* Global Header with Burger Menu */}
+        <GlobalHeader user={user} theme={theme} branding={branding} />
+        
+        <div className="pb-20 pt-16"> {/* Bottom padding for navigation, top padding for header */}
           <Routes>
             <Route path="/" element={<CaptureScreen />} />
             <Route path="/capture" element={<CaptureScreen />} />
@@ -5124,9 +5128,11 @@ function AppContent() {
             <Route path="/iisb" element={<IISBAnalysisScreen />} />
             <Route path="/large-file" element={<LargeFileTranscriptionScreen />} />
             <Route path="/live-transcription" element={<LiveTranscriptionScreen />} />
+            <Route path="/live" element={<LiveTranscriptionScreen />} />
             <Route path="/features" element={<FeatureMenuScreen />} />
             <Route path="/youtube" element={<YouTubeProcessorScreen />} />
             <Route path="/help" element={<HelpGuide />} />
+            <Route path="/login" element={<AuthModal />} />
           </Routes>
         </div>
         <Navigation />
