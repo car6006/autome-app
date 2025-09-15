@@ -470,10 +470,11 @@ const CaptureScreen = () => {
         }
       });
       
-      // Step 3: Success
+      // Step 3: SUCCESS - Background processing will handle transcription
       toast({ 
         title: "🚀 Upload Complete!", 
-        description: `Your ${sourceDescription} is now being processed by AI. Check the Notes tab to see progress.` 
+        description: `Your ${sourceDescription} is now being processed safely in the background. Check Notes to monitor progress.`,
+        duration: 5000
       });
       
       // Reset form
@@ -481,14 +482,29 @@ const CaptureScreen = () => {
       setNoteTitle("");
       
       // Navigate to notes view to see processing
-      setTimeout(() => navigate('/notes'), 1500);
+      setTimeout(() => navigate('/notes'), 2000);
       
     } catch (error) {
-      // Upload error logged for debugging
+      console.error('Upload error:', error);
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = "Failed to process audio. Please try again.";
+      
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.response?.status === 413) {
+        errorMessage = "File too large. Please use the Large Files feature for recordings over 50MB.";
+      } else if (error.response?.status === 422) {
+        errorMessage = "Invalid audio format. Please try a different file.";
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
       toast({ 
-        title: "Error", 
-        description: error.response?.data?.detail || "Failed to process audio. Please try again.", 
-        variant: "destructive" 
+        title: "Upload Failed", 
+        description: errorMessage,
+        variant: "destructive",
+        duration: 6000
       });
     } finally {
       setProcessing(false);
