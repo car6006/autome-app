@@ -1353,10 +1353,14 @@ const NotesScreen = () => {
       setProcessingTimes(updatedProcessingTimes);
       setNotes(filteredNotes);
     } catch (error) {
-      // If authentication error, clear notes
+      // If authentication error, clear notes and redirect to login
       if (error.response?.status === 401 || error.response?.status === 403) {
         setNotes([]);
-        setUser(null); // Clear user if authentication failed
+        toast({ 
+          title: "Session Expired", 
+          description: "Please sign in again to view your notes", 
+          variant: "destructive" 
+        });
       } else {
         // Notes fetching error logged for debugging
         toast({ title: "Error", description: "Failed to load notes", variant: "destructive" });
