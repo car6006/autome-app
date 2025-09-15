@@ -1321,6 +1321,13 @@ const NotesScreen = () => {
   }, [showArchived, user]);
 
   const fetchNotes = async (includeArchived = false) => {
+    // Only fetch notes if user is authenticated
+    if (!user) {
+      setNotes([]);
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await axios.get(`${API}/notes${includeArchived ? '?include_archived=true' : ''}`);
       const allNotes = response.data;
@@ -1346,8 +1353,14 @@ const NotesScreen = () => {
       setProcessingTimes(updatedProcessingTimes);
       setNotes(filteredNotes);
     } catch (error) {
-      // Notes fetching error logged for debugging
-      toast({ title: "Error", description: "Failed to load notes", variant: "destructive" });
+      // If authentication error, clear notes
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        setNotes([]);
+        setUser(null); // Clear user if authentication failed
+      } else {
+        // Notes fetching error logged for debugging
+        toast({ title: "Error", description: "Failed to load notes", variant: "destructive" });
+      }
     } finally {
       setLoading(false);
     }
