@@ -865,55 +865,183 @@ const PhotoScanScreen = () => {
               )}
             </div>
             
-            {/* Profile and Help buttons - Enhanced styling */}
-            <div className="flex items-center space-x-3">
-              {/* Profile/Login Button */}
-              {user ? (
-                <Link to="/profile" className="group transition-all duration-200 hover:scale-105">
-                  <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-gray-100">
-                    <Avatar className={`w-6 h-6 border-2 ${
-                      theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
-                    }`}>
-                      <AvatarImage src={user?.profile?.avatar_url} />
-                      <AvatarFallback className={`text-white text-xs font-bold ${
+            {/* Modern Burger Menu */}
+            <div className="flex items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="p-2 hover:bg-white/20 transition-all duration-200 group"
+                  >
+                    <div className="flex flex-col space-y-1">
+                      <div className={`w-5 h-0.5 transition-all duration-300 group-hover:w-6 ${
+                        theme.isExpeditors ? 'bg-red-600' : 'bg-gray-700'
+                      }`}></div>
+                      <div className={`w-4 h-0.5 transition-all duration-300 group-hover:w-6 ${
+                        theme.isExpeditors ? 'bg-red-600' : 'bg-gray-700'
+                      }`}></div>
+                      <div className={`w-5 h-0.5 transition-all duration-300 group-hover:w-6 ${
+                        theme.isExpeditors ? 'bg-red-600' : 'bg-gray-700'
+                      }`}></div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-64 mt-2 bg-white/95 backdrop-blur-lg border border-gray-200 shadow-xl rounded-xl p-2"
+                >
+                  {/* User Profile Section */}
+                  {user ? (
+                    <>
+                      <div className="flex items-center space-x-3 p-3 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+                        <Avatar className={`w-10 h-10 border-2 ${
+                          theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
+                        }`}>
+                          <AvatarImage src={user?.profile?.avatar_url} />
+                          <AvatarFallback className={`text-white font-bold ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                              : 'bg-gradient-to-r from-violet-500 to-pink-500'
+                          }`}>
+                            {(user?.profile?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {user.profile?.first_name || user.username}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : null}
+                  
+                  {/* Main Navigation */}
+                  <DropdownMenuItem asChild>
+                    <Link to="/features" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                         theme.isExpeditors 
                           ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                          : 'bg-gradient-to-r from-violet-500 to-pink-500'
+                          : 'bg-gradient-to-r from-violet-500 to-purple-600'
                       }`}>
-                        {(user?.profile?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs font-medium text-gray-700 hidden sm:inline">Profile</span>
-                  </div>
-                </Link>
-              ) : (
-                <Link to="/login" className="group transition-all duration-200 hover:scale-105">
-                  <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-gray-100">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      theme.isExpeditors 
-                        ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                        : 'bg-gradient-to-r from-violet-500 to-pink-600'
-                    }`}>
-                      <User className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-xs font-medium text-gray-700 hidden sm:inline">Login</span>
-                  </div>
-                </Link>
-              )}
-              
-              {/* Help Button - Enhanced styling */}
-              <Link to="/help" className="group transition-all duration-200 hover:scale-105">
-                <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-gray-100">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    theme.isExpeditors 
-                      ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                      : 'bg-gradient-to-r from-cyan-500 to-blue-600'
-                  }`}>
-                    <HelpCircle className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-xs font-medium text-gray-700 hidden sm:inline">Help</span>
-                </div>
-              </Link>
+                        <Sparkles className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">All Features</p>
+                        <p className="text-xs text-gray-500">Explore capabilities</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem asChild>
+                    <Link to="/youtube" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                          : 'bg-gradient-to-r from-red-500 to-red-600'
+                      }`}>
+                        <Youtube className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">YouTube Processing</p>
+                        <p className="text-xs text-gray-500">Extract & transcribe videos</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem asChild>
+                    <Link to="/live" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                          : 'bg-gradient-to-r from-green-500 to-green-600'
+                      }`}>
+                        <Mic className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Live Transcription</p>
+                        <p className="text-xs text-gray-500">Real-time speech capture</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem asChild>
+                    <Link to="/large-file" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                          : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                      }`}>
+                        <Upload className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Large Files</p>
+                        <p className="text-xs text-gray-500">Process big audio/video</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  {/* User Actions */}
+                  {user ? (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-gray-500 to-gray-600' 
+                              : 'bg-gradient-to-r from-gray-500 to-gray-600'
+                          }`}>
+                            <User className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">Profile Settings</p>
+                            <p className="text-xs text-gray-500">Manage your account</p>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem asChild>
+                        <Link to="/help" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            theme.isExpeditors 
+                              ? 'bg-gradient-to-r from-cyan-500 to-blue-600' 
+                              : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                          }`}>
+                            <HelpCircle className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">Help & Support</p>
+                            <p className="text-xs text-gray-500">Get assistance</p>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link to="/login" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          theme.isExpeditors 
+                            ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                            : 'bg-gradient-to-r from-violet-500 to-pink-600'
+                        }`}>
+                          <LogIn className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">Sign In</p>
+                          <p className="text-xs text-gray-500">Access your account</p>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           
