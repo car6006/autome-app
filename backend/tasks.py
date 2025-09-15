@@ -105,12 +105,12 @@ async def enqueue_transcription(note_id: str):
             try:
                 if os.path.exists(signed):
                     file_size = os.path.getsize(signed)
-                    # Allow 2 minutes per MB, minimum 10 minutes, maximum 30 minutes
-                    timeout_seconds = min(max(600, (file_size // (1024*1024)) * 120), 1800)
+                    # Allow 3 minutes per MB, minimum 20 minutes, maximum 3 hours for very long recordings
+                    timeout_seconds = min(max(1200, (file_size // (1024*1024)) * 180), 10800)
                 else:
-                    timeout_seconds = 1200  # 20 minutes default
+                    timeout_seconds = 3600  # 1 hour default for unknown sizes
             except:
-                timeout_seconds = 1200  # 20 minutes default
+                timeout_seconds = 3600  # 1 hour default
                 
             logger.info(f"Using timeout of {timeout_seconds} seconds ({timeout_seconds//60} minutes) for transcription")
             
@@ -118,7 +118,9 @@ async def enqueue_transcription(note_id: str):
         except asyncio.TimeoutError:
             logger.error(f"Transcription timeout for note {note_id} after {timeout_seconds} seconds")
             await NotesStore.update_status(note_id, "failed")
-            await NotesStore.set_artifacts(note_id, {"error": f"Transcription timed out after {timeout_seconds//60} minutes. This is an unusually long processing time - please try again or contact support if the issue persists."})
+            await NotesStore.set_artifacts(note_id, {
+                "error": f"Transcription timed out after {timeout_seconds//60} minutes. For very long recordings (1+ hours), please use the Large Files feature which provides better reliability for extended processing times."
+            })
             return
             
         latency_ms = int((time.time() - start) * 1000)
