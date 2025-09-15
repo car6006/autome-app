@@ -4,8 +4,38 @@
 [![Status](https://img.shields.io/badge/status-Production%20Ready-green.svg)](#)
 [![Mobile](https://img.shields.io/badge/mobile-fully%20responsive-brightgreen.svg)](#mobile-experience)
 [![AI](https://img.shields.io/badge/AI-GPT--4o--mini-purple.svg)](#ai-features)
+[![Codespaces](https://img.shields.io/badge/GitHub-Codespaces%20Ready-blue.svg)](https://codespaces.new)
 
 **AUTO-ME PWA** is a zero-friction content capture application designed for guaranteed delivery and editable AI outputs. Capture voice, scan documents, or write text notes with intelligent AI processing and professional export capabilities.
+
+## 🚀 Quick Start for Developers
+
+### GitHub Codespaces (Recommended)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new)
+
+### Docker Compose (Local Development)
+```bash
+git clone <your-repo>
+cd autome-pwa
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+### Manual Setup
+See [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) for detailed instructions.
+
+---
+
+## 🕐 Stable Checkpoint - September 14, 2025
+
+**Rollback ID**: `autome-stable-20250914-1845`
+
+✅ **Recent Fixes Completed**:
+- **YouTube Processing**: Fixed HTTP 403 errors with cookie-based authentication
+- **Environment Setup**: Added GitHub Codespaces and Docker support
+- **UI Polish**: Removed competitor references, cleaned up Features page
+- **Development Ready**: Full environment automation and documentation
+
+See [ROLLBACK_CHECKPOINT.md](./ROLLBACK_CHECKPOINT.md) for complete details.
 
 ---
 
