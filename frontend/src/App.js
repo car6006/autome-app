@@ -865,44 +865,53 @@ const PhotoScanScreen = () => {
               )}
             </div>
             
-            {/* Profile and Help buttons - Always visible */}
-            <div className="flex items-center space-x-2">
+            {/* Profile and Help buttons - Enhanced styling */}
+            <div className="flex items-center space-x-3">
               {/* Profile/Login Button */}
               {user ? (
-                <Link to="/profile" className="p-2">
-                  <Avatar className={`w-8 h-8 border-2 ${
-                    theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
-                  }`}>
-                    <AvatarImage src={user?.profile?.avatar_url} />
-                    <AvatarFallback className={`text-white text-xs font-bold ${
-                      theme.isExpeditors 
-                        ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                        : 'bg-gradient-to-r from-violet-500 to-pink-500'
+                <Link to="/profile" className="group transition-all duration-200 hover:scale-105">
+                  <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-gray-100">
+                    <Avatar className={`w-6 h-6 border-2 ${
+                      theme.isExpeditors ? 'border-red-200' : 'border-violet-200'
                     }`}>
-                      {(user?.profile?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                      <AvatarImage src={user?.profile?.avatar_url} />
+                      <AvatarFallback className={`text-white text-xs font-bold ${
+                        theme.isExpeditors 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                          : 'bg-gradient-to-r from-violet-500 to-pink-500'
+                      }`}>
+                        {(user?.profile?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-medium text-gray-700 hidden sm:inline">Profile</span>
+                  </div>
                 </Link>
               ) : (
-                <Link to="/login" className="p-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    theme.isExpeditors 
-                      ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                      : 'bg-gradient-to-r from-violet-500 to-pink-600'
-                  }`}>
-                    <User className="w-4 h-4 text-white" />
+                <Link to="/login" className="group transition-all duration-200 hover:scale-105">
+                  <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-gray-100">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      theme.isExpeditors 
+                        ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                        : 'bg-gradient-to-r from-violet-500 to-pink-600'
+                    }`}>
+                      <User className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-700 hidden sm:inline">Login</span>
                   </div>
                 </Link>
               )}
               
-              {/* Help Button - Always visible */}
-              <Link to="/help" className="p-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  theme.isExpeditors 
-                    ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-600'
-                }`}>
-                  <HelpCircle className="w-4 h-4 text-white" />
+              {/* Help Button - Enhanced styling */}
+              <Link to="/help" className="group transition-all duration-200 hover:scale-105">
+                <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-gray-100">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    theme.isExpeditors 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                  }`}>
+                    <HelpCircle className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-700 hidden sm:inline">Help</span>
                 </div>
               </Link>
             </div>
