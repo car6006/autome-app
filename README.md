@@ -72,6 +72,12 @@ See [ROLLBACK_CHECKPOINT.md](./ROLLBACK_CHECKPOINT.md) for complete details.
 - **Enhanced Reliability**: Exponential backoff retry logic for consistent processing
 - **Mobile Recording**: Optimized audio capture on mobile devices
 
+### 🎬 **YouTube Processing** ⭐ *Enhanced*
+- **Universal URL Support**: Process any YouTube video, short, or embedded link
+- **Cookie Authentication**: Advanced bypass for YouTube's anti-bot measures
+- **Smart Extraction**: High-quality audio extraction for transcription
+- **Intelligent Fallback**: Multiple strategies with comprehensive error guidance
+
 ### 📸 **Document Scanning (OCR)**
 - **Professional OCR**: Advanced text extraction using OpenAI Vision API
 - **Fast Processing**: 83% performance improvement with optimized retry logic
