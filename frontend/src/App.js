@@ -1285,28 +1285,38 @@ const NotesScreen = () => {
   const branding = getBrandingElements(user);
 
   useEffect(() => {
-    fetchNotes(showArchived);
     if (user) {
+      // Only fetch notes when user is authenticated
+      fetchNotes(showArchived);
       fetchFailedNotesCount();
       fetchTemplates(); // Load templates when user is available
+    } else {
+      // Clear notes when user is not authenticated
+      setNotes([]);
+      setFailedNotesCount(0);
+      setTemplates([]);
+      setLoading(false);
     }
     
-    const interval = setInterval(() => fetchNotes(showArchived), 3000); // Poll every 3 seconds instead of 5
-    const failedCountInterval = setInterval(() => {
-      if (user) {
-        fetchFailedNotesCount();
-      }
-    }, 10000); // Check failed count every 10 seconds
+    // Set up intervals only if user is authenticated
+    let interval, failedCountInterval, timeInterval;
     
-    // Update processing times every second for better UX
-    const timeInterval = setInterval(() => {
-      setProcessingTimes(prev => ({ ...prev })); // Trigger re-render for time updates
-    }, 1000);
+    if (user) {
+      interval = setInterval(() => fetchNotes(showArchived), 3000); // Poll every 3 seconds
+      failedCountInterval = setInterval(() => {
+        fetchFailedNotesCount();
+      }, 10000); // Check failed count every 10 seconds
+      
+      // Update processing times every second for better UX
+      timeInterval = setInterval(() => {
+        setProcessingTimes(prev => ({ ...prev })); // Trigger re-render for time updates
+      }, 1000);
+    }
     
     return () => {
-      clearInterval(interval);
-      clearInterval(failedCountInterval);
-      clearInterval(timeInterval);
+      if (interval) clearInterval(interval);
+      if (failedCountInterval) clearInterval(failedCountInterval);
+      if (timeInterval) clearInterval(timeInterval);
     };
   }, [showArchived, user]);
 
