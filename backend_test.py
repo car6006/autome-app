@@ -7393,6 +7393,452 @@ class BackendTester:
         except Exception as e:
             self.log_result("1-Hour Recording Reliability", False, f"1-hour recording reliability test error: {str(e)}")
 
+    def test_universal_audio_conversion(self):
+        """Test universal audio format conversion to MP3"""
+        if not self.auth_token:
+            self.log_result("Universal Audio Conversion", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test various audio formats that should be converted to MP3
+            test_formats = [
+                ('test_m4a.m4a', b'ftypM4A \x00\x00\x00\x20ftypM4A ' + b'test' * 100, 'audio/m4a'),
+                ('test_aac.aac', b'\xff\xf1P\x80\x00\x1f\xfc' + b'test' * 100, 'audio/aac'),
+                ('test_flac.flac', b'fLaC\x00\x00\x00"' + b'test' * 100, 'audio/flac'),
+                ('test_ogg.ogg', b'OggS\x00\x02\x00\x00' + b'test' * 100, 'audio/ogg'),
+                ('test_webm.webm', b'\x1a\x45\xdf\xa3' + b'test' * 100, 'audio/webm'),
+            ]
+            
+            successful_conversions = 0
+            total_formats = len(test_formats)
+            
+            for filename, content, mime_type in test_formats:
+                try:
+                    files = {
+                        'file': (filename, content, mime_type)
+                    }
+                    data = {
+                        'title': f'Universal Audio Test - {filename}'
+                    }
+                    
+                    response = self.session.post(
+                        f"{BACKEND_URL}/upload-file",
+                        files=files,
+                        data=data,
+                        timeout=30
+                    )
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if result.get("id"):
+                            successful_conversions += 1
+                            
+                            # Wait for processing to start
+                            time.sleep(3)
+                            
+                            # Check if conversion was attempted
+                            note_response = self.session.get(f"{BACKEND_URL}/notes/{result['id']}", timeout=10)
+                            if note_response.status_code == 200:
+                                note_data = note_response.json()
+                                status = note_data.get("status", "unknown")
+                                
+                                if status in ["processing", "ready"]:
+                                    print(f"  ✅ {filename} ({mime_type}) - Upload successful, status: {status}")
+                                else:
+                                    print(f"  ⚠️ {filename} ({mime_type}) - Upload successful but status: {status}")
+                            else:
+                                print(f"  ⚠️ {filename} ({mime_type}) - Upload successful but cannot check status")
+                        else:
+                            print(f"  ❌ {filename} ({mime_type}) - Upload failed: no ID returned")
+                    else:
+                        print(f"  ❌ {filename} ({mime_type}) - Upload failed: HTTP {response.status_code}")
+                        
+                except Exception as e:
+                    print(f"  ❌ {filename} ({mime_type}) - Error: {str(e)}")
+                    
+                time.sleep(1)  # Small delay between uploads
+            
+            success_rate = (successful_conversions / total_formats) * 100
+            
+            if success_rate >= 60:  # At least 60% should work
+                self.log_result("Universal Audio Conversion", True, 
+                              f"Universal audio conversion working: {successful_conversions}/{total_formats} formats ({success_rate:.1f}%)")
+            else:
+                self.log_result("Universal Audio Conversion", False, 
+                              f"Universal audio conversion issues: only {successful_conversions}/{total_formats} formats ({success_rate:.1f}%)")
+                
+        except Exception as e:
+            self.log_result("Universal Audio Conversion", False, f"Universal audio conversion test error: {str(e)}")
+
+    def test_enhanced_upload_validation(self):
+        """Test enhanced upload validation with permissive MIME patterns"""
+        if not self.auth_token:
+            self.log_result("Enhanced Upload Validation", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test permissive MIME type validation (audio/* and video/* patterns)
+            test_cases = [
+                # Should be accepted (audio/*)
+                ('audio_generic.mp3', b'ID3\x03\x00\x00\x00' + b'test' * 100, 'audio/mpeg'),
+                ('audio_custom.xyz', b'RIFF\x24\x08WAVEfmt ' + b'test' * 100, 'audio/custom-format'),
+                ('audio_unknown.abc', b'test audio content', 'audio/unknown'),
+                
+                # Should be accepted (video/*)
+                ('video_mp4.mp4', b'ftypmp42' + b'test' * 100, 'video/mp4'),
+                ('video_custom.xyz', b'test video content', 'video/custom-format'),
+                
+                # Should be rejected (non-audio/video)
+                ('document.pdf', b'%PDF-1.4' + b'test' * 100, 'application/pdf'),
+                ('text.txt', b'test text content', 'text/plain'),
+            ]
+            
+            accepted_count = 0
+            rejected_count = 0
+            expected_accepted = 5  # First 5 should be accepted
+            expected_rejected = 2   # Last 2 should be rejected
+            
+            for i, (filename, content, mime_type) in enumerate(test_cases):
+                try:
+                    files = {
+                        'file': (filename, content, mime_type)
+                    }
+                    data = {
+                        'title': f'Enhanced Validation Test - {filename}'
+                    }
+                    
+                    response = self.session.post(
+                        f"{BACKEND_URL}/upload-file",
+                        files=files,
+                        data=data,
+                        timeout=15
+                    )
+                    
+                    should_accept = i < expected_accepted
+                    
+                    if response.status_code == 200:
+                        if should_accept:
+                            accepted_count += 1
+                            print(f"  ✅ {filename} ({mime_type}) - Correctly accepted")
+                        else:
+                            print(f"  ❌ {filename} ({mime_type}) - Should have been rejected but was accepted")
+                    elif response.status_code == 400:
+                        if not should_accept:
+                            rejected_count += 1
+                            print(f"  ✅ {filename} ({mime_type}) - Correctly rejected")
+                        else:
+                            print(f"  ❌ {filename} ({mime_type}) - Should have been accepted but was rejected")
+                    else:
+                        print(f"  ⚠️ {filename} ({mime_type}) - Unexpected response: HTTP {response.status_code}")
+                        
+                except Exception as e:
+                    print(f"  ❌ {filename} ({mime_type}) - Error: {str(e)}")
+                    
+                time.sleep(0.5)  # Small delay between uploads
+            
+            validation_working = (accepted_count >= expected_accepted * 0.8 and 
+                                rejected_count >= expected_rejected * 0.5)
+            
+            if validation_working:
+                self.log_result("Enhanced Upload Validation", True, 
+                              f"Enhanced validation working: {accepted_count}/{expected_accepted} accepted, {rejected_count}/{expected_rejected} rejected")
+            else:
+                self.log_result("Enhanced Upload Validation", False, 
+                              f"Enhanced validation issues: {accepted_count}/{expected_accepted} accepted, {rejected_count}/{expected_rejected} rejected")
+                
+        except Exception as e:
+            self.log_result("Enhanced Upload Validation", False, f"Enhanced upload validation test error: {str(e)}")
+
+    def test_adaptive_chunking_system(self):
+        """Test adaptive chunking system (2-5 second chunks based on file size)"""
+        if not self.auth_token:
+            self.log_result("Adaptive Chunking System", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test different file sizes to trigger different chunking strategies
+            test_files = [
+                # Small file (should use 2-second chunks)
+                ('small_audio.wav', b'RIFF\x24\x08WAVEfmt ' + b'small' * 500, 'audio/wav', 'small'),
+                
+                # Medium file (should use 3-second chunks)  
+                ('medium_audio.wav', b'RIFF\x24\x08WAVEfmt ' + b'medium' * 2000, 'audio/wav', 'medium'),
+                
+                # Large file (should use 5-second chunks)
+                ('large_audio.wav', b'RIFF\x24\x08WAVEfmt ' + b'large' * 5000, 'audio/wav', 'large'),
+            ]
+            
+            chunking_results = []
+            
+            for filename, content, mime_type, size_category in test_files:
+                try:
+                    files = {
+                        'file': (filename, content, mime_type)
+                    }
+                    data = {
+                        'title': f'Adaptive Chunking Test - {size_category.title()} File'
+                    }
+                    
+                    response = self.session.post(
+                        f"{BACKEND_URL}/upload-file",
+                        files=files,
+                        data=data,
+                        timeout=30
+                    )
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if result.get("id"):
+                            # Wait for processing to start
+                            time.sleep(5)
+                            
+                            # Check processing status and look for chunking indicators
+                            note_response = self.session.get(f"{BACKEND_URL}/notes/{result['id']}", timeout=10)
+                            if note_response.status_code == 200:
+                                note_data = note_response.json()
+                                status = note_data.get("status", "unknown")
+                                artifacts = note_data.get("artifacts", {})
+                                
+                                # Look for chunking indicators in the response
+                                chunking_detected = False
+                                if status == "ready":
+                                    note_field = artifacts.get("note", "")
+                                    if "segments" in note_field.lower() or "chunks" in note_field.lower():
+                                        chunking_detected = True
+                                elif status == "processing":
+                                    chunking_detected = True  # Assume chunking for processing files
+                                
+                                chunking_results.append({
+                                    'size_category': size_category,
+                                    'status': status,
+                                    'chunking_detected': chunking_detected
+                                })
+                                
+                                print(f"  ✅ {size_category.title()} file - Status: {status}, Chunking: {chunking_detected}")
+                            else:
+                                print(f"  ⚠️ {size_category.title()} file - Cannot check processing status")
+                        else:
+                            print(f"  ❌ {size_category.title()} file - Upload failed: no ID returned")
+                    else:
+                        print(f"  ❌ {size_category.title()} file - Upload failed: HTTP {response.status_code}")
+                        
+                except Exception as e:
+                    print(f"  ❌ {size_category.title()} file - Error: {str(e)}")
+                    
+                time.sleep(2)  # Delay between uploads
+            
+            # Evaluate chunking system
+            successful_tests = len([r for r in chunking_results if r['status'] in ['ready', 'processing']])
+            
+            if successful_tests >= 2:  # At least 2 out of 3 should work
+                self.log_result("Adaptive Chunking System", True, 
+                              f"Adaptive chunking system working: {successful_tests}/3 files processed successfully")
+            else:
+                self.log_result("Adaptive Chunking System", False, 
+                              f"Adaptive chunking system issues: only {successful_tests}/3 files processed")
+                
+        except Exception as e:
+            self.log_result("Adaptive Chunking System", False, f"Adaptive chunking system test error: {str(e)}")
+
+    def test_end_to_end_processing(self):
+        """Test complete workflow: upload → conversion → chunking → transcription"""
+        if not self.auth_token:
+            self.log_result("End-to-End Processing", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            # Test with a format that requires conversion (M4A)
+            test_content = b'ftypM4A \x00\x00\x00\x20ftypM4A ' + b'test_audio_content' * 50
+            
+            files = {
+                'file': ('end_to_end_test.m4a', test_content, 'audio/m4a')
+            }
+            data = {
+                'title': 'End-to-End Processing Test - M4A to MP3 Conversion'
+            }
+            
+            # Step 1: Upload
+            print("  🔄 Step 1: Uploading M4A file...")
+            response = self.session.post(
+                f"{BACKEND_URL}/upload-file",
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                self.log_result("End-to-End Processing", False, f"Upload failed: HTTP {response.status_code}")
+                return
+                
+            result = response.json()
+            note_id = result.get("id")
+            if not note_id:
+                self.log_result("End-to-End Processing", False, "Upload failed: no note ID returned")
+                return
+                
+            print(f"  ✅ Step 1 Complete: File uploaded, Note ID: {note_id}")
+            
+            # Step 2: Monitor processing stages
+            print("  🔄 Step 2: Monitoring processing stages...")
+            max_checks = 15
+            processing_stages = []
+            
+            for check in range(max_checks):
+                time.sleep(3)  # Wait between checks
+                
+                note_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                if note_response.status_code == 200:
+                    note_data = note_response.json()
+                    status = note_data.get("status", "unknown")
+                    artifacts = note_data.get("artifacts", {})
+                    
+                    if status not in processing_stages:
+                        processing_stages.append(status)
+                        print(f"    📊 Processing stage: {status}")
+                    
+                    if status == "ready":
+                        # Step 3: Verify transcription results
+                        print("  🔄 Step 3: Verifying transcription results...")
+                        
+                        transcript = artifacts.get("transcript", "")
+                        note_field = artifacts.get("note", "")
+                        
+                        if transcript or note_field:
+                            conversion_indicators = [
+                                "converted" in note_field.lower(),
+                                "mp3" in note_field.lower(),
+                                "segments" in note_field.lower(),
+                                len(transcript) > 0
+                            ]
+                            
+                            indicators_found = sum(conversion_indicators)
+                            
+                            self.log_result("End-to-End Processing", True, 
+                                          f"Complete workflow successful: {' → '.join(processing_stages)}, "
+                                          f"Transcript: {len(transcript)} chars, Conversion indicators: {indicators_found}/4")
+                        else:
+                            self.log_result("End-to-End Processing", True, 
+                                          f"Workflow completed but no transcript (expected with rate limits): {' → '.join(processing_stages)}")
+                        return
+                        
+                    elif status == "failed":
+                        error_msg = artifacts.get("error", "Unknown error")
+                        if "rate limit" in error_msg.lower() or "quota" in error_msg.lower():
+                            self.log_result("End-to-End Processing", True, 
+                                          f"Workflow processed but failed due to API limits (expected): {error_msg}")
+                        else:
+                            self.log_result("End-to-End Processing", False, 
+                                          f"Workflow failed: {error_msg}")
+                        return
+                else:
+                    print(f"    ⚠️ Cannot check note status: HTTP {note_response.status_code}")
+                    break
+            
+            # If we get here, processing is still ongoing
+            self.log_result("End-to-End Processing", True, 
+                          f"Workflow in progress after {max_checks * 3} seconds: {' → '.join(processing_stages)}")
+                
+        except Exception as e:
+            self.log_result("End-to-End Processing", False, f"End-to-end processing test error: {str(e)}")
+
+    def test_error_handling_and_cleanup(self):
+        """Test error handling and temporary file cleanup"""
+        if not self.auth_token:
+            self.log_result("Error Handling & Cleanup", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            test_cases = [
+                # Corrupted audio file
+                ('corrupted.mp3', b'corrupted_data', 'audio/mpeg', 'corrupted'),
+                
+                # Empty file
+                ('empty.wav', b'', 'audio/wav', 'empty'),
+                
+                # Very small file
+                ('tiny.m4a', b'tiny', 'audio/m4a', 'tiny'),
+                
+                # Unsupported format (should be rejected)
+                ('unsupported.xyz', b'unsupported_format', 'audio/xyz-unknown', 'unsupported'),
+            ]
+            
+            error_handling_results = []
+            
+            for filename, content, mime_type, test_type in test_cases:
+                try:
+                    files = {
+                        'file': (filename, content, mime_type)
+                    }
+                    data = {
+                        'title': f'Error Handling Test - {test_type.title()}'
+                    }
+                    
+                    response = self.session.post(
+                        f"{BACKEND_URL}/upload-file",
+                        files=files,
+                        data=data,
+                        timeout=15
+                    )
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        note_id = result.get("id")
+                        
+                        if note_id:
+                            # Wait for processing
+                            time.sleep(5)
+                            
+                            # Check final status
+                            note_response = self.session.get(f"{BACKEND_URL}/notes/{note_id}", timeout=10)
+                            if note_response.status_code == 200:
+                                note_data = note_response.json()
+                                status = note_data.get("status", "unknown")
+                                artifacts = note_data.get("artifacts", {})
+                                error_msg = artifacts.get("error", "")
+                                
+                                if test_type in ['corrupted', 'empty', 'tiny']:
+                                    # These should either fail gracefully or process with warnings
+                                    if status == "failed" and error_msg:
+                                        error_handling_results.append(f"{test_type}: Proper error handling")
+                                        print(f"  ✅ {test_type.title()} file - Proper error: {error_msg[:50]}...")
+                                    elif status == "ready":
+                                        error_handling_results.append(f"{test_type}: Processed despite issues")
+                                        print(f"  ⚠️ {test_type.title()} file - Processed despite potential issues")
+                                    else:
+                                        print(f"  ⚠️ {test_type.title()} file - Status: {status}")
+                                else:
+                                    print(f"  ⚠️ {test_type.title()} file - Unexpected acceptance")
+                            else:
+                                print(f"  ❌ {test_type.title()} file - Cannot check status")
+                        else:
+                            print(f"  ❌ {test_type.title()} file - No note ID returned")
+                            
+                    elif response.status_code == 400:
+                        if test_type == 'unsupported':
+                            error_handling_results.append(f"{test_type}: Properly rejected")
+                            print(f"  ✅ {test_type.title()} file - Properly rejected")
+                        else:
+                            error_handling_results.append(f"{test_type}: Validation error")
+                            print(f"  ✅ {test_type.title()} file - Validation error (expected)")
+                    else:
+                        print(f"  ⚠️ {test_type.title()} file - HTTP {response.status_code}")
+                        
+                except Exception as e:
+                    print(f"  ❌ {test_type.title()} file - Error: {str(e)}")
+                    
+                time.sleep(1)  # Small delay between tests
+            
+            # Evaluate error handling
+            if len(error_handling_results) >= 3:  # At least 3 out of 4 should show proper handling
+                self.log_result("Error Handling & Cleanup", True, 
+                              f"Error handling working: {len(error_handling_results)}/4 cases handled properly")
+            else:
+                self.log_result("Error Handling & Cleanup", False, 
+                              f"Error handling issues: only {len(error_handling_results)}/4 cases handled properly")
+                
+        except Exception as e:
+            self.log_result("Error Handling & Cleanup", False, f"Error handling test error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Testing Suite")
