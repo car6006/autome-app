@@ -631,6 +631,7 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
                     {getConnectionIcon()}
                     <span className="text-xs text-gray-600 capitalize">
                       {connectionStatus}
+                      {sessionExpired && ' (Expired)'}
                     </span>
                   </div>
                   
@@ -642,9 +643,56 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
                       </span>
                     </div>
                   )}
+
+                  {errorCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span className="text-xs text-yellow-600">
+                        {errorCount} errors
+                      </span>
+                    </div>
+                  )}
                 </>
               )}
             </div>
+
+            {/* Session controls and settings */}
+            {user && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={autoRestartEnabled}
+                        onChange={(e) => setAutoRestartEnabled(e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-gray-700">Auto-restart on errors</span>
+                    </label>
+                  </div>
+                  
+                  {sessionExpired && (
+                    <Button
+                      onClick={restartSession}
+                      size="sm"
+                      variant="outline"
+                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                    >
+                      🔄 Restart Session
+                    </Button>
+                  )}
+                </div>
+                
+                {sessionExpired && (
+                  <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800">
+                    ⚠️ Session expired. {autoRestartEnabled 
+                      ? 'Auto-restart is enabled - recording will resume automatically.' 
+                      : 'Please restart manually to continue.'}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           
           {!user && (
