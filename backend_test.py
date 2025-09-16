@@ -8641,7 +8641,7 @@ class BackendTester:
         self.test_enhanced_frontend_messaging()
         self.test_one_hour_recording_reliability()
         
-        # 🎵 UNIVERSAL AUDIO FORMAT SUPPORT SYSTEM TESTS (NEW - REVIEW REQUEST FOCUS)
+        # 🎯 UNIVERSAL AUDIO FORMAT SUPPORT SYSTEM TESTS (NEW - REVIEW REQUEST FOCUS)
         print("\n" + "=" * 60)
         print("🎵 UNIVERSAL AUDIO FORMAT SUPPORT SYSTEM TESTS - Testing New Audio Conversion & Processing")
         print("=" * 60)
@@ -8651,6 +8651,18 @@ class BackendTester:
         self.test_adaptive_chunking_system()
         self.test_end_to_end_processing()
         self.test_error_handling_and_cleanup()
+        
+        # 🎯 CRITICAL TRANSCRIPTION QUALITY TESTS (Redis Fix Verification)
+        print("\n" + "=" * 60)
+        print("🎯 CRITICAL TRANSCRIPTION QUALITY TESTS - REDIS FIX VERIFICATION")
+        print("=" * 60)
+        
+        self.test_redis_connectivity()
+        self.test_transcription_quality_real_audio()
+        self.test_mp3_conversion_quality()
+        self.test_audio_chunking_pipeline()
+        self.test_openai_whisper_api_calls()
+        self.test_end_to_end_transcription_pipeline()
         
         # Summary
         return self.print_summary()
