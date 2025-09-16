@@ -2524,15 +2524,40 @@ const NotesScreen = () => {
     }
 
     try {
+      // Function to clean markdown symbols from text
+      const cleanMarkdown = (text) => {
+        return text
+          .replace(/\*\*\*(.*?)\*\*\*/g, '$1')      // Remove *** bold italic ***
+          .replace(/\*\*(.*?)\*\*/g, '$1')          // Remove ** bold **
+          .replace(/\*(.*?)\*/g, '$1')              // Remove * italic *
+          .replace(/_{3}(.*?)_{3}/g, '$1')          // Remove ___ underline ___
+          .replace(/_{2}(.*?)_{2}/g, '$1')          // Remove __ underline __
+          .replace(/_(.*?)_/g, '$1')                // Remove _ underline _
+          .replace(/###\s*/g, '')                   // Remove ### headers
+          .replace(/##\s*/g, '')                    // Remove ## headers
+          .replace(/#\s*/g, '')                     // Remove # headers
+          .replace(/`{3}[\s\S]*?`{3}/g, '')         // Remove ``` code blocks ```
+          .replace(/`(.*?)`/g, '$1')                // Remove ` inline code `
+          .replace(/>\s*/g, '')                     // Remove > blockquotes
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // Remove [text](link) - keep text
+          .replace(/^\s*[-*+]\s*/gm, '')            // Remove bullet points
+          .replace(/^\s*\d+\.\s*/gm, '')            // Remove numbered lists
+          .replace(/\n{3,}/g, '\n\n')               // Reduce multiple newlines to double
+          .trim();
+      };
+      
       // Create export content from batch AI conversations
       let exportContent = `BATCH REPORT AI ANALYSIS\n`;
-      exportContent += `${batchAiContent.title}\n`;
+      exportContent += `${cleanMarkdown(batchAiContent.title)}\n`;
       exportContent += `Generated: ${new Date().toLocaleDateString()}\n\n`;
       
-      // Add all conversations
+      // Add all conversations with cleaned content
       batchAiConversations.forEach((conv, index) => {
-        exportContent += `QUESTION ${index + 1}:\n${conv.question}\n\n`;
-        exportContent += `AI RESPONSE ${index + 1}:\n${conv.response}\n\n`;
+        const cleanQuestion = cleanMarkdown(conv.question || '');
+        const cleanResponse = cleanMarkdown(conv.response || '');
+        
+        exportContent += `QUESTION ${index + 1}:\n${cleanQuestion}\n\n`;
+        exportContent += `AI RESPONSE ${index + 1}:\n${cleanResponse}\n\n`;
         exportContent += `${'='.repeat(50)}\n\n`;
       });
       
