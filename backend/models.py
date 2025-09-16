@@ -182,8 +182,35 @@ class PipelineConfig(BaseModel):
     max_concurrent_jobs: int = 10
     max_concurrent_segments: int = 5
     
-    # Allowed file types
-    allowed_mime_types: List[str] = ["audio/mpeg", "audio/wav", "audio/mp4", "audio/webm", "audio/ogg", "audio/x-wav", "audio/wave"]
+    # Allowed file types - Comprehensive audio format support
+    allowed_mime_types: List[str] = [
+        # Standard audio formats
+        "audio/mpeg",      # MP3
+        "audio/wav",       # WAV
+        "audio/wave",      # WAV (alternative)
+        "audio/x-wav",     # WAV (alternative)
+        "audio/mp4",       # MP4 audio
+        "audio/m4a",       # M4A
+        "audio/aac",       # AAC
+        "audio/webm",      # WebM
+        "audio/ogg",       # OGG
+        "audio/opus",      # Opus
+        "audio/flac",      # FLAC
+        "audio/x-flac",    # FLAC (alternative)
+        "audio/aiff",      # AIFF
+        "audio/x-aiff",    # AIFF (alternative)
+        "audio/wma",       # WMA
+        "audio/x-ms-wma",  # WMA (alternative)
+        "audio/amr",       # AMR
+        "audio/3gpp",      # 3GP audio
+        "audio/mp2",       # MP2
+        "audio/x-mp3",     # MP3 (alternative)
+        # Video formats (audio extraction)
+        "video/mp4",       # MP4 video (extract audio)
+        "video/quicktime", # MOV (extract audio)
+        "video/x-msvideo", # AVI (extract audio)
+        "video/webm"       # WebM video (extract audio)
+    ]
     
     # Model configuration
     whisper_model: str = "whisper-large-v3"
