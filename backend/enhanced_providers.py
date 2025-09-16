@@ -111,6 +111,49 @@ class TranscriptionProvider:
             logger.error(f"❌ Emergent transcription error: {e}")
             return None
 
+    def _validate_transcription_quality(self, transcript_text: str) -> bool:
+        """Validate transcription quality and detect OpenAI's default test responses for corrupted audio"""
+        if not transcript_text or len(transcript_text.strip()) < 10:
+            return False
+            
+        # Check for repetitive test phrases that OpenAI returns for corrupted audio
+        test_phrases = [
+            "I am a student",
+            "The quick brown fox jumps over the lazy dog",
+            "Hello, how are you?",
+            "This is a test",
+            "Testing, testing, one, two, three"
+        ]
+        
+        text_lower = transcript_text.lower()
+        
+        # Count occurrences of test phrases
+        for phrase in test_phrases:
+            phrase_count = text_lower.count(phrase.lower())
+            if phrase_count > 3:  # If any test phrase appears more than 3 times
+                logger.error(f"❌ Detected corrupted transcription: '{phrase}' appears {phrase_count} times")
+                logger.error(f"📄 Full transcript preview: {transcript_text[:200]}...")
+                return False
+        
+        # Check for excessive repetition patterns
+        words = transcript_text.split()
+        if len(words) > 20:  # Only check longer transcripts
+            word_counts = {}
+            for word in words:
+                word_lower = word.lower().strip('.,!?')
+                if len(word_lower) > 3:  # Skip short words
+                    word_counts[word_lower] = word_counts.get(word_lower, 0) + 1
+            
+            # Check if any word appears too frequently (more than 30% of transcript)
+            total_words = len(words)
+            for word, count in word_counts.items():
+                if count > total_words * 0.3:
+                    logger.error(f"❌ Detected excessive repetition: '{word}' appears {count}/{total_words} times")
+                    return False
+        
+        logger.info(f"✅ Transcription quality validated: {len(transcript_text)} chars, no repetitive patterns")
+        return True
+
     async def _transcribe_with_openai(self, audio_file_path: str, session_id: str = None, chunk_idx: int = None) -> dict:
         """Transcribe using OpenAI Whisper API with universal audio conversion"""
         actual_file_path = audio_file_path
