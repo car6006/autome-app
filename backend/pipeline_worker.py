@@ -1286,9 +1286,10 @@ class PipelineWorker:
                 {"id": "Speaker 2", "duration": duration * 0.5, "confidence": 0.6}
             ]
         else:
+            # For single speaker, don't add confusing speaker labels
             speaker_count = 1
-            diarized_transcript = f"Speaker 1: {transcript}"
-            speakers = [{"id": "Speaker 1", "duration": duration or 0, "confidence": 0.9}]
+            diarized_transcript = transcript  # Keep original transcript without speaker labels
+            speakers = [{"id": "Single Speaker", "duration": duration or 0, "confidence": 0.9}]
         
         return {
             "diarized_transcript": diarized_transcript,
