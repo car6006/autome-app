@@ -25,44 +25,36 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
   const lastProgressTime = useRef(null);
   const lastBytesUploaded = useRef(0);
 
-  // File validation - Comprehensive audio format support matching backend
+  // File validation - Accept all audio/video formats, convert on backend
   const validateFile = (file) => {
     const maxSize = 500 * 1024 * 1024; // 500MB
-    const allowedTypes = [
-      // Standard audio formats
-      'audio/mpeg',      // MP3
-      'audio/wav',       // WAV
-      'audio/wave',      // WAV (alternative)
-      'audio/x-wav',     // WAV (alternative)
-      'audio/mp4',       // MP4 audio
-      'audio/m4a',       // M4A
-      'audio/aac',       // AAC
-      'audio/webm',      // WebM
-      'audio/ogg',       // OGG
-      'audio/opus',      // Opus
-      'audio/flac',      // FLAC
-      'audio/x-flac',    // FLAC (alternative)
-      'audio/aiff',      // AIFF
-      'audio/x-aiff',    // AIFF (alternative)
-      'audio/wma',       // WMA
-      'audio/x-ms-wma',  // WMA (alternative)
-      'audio/amr',       // AMR
-      'audio/3gpp',      // 3GP audio
-      'audio/mp2',       // MP2
-      'audio/x-mp3',     // MP3 (alternative)
-      // Video formats (audio extraction)
-      'video/mp4',       // MP4 video (extract audio)
-      'video/quicktime', // MOV (extract audio)
-      'video/x-msvideo', // AVI (extract audio)
-      'video/webm'       // WebM video (extract audio)
-    ];
+    
+    // Very permissive validation - accept any file that could contain audio
+    const isLikelyAudioVideo = (file) => {
+      // Check MIME type
+      if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+        return true;
+      }
+      
+      // Check file extension as fallback
+      const fileName = file.name.toLowerCase();
+      const audioVideoExtensions = [
+        '.mp3', '.wav', '.m4a', '.aac', '.flac', '.ogg', '.opus', '.wma', '.amr',
+        '.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.m4v', '.wmv', '.asf',
+        '.aiff', '.au', '.ra', '.voc', '.gsm', '.dss', '.msv', '.dvf', '.iff',
+        '.nist', '.sph', '.vms', '.vox', '.paf', '.pvf', '.caf', '.sd2', '.sds',
+        '.mpc', '.ape', '.ofr', '.ofs', '.tak', '.tta', '.wv', '.dts', '.dtshd'
+      ];
+      
+      return audioVideoExtensions.some(ext => fileName.endsWith(ext));
+    };
     
     if (file.size > maxSize) {
       throw new Error(`File too large. Maximum size: ${maxSize / (1024 * 1024)}MB`);
     }
     
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error(`Unsupported file type. Allowed formats: MP3, WAV, M4A, AAC, FLAC, OGG, WebM, MP4 and more audio/video formats`);
+    if (!isLikelyAudioVideo(file)) {
+      throw new Error(`Please select an audio or video file. We support all common formats and will convert them automatically.`);
     }
     
     return true;
