@@ -41,6 +41,8 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   const OVERLAP_DURATION = 750; // 750ms overlap
   const MAX_RETRIES = 3;
   const POLLING_INTERVAL = 1000; // Poll for events every 1 second
+  const SESSION_CHECK_INTERVAL = 30000; // Check session validity every 30 seconds
+  const MAX_ERROR_COUNT = 5; // Auto-restart after 5 consecutive errors
   
   // Generate unique session ID
   const generateSessionId = () => {
