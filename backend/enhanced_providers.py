@@ -507,13 +507,16 @@ async def split_large_audio_file(file_path: str, chunk_duration: int | None = No
             chunk_fd, chunk_path = tempfile.mkstemp(suffix='.wav')
             os.close(chunk_fd)
             
+            # Enhanced ffmpeg command that preserves audio quality
             cmd = [
                 'ffmpeg', '-i', file_path,
                 '-ss', str(start_time),
                 '-t', str(chunk_duration),
-                '-acodec', 'pcm_s16le',  # Use WAV format for compatibility
-                '-ar', '16000',  # 16kHz sample rate
-                '-ac', '1',  # Mono
+                '-acodec', 'pcm_s16le',  # PCM 16-bit for compatibility
+                '-ar', '44100',  # Preserve higher sample rate for quality
+                '-ac', '2',  # Preserve stereo if available (Whisper handles both)
+                '-avoid_negative_ts', 'make_zero',  # Handle timestamp issues
+                '-f', 'wav',  # Explicitly specify WAV format
                 '-y',  # Overwrite output file
                 chunk_path
             ]
