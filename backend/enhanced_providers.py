@@ -112,20 +112,19 @@ class TranscriptionProvider:
             return None
 
     async def _transcribe_with_openai(self, audio_file_path: str, session_id: str = None, chunk_idx: int = None) -> dict:
-        """Transcribe using OpenAI Whisper API with enhanced error handling and M4A conversion"""
+        """Transcribe using OpenAI Whisper API with universal audio conversion"""
         actual_file_path = audio_file_path
-        temp_wav_path = None
+        temp_converted_path = None
         
         try:
-            # Check if file is M4A and convert to WAV if needed
-            if audio_file_path.lower().endswith('.m4a'):
-                logger.info(f"🔄 M4A file detected, converting to WAV for OpenAI compatibility")
-                temp_wav_path = await self._convert_m4a_to_wav(audio_file_path)
-                if temp_wav_path:
-                    actual_file_path = temp_wav_path
-                    logger.info(f"✅ M4A converted to WAV: {temp_wav_path}")
-                else:
-                    logger.warning(f"⚠️ M4A conversion failed, trying original file")
+            # Convert any audio/video format to MP3 for consistent processing
+            logger.info(f"🔄 Converting audio to MP3 for optimal processing: {audio_file_path}")
+            temp_converted_path = await self._convert_any_to_mp3(audio_file_path)
+            if temp_converted_path:
+                actual_file_path = temp_converted_path
+                logger.info(f"✅ Audio converted to MP3: {temp_converted_path}")
+            else:
+                logger.warning(f"⚠️ Audio conversion failed, trying original file")
             
             # Validate audio file before processing
             file_size = os.path.getsize(actual_file_path)
@@ -135,12 +134,12 @@ class TranscriptionProvider:
             if file_size > 25 * 1024 * 1024:  # Greater than 25MB (OpenAI limit)
                 raise ValueError(f"Audio file too large ({file_size / (1024*1024):.1f} MB) - OpenAI limit is 25MB")
             
-            logger.info(f"🎵 Processing audio file: {file_size / 1024:.1f} KB")
+            logger.info(f"🎵 Processing converted audio file: {file_size / 1024:.1f} KB")
             
             with open(actual_file_path, 'rb') as audio_file:
                 # Create form data for OpenAI Whisper API
                 files = {
-                    'file': (f'audio_{int(time.time())}.wav', audio_file, 'audio/wav')
+                    'file': (f'audio_{int(time.time())}.mp3', audio_file, 'audio/mpeg')
                 }
                 data = {
                     'model': 'whisper-1',
@@ -226,13 +225,13 @@ class TranscriptionProvider:
             logger.error(f"❌ OpenAI transcription unexpected error: {str(e)}")
             raise e
         finally:
-            # Clean up temporary WAV file if created
-            if temp_wav_path and temp_wav_path != audio_file_path:
+            # Clean up temporary converted file if created
+            if temp_converted_path and temp_converted_path != audio_file_path:
                 try:
-                    os.unlink(temp_wav_path)
-                    logger.info(f"🧹 Cleaned up temporary WAV file: {temp_wav_path}")
+                    os.unlink(temp_converted_path)
+                    logger.info(f"🧹 Cleaned up temporary converted file: {temp_converted_path}")
                 except Exception as cleanup_error:
-                    logger.warning(f"⚠️ Failed to cleanup temp WAV file {temp_wav_path}: {cleanup_error}")
+                    logger.warning(f"⚠️ Failed to cleanup temp converted file {temp_converted_path}: {cleanup_error}")
                     pass
 
     async def _convert_any_to_mp3(self, input_file_path: str) -> str:
