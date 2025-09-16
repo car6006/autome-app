@@ -539,9 +539,23 @@ transcription_provider = TranscriptionProvider()
 ai_provider = AIProvider()
 
 async def split_large_audio_file(file_path: str, chunk_duration: int | None = None) -> list[str]:
-    """Split audio file into smaller chunks using ffmpeg"""
+    """Split audio file into smaller chunks using ffmpeg - Optimized for faster processing"""
     chunks = []
-    chunk_duration = chunk_duration or CHUNK_DURATION_SECONDS
+    
+    # Use adaptive chunk sizing for better performance
+    file_size = os.path.getsize(file_path)
+    file_size_mb = file_size / (1024 * 1024)
+    
+    # Adaptive chunk duration based on file size
+    if chunk_duration is None:
+        if file_size_mb < 5:  # Small files
+            chunk_duration = 2  # 2 seconds for very fast processing
+        elif file_size_mb < 20:  # Medium files
+            chunk_duration = 3  # 3 seconds
+        else:  # Large files
+            chunk_duration = 5  # 5 seconds maximum
+    
+    logger.info(f"📊 Processing {file_size_mb:.1f}MB file with {chunk_duration}s chunks for optimal speed")
     
     try:
         # Get audio duration using ffprobe
@@ -567,7 +581,7 @@ async def split_large_audio_file(file_path: str, chunk_duration: int | None = No
             return [file_path]  # File is already small enough
         
         num_chunks = math.ceil(duration / chunk_duration)
-        logger.info(f"🔨 Splitting {duration:.1f}s audio into {num_chunks} chunks of {chunk_duration}s each")
+        logger.info(f"🔨 Splitting {duration:.1f}s audio into {num_chunks} chunks of {chunk_duration}s each for faster processing")
         
         for i in range(num_chunks):
             start_time = i * chunk_duration
