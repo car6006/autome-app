@@ -397,8 +397,16 @@ const CaptureScreen = () => {
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         setAudioBlob(blob);
+        
+        // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
-        setAudioLevels([]);
+        
+        // Release wake lock when recording stops
+        if (wakeLock) {
+          wakeLock.release();
+          wakeLock = null;
+          console.log('✅ Wake lock released - screen can sleep normally');
+        }
       };
       
       mediaRecorder.start();
