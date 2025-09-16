@@ -23,8 +23,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Default chunk duration in seconds (configurable via CHUNK_DURATION_SECONDS env var)
-CHUNK_DURATION_SECONDS = int(os.getenv("CHUNK_DURATION_SECONDS", "5"))
+# Default chunk duration in seconds - Optimized for faster processing
+CHUNK_DURATION_SECONDS = int(os.getenv("CHUNK_DURATION_SECONDS", "3"))  # Reduced from 5 to 3 seconds
 
 # Import Emergent integrations
 try:
