@@ -441,20 +441,28 @@ const CaptureScreen = () => {
   const handleAudioUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate audio file type - Comprehensive format support
-      const allowedTypes = [
-        'audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/aac', 
-        'audio/webm', 'audio/ogg', 'audio/opus', 'audio/flac', 'audio/aiff',
-        'audio/wma', 'audio/amr', 'audio/3gpp', 'audio/mp2', 'audio/x-mp3',
-        'audio/wave', 'audio/x-wav', 'audio/mp4', 'audio/x-flac', 'audio/x-aiff',
-        'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'
-      ];
-      const allowedExtensions = /\.(mp3|wav|m4a|aac|webm|ogg|opus|flac|aiff|wma|amr|3gp|mp2|mpeg|mp4|mov|avi|mkv|wmv|m4v)$/i;
+      // Accept all audio/video formats - convert on backend
+      const isLikelyAudioVideo = (file) => {
+        // Check MIME type first
+        if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+          return true;
+        }
+        
+        // Check file extension as fallback
+        const fileName = file.name.toLowerCase();
+        const audioVideoExtensions = [
+          '.mp3', '.wav', '.m4a', '.aac', '.flac', '.ogg', '.opus', '.wma', '.amr',
+          '.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.m4v', '.wmv', '.asf',
+          '.aiff', '.au', '.ra', '.voc', '.gsm', '.dss', '.msv', '.dvf', '.iff'
+        ];
+        
+        return audioVideoExtensions.some(ext => fileName.endsWith(ext));
+      };
       
-      if (!allowedTypes.includes(file.type) && !file.name.match(allowedExtensions)) {
+      if (!isLikelyAudioVideo(file)) {
         toast({ 
-          title: "Invalid file type", 
-          description: "Please select an audio/video file (MP3, WAV, M4A, AAC, FLAC, OGG, MP4, MOV, and more)", 
+          title: "Please select an audio or video file", 
+          description: "We support all common audio/video formats and will convert them automatically", 
           variant: "destructive" 
         });
         return;
