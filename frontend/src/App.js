@@ -272,9 +272,7 @@ const CaptureScreen = () => {
         wakeLock = null;
       }
     };
-  }, []);
 
-  const startRecording = async () => {
     try {
       // Request wake lock to prevent screen from sleeping during recording
       if ('wakeLock' in navigator) {
