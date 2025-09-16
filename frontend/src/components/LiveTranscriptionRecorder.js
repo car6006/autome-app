@@ -48,6 +48,95 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   const generateSessionId = () => {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
+
+  // Validate session is still active
+  const validateSession = async (sessionId) => {
+    try {
+      const response = await axios.get(
+        `${API}/live/sessions/${sessionId}/status`,
+        { timeout: 5000 }
+      );
+      
+      if (response.status === 200) {
+        const { active, valid } = response.data;
+        return active && valid;
+      }
+      return false;
+    } catch (error) {
+      console.error('Session validation error:', error);
+      if (error.response?.status === 404) {
+        return false; // Session not found
+      }
+      return true; // Assume valid on network errors to avoid false positives
+    }
+  };
+
+  // Handle session expiration
+  const handleSessionExpiration = async () => {
+    console.log('🚨 Session expired detected');
+    setSessionExpired(true);
+    setConnectionStatus('disconnected');
+    
+    toast({
+      title: "⚠️ Session Expired",
+      description: autoRestartEnabled 
+        ? "Attempting to restart session automatically..." 
+        : "Please restart your recording session.",
+      variant: "destructive"
+    });
+
+    if (autoRestartEnabled && isRecording) {
+      try {
+        // Stop current recording gracefully
+        if (mediaRecorder.current) {
+          mediaRecorder.current.stop();
+        }
+        
+        // Wait a moment then restart
+        setTimeout(async () => {
+          await restartSession();
+        }, 2000);
+      } catch (error) {
+        console.error('Auto-restart failed:', error);
+        toast({
+          title: "❌ Auto-Restart Failed",
+          description: "Please manually restart your recording session.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  // Restart session automatically
+  const restartSession = async () => {
+    try {
+      setSessionExpired(false);
+      setErrorCount(0);
+      setChunkIndex(0);
+      
+      toast({
+        title: "🔄 Restarting Session",
+        description: "Creating new recording session...",
+        variant: "default"
+      });
+
+      // Start new recording session
+      await startRecording();
+      
+      toast({
+        title: "✅ Session Restarted",
+        description: "Live transcription resumed successfully.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Session restart failed:', error);
+      toast({
+        title: "❌ Restart Failed",
+        description: "Unable to restart session. Please try manually.",
+        variant: "destructive"
+      });
+    }
+  };
   
   // Start recording with live transcription
   const startRecording = async () => {
