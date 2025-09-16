@@ -9160,6 +9160,19 @@ class BackendTester:
         self.test_storage_accessibility()
         self.test_upload_error_handling()
         
+        # 🎯 CRITICAL: M4A FILE UPLOAD FIX TESTS (URGENT - REVIEW REQUEST FOCUS)
+        print("\n" + "🔥" * 60)
+        print("🔥 CRITICAL M4A FILE UPLOAD FIX TESTS - Wildcard MIME Type Pattern Matching")
+        print("🔥 Testing fixes for M4A file rejection and enhanced MIME type validation")
+        print("🔥" * 60)
+        
+        self.test_m4a_file_upload_fix()
+        self.test_wildcard_mime_type_patterns()
+        self.test_large_file_m4a_upload()
+        self.test_mime_type_validation_function()
+        self.test_m4a_processing_pipeline()
+        self.test_improved_error_messages()
+        
         # 🎯 OCR FUNCTIONALITY TESTS (Optimized System)
         print("\n" + "=" * 60)
         print("🔍 OCR OPTIMIZED SYSTEM TESTS - Faster Processing")
