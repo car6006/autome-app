@@ -25,17 +25,44 @@ const ResumableUpload = ({ onUploadComplete, onUploadError }) => {
   const lastProgressTime = useRef(null);
   const lastBytesUploaded = useRef(0);
 
-  // File validation
+  // File validation - Comprehensive audio format support matching backend
   const validateFile = (file) => {
     const maxSize = 500 * 1024 * 1024; // 500MB
-    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/webm', 'audio/ogg'];
+    const allowedTypes = [
+      // Standard audio formats
+      'audio/mpeg',      // MP3
+      'audio/wav',       // WAV
+      'audio/wave',      // WAV (alternative)
+      'audio/x-wav',     // WAV (alternative)
+      'audio/mp4',       // MP4 audio
+      'audio/m4a',       // M4A
+      'audio/aac',       // AAC
+      'audio/webm',      // WebM
+      'audio/ogg',       // OGG
+      'audio/opus',      // Opus
+      'audio/flac',      // FLAC
+      'audio/x-flac',    // FLAC (alternative)
+      'audio/aiff',      // AIFF
+      'audio/x-aiff',    // AIFF (alternative)
+      'audio/wma',       // WMA
+      'audio/x-ms-wma',  // WMA (alternative)
+      'audio/amr',       // AMR
+      'audio/3gpp',      // 3GP audio
+      'audio/mp2',       // MP2
+      'audio/x-mp3',     // MP3 (alternative)
+      // Video formats (audio extraction)
+      'video/mp4',       // MP4 video (extract audio)
+      'video/quicktime', // MOV (extract audio)
+      'video/x-msvideo', // AVI (extract audio)
+      'video/webm'       // WebM video (extract audio)
+    ];
     
     if (file.size > maxSize) {
       throw new Error(`File too large. Maximum size: ${maxSize / (1024 * 1024)}MB`);
     }
     
     if (!allowedTypes.includes(file.type)) {
-      throw new Error(`Unsupported file type. Allowed: ${allowedTypes.join(', ')}`);
+      throw new Error(`Unsupported file type. Allowed formats: MP3, WAV, M4A, AAC, FLAC, OGG, WebM, MP4 and more audio/video formats`);
     }
     
     return true;
