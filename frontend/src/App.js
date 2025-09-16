@@ -1964,10 +1964,30 @@ const NotesScreen = () => {
           // For TXT/RTF or when note_id is not available, use frontend processing
           let content = reportData.data.report || '';
           
-          // Clean formatting for txt/rtf
-          if (format !== 'professional') {
-            content = content.replace(/\*\*/g, '').replace(/###/g, '').replace(/##/g, '').replace(/#/g, '').replace(/\*/g, '').replace(/_/g, '');
-          }
+          // Clean formatting for ALL formats (not just txt/rtf)
+          const cleanMarkdown = (text) => {
+            return text
+              .replace(/\*\*\*(.*?)\*\*\*/g, '$1')      // Remove *** bold italic ***
+              .replace(/\*\*(.*?)\*\*/g, '$1')          // Remove ** bold **
+              .replace(/\*(.*?)\*/g, '$1')              // Remove * italic *
+              .replace(/_{3}(.*?)_{3}/g, '$1')          // Remove ___ underline ___
+              .replace(/_{2}(.*?)_{2}/g, '$1')          // Remove __ underline __
+              .replace(/_(.*?)_/g, '$1')                // Remove _ underline _
+              .replace(/###\s*/g, '')                   // Remove ### headers
+              .replace(/##\s*/g, '')                    // Remove ## headers
+              .replace(/#\s*/g, '')                     // Remove # headers
+              .replace(/`{3}[\s\S]*?`{3}/g, '')         // Remove ``` code blocks ```
+              .replace(/`(.*?)`/g, '$1')                // Remove ` inline code `
+              .replace(/>\s*/g, '')                     // Remove > blockquotes
+              .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // Remove [text](link) - keep text
+              .replace(/^\s*[-*+]\s*/gm, '')            // Remove bullet points
+              .replace(/^\s*\d+\.\s*/gm, '')            // Remove numbered lists
+              .replace(/\n{3,}/g, '\n\n')               // Reduce multiple newlines to double
+              .trim();
+          };
+          
+          // Clean markdown from content for all formats
+          content = cleanMarkdown(content);
 
           if (format === 'rtf') {
             // Convert to RTF format
