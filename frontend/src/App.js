@@ -423,7 +423,7 @@ const CaptureScreen = () => {
       const wakeLockStatus = wakeLock ? " Screen will stay on." : "";
       toast({ 
         title: "🎙️ Recording started", 
-        description: `Speak clearly for best results.${wakeLockStatus}` 
+        description: `Capturing high-quality audio.${wakeLockStatus}` 
       });
     } catch (error) {
       // Release wake lock if there was an error
