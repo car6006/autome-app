@@ -235,7 +235,7 @@ class TranscriptionProvider:
                     pass
 
     async def _convert_any_to_mp3(self, input_file_path: str) -> str:
-        """Convert any audio/video file to MP3 format using FFmpeg for consistent processing"""
+        """Convert any audio/video file to MP3 format using FFmpeg with high quality preservation"""
         try:
             import subprocess
             import tempfile
@@ -244,17 +244,18 @@ class TranscriptionProvider:
             temp_fd, temp_mp3_path = tempfile.mkstemp(suffix='.mp3')
             os.close(temp_fd)
             
-            logger.info(f"🔄 Converting to MP3: {input_file_path} -> {temp_mp3_path}")
+            logger.info(f"🔄 Converting to high-quality MP3: {input_file_path} -> {temp_mp3_path}")
             
-            # Universal FFmpeg command for any format to MP3 conversion
+            # High-quality FFmpeg command that preserves audio integrity
             cmd = [
                 'ffmpeg',
                 '-i', input_file_path,         # Input file (any format)
                 '-vn',                         # No video (audio only)  
                 '-acodec', 'libmp3lame',       # Use MP3 encoder
-                '-ab', '128k',                 # 128kbps bitrate (good quality, reasonable size)
-                '-ar', '44100',                # 44.1kHz sample rate (standard)
-                '-ac', '2',                    # Stereo audio
+                '-b:a', '192k',                # Higher bitrate for better quality (was 128k)
+                '-ar', '44100',                # Keep standard sample rate
+                '-ac', '2',                    # Stereo audio (preserve channels)
+                '-avoid_negative_ts', 'make_zero',  # Fix timestamp issues
                 '-f', 'mp3',                   # Force MP3 format
                 '-y',                          # Overwrite output file
                 temp_mp3_path                  # Output MP3 file
@@ -270,17 +271,36 @@ class TranscriptionProvider:
             
             if result.returncode == 0:
                 # Verify the output file was created and has content
-                if os.path.exists(temp_mp3_path) and os.path.getsize(temp_mp3_path) > 0:
+                if os.path.exists(temp_mp3_path) and os.path.getsize(temp_mp3_path) > 1000:  # At least 1KB
                     file_size = os.path.getsize(temp_mp3_path)
-                    logger.info(f"✅ Universal audio conversion successful: {file_size} bytes MP3 file created")
-                    return temp_mp3_path
+                    logger.info(f"✅ High-quality audio conversion successful: {file_size} bytes MP3 file created")
+                    
+                    # Validate audio integrity with ffprobe
+                    try:
+                        probe_cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', temp_mp3_path]
+                        probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=30)
+                        if probe_result.returncode == 0:
+                            probe_data = json.loads(probe_result.stdout)
+                            duration = float(probe_data.get('format', {}).get('duration', 0))
+                            if duration > 0:
+                                logger.info(f"✅ Audio integrity validated: {duration:.1f}s duration")
+                                return temp_mp3_path
+                            else:
+                                logger.error(f"❌ Converted audio has no duration - likely corrupted")
+                        else:
+                            logger.warning(f"⚠️ Could not validate audio integrity, but proceeding")
+                            return temp_mp3_path
+                    except Exception as probe_error:
+                        logger.warning(f"⚠️ Audio validation failed: {probe_error}, but proceeding")
+                        return temp_mp3_path
+                        
                 else:
-                    logger.error(f"❌ Audio conversion failed: Output MP3 file is empty or missing")
+                    logger.error(f"❌ Audio conversion failed: Output MP3 file is empty or too small")
                     try:
                         os.unlink(temp_mp3_path)
                     except:
                         pass
-                    raise ValueError("Conversion produced empty MP3 file")
+                    raise ValueError("Conversion produced empty or corrupted MP3 file")
             else:
                 logger.error(f"❌ FFmpeg conversion failed: {result.stderr}")
                 try:
