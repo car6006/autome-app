@@ -386,10 +386,7 @@ const CaptureScreen = () => {
         }
       };
       
-      mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
+      mediaRecorder = new MediaRecorder(stream);
       const chunks = [];
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
