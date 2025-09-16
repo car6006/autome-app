@@ -23,6 +23,9 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   // Technical state
   const [chunkIndex, setChunkIndex] = useState(0);
   const [errorCount, setErrorCount] = useState(0);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [autoRestartEnabled, setAutoRestartEnabled] = useState(true);
+  const [lastSessionCheck, setLastSessionCheck] = useState(Date.now());
   
   // Refs
   const mediaRecorder = useRef(null);
