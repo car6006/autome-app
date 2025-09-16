@@ -235,6 +235,76 @@ class TranscriptionProvider:
                     logger.warning(f"⚠️ Failed to cleanup temp WAV file {temp_wav_path}: {cleanup_error}")
                     pass
 
+    async def _convert_any_to_mp3(self, input_file_path: str) -> str:
+        """Convert any audio/video file to MP3 format using FFmpeg for consistent processing"""
+        try:
+            import subprocess
+            import tempfile
+            
+            # Create temporary MP3 file
+            temp_fd, temp_mp3_path = tempfile.mkstemp(suffix='.mp3')
+            os.close(temp_fd)
+            
+            logger.info(f"🔄 Converting to MP3: {input_file_path} -> {temp_mp3_path}")
+            
+            # Universal FFmpeg command for any format to MP3 conversion
+            cmd = [
+                'ffmpeg',
+                '-i', input_file_path,         # Input file (any format)
+                '-vn',                         # No video (audio only)  
+                '-acodec', 'libmp3lame',       # Use MP3 encoder
+                '-ab', '128k',                 # 128kbps bitrate (good quality, reasonable size)
+                '-ar', '44100',                # 44.1kHz sample rate (standard)
+                '-ac', '2',                    # Stereo audio
+                '-f', 'mp3',                   # Force MP3 format
+                '-y',                          # Overwrite output file
+                temp_mp3_path                  # Output MP3 file
+            ]
+            
+            # Execute FFmpeg conversion
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout for conversion
+            )
+            
+            if result.returncode == 0:
+                # Verify the output file was created and has content
+                if os.path.exists(temp_mp3_path) and os.path.getsize(temp_mp3_path) > 0:
+                    file_size = os.path.getsize(temp_mp3_path)
+                    logger.info(f"✅ Universal audio conversion successful: {file_size} bytes MP3 file created")
+                    return temp_mp3_path
+                else:
+                    logger.error(f"❌ Audio conversion failed: Output MP3 file is empty or missing")
+                    try:
+                        os.unlink(temp_mp3_path)
+                    except:
+                        pass
+                    raise ValueError("Conversion produced empty MP3 file")
+            else:
+                logger.error(f"❌ FFmpeg conversion failed: {result.stderr}")
+                try:
+                    os.unlink(temp_mp3_path)
+                except:
+                    pass
+                raise ValueError(f"FFmpeg conversion failed: {result.stderr}")
+                
+        except subprocess.TimeoutExpired:
+            logger.error(f"❌ Audio conversion timeout after 5 minutes")
+            try:
+                os.unlink(temp_mp3_path)
+            except:
+                pass
+            raise ValueError("Audio conversion timed out - file may be too large or corrupted")
+        except Exception as e:
+            logger.error(f"❌ Audio conversion error: {str(e)}")
+            try:
+                os.unlink(temp_mp3_path)
+            except:
+                pass
+            raise ValueError(f"Audio conversion failed: {str(e)}")
+
     async def _convert_m4a_to_wav(self, m4a_file_path: str) -> str:
         """Convert M4A file to WAV format using FFmpeg for OpenAI compatibility"""
         try:
