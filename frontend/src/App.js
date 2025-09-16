@@ -371,15 +371,18 @@ const CaptureScreen = () => {
           
           // Generate wave levels (simplified visualization)
           const levels = [];
-          for (let i = 0; i < 20; i++) {
-            const level = dataArray[i * 2] || 0;
-            levels.push(Math.min(level / 255 * 100, 100));
+          for (let i = 0; i < 5; i++) {
+            const start = Math.floor(i * bufferLength / 5);
+            const end = Math.floor((i + 1) * bufferLength / 5);
+            let sum = 0;
+            for (let j = start; j < end; j++) {
+              sum += dataArray[j];
+            }
+            levels.push(sum / (end - start));
           }
-          setAudioLevels(levels);
           
-          if (isRecording) {
-            requestAnimationFrame(animateWaveform);
-          }
+          setWaveLevels(levels);
+          requestAnimationFrame(animateWaveform);
         }
       };
       
