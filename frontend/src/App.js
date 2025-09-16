@@ -381,7 +381,7 @@ const CaptureScreen = () => {
             levels.push(sum / (end - start));
           }
           
-          setWaveLevels(levels);
+          setAudioLevels(levels);
           requestAnimationFrame(animateWaveform);
         }
       };
