@@ -411,7 +411,7 @@ const CaptureScreen = () => {
         setAudioLevels([]);
       };
       
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Capture in 1-second chunks
       setIsRecording(true);
       setRecordingTime(0);
       
