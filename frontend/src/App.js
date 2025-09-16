@@ -272,7 +272,57 @@ const CaptureScreen = () => {
         wakeLock = null;
       }
     };
+  }, []);
 
+  // Fallback method for wake lock when API is not supported or fails
+  const attemptWakeLockFallback = () => {
+    // Keep screen active by periodically requesting user media (less intrusive fallback)
+    console.log('Using wake lock fallback methods');
+    
+    // Method 1: Invisible video element to keep screen active
+    try {
+      const video = document.createElement('video');
+      video.style.position = 'fixed';
+      video.style.top = '-1px';
+      video.style.left = '-1px';
+      video.style.width = '1px';
+      video.style.height = '1px';
+      video.style.opacity = '0';
+      video.muted = true;
+      video.loop = true;
+      
+      // Create a minimal canvas stream
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, 1, 1);
+      
+      const stream = canvas.captureStream(1); // 1 FPS
+      video.srcObject = stream;
+      video.play();
+      
+      document.body.appendChild(video);
+      
+      // Clean up when recording stops
+      const cleanup = () => {
+        if (video.parentNode) {
+          video.pause();
+          video.srcObject = null;
+          document.body.removeChild(video);
+        }
+      };
+      
+      // Store cleanup function for later use
+      window.wakeLockFallbackCleanup = cleanup;
+      
+    } catch (fallbackError) {
+      console.warn('Wake lock fallback also failed:', fallbackError);
+    }
+  };
+
+  const startRecording = async () => {
     try {
       // Request wake lock to prevent screen from sleeping during recording
       if ('wakeLock' in navigator) {
