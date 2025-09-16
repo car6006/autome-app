@@ -1301,7 +1301,8 @@ class PipelineWorker:
     def _format_diarized_transcript(self, transcript: str, speaker_count: int):
         """Format transcript with speaker labels"""
         if speaker_count == 1:
-            return f"Speaker 1: {transcript}"
+            # For single speaker, return original transcript without speaker labels
+            return transcript
         
         # Simple approach: split by sentences and alternate speakers
         sentences = transcript.split('. ')
