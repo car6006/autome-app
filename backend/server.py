@@ -544,9 +544,15 @@ async def upload_file_for_scan(
 ):
     """Upload file directly for processing (scan or audio)"""
     
-    # Validate file type
+    # Validate file type - Comprehensive extension support
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.pdf'}
-    audio_extensions = {'.mp3', '.wav', '.m4a', '.webm', '.ogg', '.mpeg'}
+    audio_extensions = {
+        # Standard audio formats
+        '.mp3', '.wav', '.wave', '.m4a', '.aac', '.webm', '.ogg', '.opus',
+        '.flac', '.aiff', '.wma', '.amr', '.3gp', '.mp2', '.mpeg',
+        # Video formats (for audio extraction)  
+        '.mp4', '.mov', '.avi', '.mkv', '.wmv', '.m4v'
+    }
     allowed_extensions = image_extensions | audio_extensions
     
     file_ext = os.path.splitext(file.filename or '')[1].lower()
