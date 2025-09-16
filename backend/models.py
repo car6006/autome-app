@@ -124,7 +124,16 @@ class UploadSessionResponse(BaseModel):
     upload_id: str
     chunk_size: int
     max_duration_hours: int = 10
-    allowed_mime_types: List[str] = ["audio/mpeg", "audio/wav", "audio/mp4", "audio/webm", "audio/ogg"]
+    allowed_mime_types: List[str] = [
+        # Standard audio formats
+        "audio/mpeg", "audio/wav", "audio/wave", "audio/x-wav", "audio/mp4", 
+        "audio/m4a", "audio/aac", "audio/webm", "audio/ogg", "audio/opus", 
+        "audio/flac", "audio/x-flac", "audio/aiff", "audio/x-aiff", 
+        "audio/wma", "audio/x-ms-wma", "audio/amr", "audio/3gpp", 
+        "audio/mp2", "audio/x-mp3",
+        # Video formats (audio extraction)
+        "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm"
+    ]
     presigned_urls: Optional[Dict[int, str]] = None  # For S3 multipart
     tus_endpoint: Optional[str] = None  # For tus.io resumable uploads
 
