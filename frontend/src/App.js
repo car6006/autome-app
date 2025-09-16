@@ -481,7 +481,14 @@ const CaptureScreen = () => {
       if (wakeLock) {
         wakeLock.release();
         wakeLock = null;
-        console.log('Wake lock released - screen can sleep normally');
+        console.log('✅ Wake lock released - screen can sleep normally');
+      }
+      
+      // Clean up wake lock fallback if it was used
+      if (window.wakeLockFallbackCleanup) {
+        window.wakeLockFallbackCleanup();
+        window.wakeLockFallbackCleanup = null;
+        console.log('✅ Wake lock fallback cleaned up');
       }
       
       toast({ title: "✅ Recording stopped", description: "Processing your audio..." });
