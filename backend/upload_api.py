@@ -45,11 +45,23 @@ async def create_upload_session(
                 detail=f"File too large. Maximum size: {config.max_file_size / (1024*1024):.1f} MB"
             )
         
-        # Validate MIME type
-        if request.mime_type not in config.allowed_mime_types:
+        # Validate MIME type with pattern matching support
+        def is_mime_type_allowed(mime_type: str, allowed_types: list) -> bool:
+            """Check if MIME type is allowed, supporting wildcard patterns"""
+            for allowed_type in allowed_types:
+                if allowed_type == mime_type:
+                    return True
+                # Handle wildcard patterns like audio/* and video/*
+                if allowed_type.endswith('/*'):
+                    prefix = allowed_type[:-2]  # Remove /*
+                    if mime_type.startswith(prefix + '/'):
+                        return True
+            return False
+        
+        if not is_mime_type_allowed(request.mime_type, config.allowed_mime_types):
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported file type. Allowed: {', '.join(config.allowed_mime_types)}"
+                detail=f"Unsupported file type: {request.mime_type}. We support all audio and video formats for transcription."
             )
         
         # Calculate number of chunks needed
