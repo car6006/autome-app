@@ -191,7 +191,7 @@ class PipelineConfig(BaseModel):
     max_concurrent_jobs: int = 10
     max_concurrent_segments: int = 5
     
-    # Allowed file types - Comprehensive audio format support
+    # Allowed file types - Universal audio/video format support
     allowed_mime_types: List[str] = [
         # Standard audio formats
         "audio/mpeg",      # MP3
@@ -218,7 +218,13 @@ class PipelineConfig(BaseModel):
         "video/mp4",       # MP4 video (extract audio)
         "video/quicktime", # MOV (extract audio)
         "video/x-msvideo", # AVI (extract audio)
-        "video/webm"       # WebM video (extract audio)
+        "video/webm",      # WebM video (extract audio)
+        "video/x-ms-wmv",  # WMV (extract audio)
+        "video/3gpp",      # 3GP video (extract audio)
+        "video/x-matroska",# MKV (extract audio)
+        # Permissive catch-all patterns (let FFmpeg handle conversion)
+        "audio/*",         # Any audio MIME type
+        "video/*"          # Any video MIME type
     ]
     
     # Model configuration
