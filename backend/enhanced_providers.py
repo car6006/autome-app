@@ -221,8 +221,14 @@ class TranscriptionProvider:
                             ]
                         
                         logger.info(f"✅ OpenAI transcription successful: '{result.get('text', '')[:50]}...'")
+                        
+                        # Validate transcription quality before returning
+                        transcript_text = result.get("text", "")
+                        if not self._validate_transcription_quality(transcript_text):
+                            raise ValueError(f"Transcription quality validation failed - detected corrupted audio or repetitive test patterns. This usually means the audio file was corrupted during processing. Please try re-uploading your audio file.")
+                        
                         return {
-                            "text": result.get("text", ""),
+                            "text": transcript_text,
                             "words": words,
                             "confidence": 0.95,  # Default confidence for OpenAI
                             "language": result.get("language", "en"),
