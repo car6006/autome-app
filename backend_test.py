@@ -8370,7 +8370,21 @@ class BackendTester:
         print(f"🎯 Target URL: {BACKEND_URL}")
         print("=" * 60)
         
+        # 🔥 CRITICAL: Transcription Quality Validation Tests (HIGHEST PRIORITY)
+        print("\n" + "🔥" * 60)
+        print("🔥 CRITICAL TRANSCRIPTION QUALITY VALIDATION TESTS")
+        print("🔥 Testing fixes for repetitive garbage text and audio corruption")
+        print("🔥" * 60)
+        
+        self.test_transcription_quality_validation()
+        self.test_ffmpeg_audio_conversion_quality()
+        self.test_audio_format_corruption_detection()
+        self.test_redis_transcription_system()
+        
         # Core connectivity tests
+        print("\n" + "=" * 60)
+        print("📡 CORE API CONNECTIVITY TESTS")
+        print("=" * 60)
         self.test_health_endpoint()
         self.test_root_endpoint()
         self.test_cors_headers()
