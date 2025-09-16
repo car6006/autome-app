@@ -521,18 +521,55 @@ async def split_large_audio_file(file_path: str, chunk_duration: int | None = No
                 chunk_path
             ]
             
+            # Create chunk with enhanced ffmpeg command
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
             
-            if result.returncode == 0:
-                chunks.append(chunk_path)
-                logger.info(f"✅ Created chunk {i+1}/{num_chunks}: {chunk_path}")
-            else:
-                logger.error(f"❌ Failed to create chunk {i+1}: {result.stderr}")
-                # Clean up failed chunk
+            if result.returncode != 0:
+                logger.error(f"FFmpeg error creating chunk {i+1}: {result.stderr}")
+                continue
+                
+            # Validate chunk was created successfully and has audio content
+            if not os.path.exists(chunk_path):
+                logger.error(f"Chunk file not created: {chunk_path}")
+                continue
+                
+            # Check if chunk has reasonable file size (not too small, indicating empty audio)
+            chunk_size = os.path.getsize(chunk_path)
+            if chunk_size < 1000:  # Less than 1KB indicates likely empty/corrupted audio
+                logger.warning(f"Chunk {i+1} is suspiciously small ({chunk_size} bytes), may be corrupted")
+                os.unlink(chunk_path)  # Remove corrupted chunk
+                continue
+                
+            # Validate audio content using ffprobe
+            probe_cmd = [
+                'ffprobe', '-v', 'quiet', '-print_format', 'json', 
+                '-show_format', '-show_streams', chunk_path
+            ]
+            probe_result = subprocess.run(probe_cmd, capture_output=True, text=True)
+            
+            if probe_result.returncode == 0:
                 try:
-                    os.unlink(chunk_path)
-                except:
-                    pass
+                    probe_data = json.loads(probe_result.stdout)
+                    if 'streams' in probe_data and len(probe_data['streams']) > 0:
+                        stream = probe_data['streams'][0]
+                        duration = float(stream.get('duration', 0))
+                        if duration > 0.5:  # Chunk should have reasonable duration
+                            chunks.append(chunk_path)
+                            logger.info(f"✅ Valid chunk {i+1} created: {chunk_size} bytes, {duration:.2f}s duration")
+                        else:
+                            logger.warning(f"Chunk {i+1} has invalid duration: {duration}s")
+                            os.unlink(chunk_path)
+                    else:
+                        logger.warning(f"Chunk {i+1} has no audio streams")
+                        os.unlink(chunk_path)
+                except json.JSONDecodeError:
+                    logger.warning(f"Could not parse ffprobe output for chunk {i+1}")
+                    # Still add chunk if ffprobe parsing fails but file exists
+                    chunks.append(chunk_path)
+            else:
+                logger.warning(f"Could not validate chunk {i+1} with ffprobe")
+                # Still add chunk if ffprobe fails but file was created successfully
+                chunks.append(chunk_path)
         
         return chunks
         
