@@ -407,6 +407,8 @@ const CaptureScreen = () => {
           wakeLock = null;
           console.log('✅ Wake lock released - screen can sleep normally');
         }
+        
+        setAudioLevels([]);
       };
       
       mediaRecorder.start();
