@@ -1234,8 +1234,9 @@ class PipelineWorker:
                     speaker_count = 2 if "Speaker 3" not in ai_response else 3
                     diarized_transcript = self._format_diarized_transcript(transcript, speaker_count)
                 else:
+                    # For single speaker, don't add speaker labels to avoid confusion
                     speaker_count = 1
-                    diarized_transcript = f"Speaker 1: {transcript}"
+                    diarized_transcript = transcript  # Keep original transcript without speaker labels
                 
                 speakers = []
                 for i in range(1, speaker_count + 1):
