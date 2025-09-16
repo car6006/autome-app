@@ -7670,6 +7670,17 @@ class BackendTester:
         self.test_enhanced_frontend_messaging()
         self.test_one_hour_recording_reliability()
         
+        # 🎵 UNIVERSAL AUDIO FORMAT SUPPORT SYSTEM TESTS (NEW - REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🎵 UNIVERSAL AUDIO FORMAT SUPPORT SYSTEM TESTS - Testing New Audio Conversion & Processing")
+        print("=" * 60)
+        
+        self.test_universal_audio_conversion()
+        self.test_enhanced_upload_validation()
+        self.test_adaptive_chunking_system()
+        self.test_end_to_end_processing()
+        self.test_error_handling_and_cleanup()
+        
         # Summary
         return self.print_summary()
     
