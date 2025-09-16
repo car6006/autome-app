@@ -237,6 +237,19 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
   // Handle individual audio chunks
   const handleAudioChunk = async (audioBlob, currentSessionId) => {
     try {
+      // Check session validity periodically
+      const now = Date.now();
+      if (now - lastSessionCheck > SESSION_CHECK_INTERVAL) {
+        setLastSessionCheck(now);
+        const isValid = await validateSession(currentSessionId);
+        
+        if (!isValid) {
+          console.log('🚨 Session validation failed during chunk upload');
+          await handleSessionExpiration();
+          return;
+        }
+      }
+
       const currentChunkIdx = chunkIndex;
       setChunkIndex(prev => prev + 1);
       setProcessingChunks(prev => new Set([...prev, currentChunkIdx]));
@@ -265,14 +278,17 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
       
       if (response.status === 202) {
         console.log(`✅ Chunk ${currentChunkIdx} uploaded and processing started`);
-        console.log(`📊 Response:`, response.data);
+        // Reset error count on success
+        setErrorCount(0);
       } else {
         console.warn(`⚠️ Unexpected response status: ${response.status}`);
+        setErrorCount(prev => prev + 1);
       }
       
     } catch (error) {
       console.error(`❌ Failed to upload chunk ${chunkIndex}:`, error);
-      setErrorCount(prev => prev + 1);
+      const newErrorCount = errorCount + 1;
+      setErrorCount(newErrorCount);
       
       // Remove from processing set on error
       setProcessingChunks(prev => {
@@ -281,13 +297,32 @@ const LiveTranscriptionRecorder = ({ onTranscriptionComplete, user }) => {
         return newSet;
       });
       
-      // Show error after multiple failures
-      if (errorCount > 2) {
+      // Handle different error types
+      if (error.response?.status === 404 || error.response?.status === 401) {
+        console.log('🚨 Session expired during chunk upload (404/401 error)');
+        await handleSessionExpiration();
+        return;
+      }
+      
+      // Show progressive error messages
+      if (newErrorCount === 3) {
         toast({
-          title: "Upload Issues",
-          description: "Some audio chunks failed to upload. Transcription may be incomplete.",
+          title: "⚠️ Connection Issues",
+          description: "Some audio chunks are failing to upload. Checking connection...",
           variant: "destructive"
         });
+      } else if (newErrorCount >= MAX_ERROR_COUNT) {
+        toast({
+          title: "❌ Multiple Upload Failures",
+          description: autoRestartEnabled 
+            ? "Too many errors detected. Attempting to restart session..." 
+            : "Multiple upload failures detected. Please restart your session.",
+          variant: "destructive"
+        });
+        
+        if (autoRestartEnabled) {
+          await handleSessionExpiration();
+        }
       }
     }
   };
