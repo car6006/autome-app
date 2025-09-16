@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://content-capture-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://audio-chunk-wizard.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def recover_meeting_files():

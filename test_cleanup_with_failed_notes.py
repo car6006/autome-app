@@ -12,7 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import asyncio
 import os
 
-BACKEND_URL = "https://content-capture-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://audio-chunk-wizard.preview.emergentagent.com/api"
 
 async def create_failed_notes_in_db():
     """Create failed notes directly in the database for testing"""

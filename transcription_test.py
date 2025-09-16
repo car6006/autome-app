@@ -13,7 +13,7 @@ import uuid
 import tempfile
 
 # Configuration
-BACKEND_URL = "https://content-capture-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://audio-chunk-wizard.preview.emergentagent.com/api"
 
 class TranscriptionTester:
     def __init__(self):

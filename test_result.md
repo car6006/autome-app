@@ -488,7 +488,7 @@ frontend:
           comment: "Frontend testing not performed as per system limitations. Frontend is serving static files via 'serve' command on port 3000."
         - working: true
           agent: "testing"
-          comment: "Frontend is successfully deployed and accessible at https://content-capture-1.preview.emergentagent.com. Mobile responsive UI improvements verified through comprehensive testing."
+          comment: "Frontend is successfully deployed and accessible at https://audio-chunk-wizard.preview.emergentagent.com. Mobile responsive UI improvements verified through comprehensive testing."
 
   - task: "Mobile Responsive UI"
     implemented: true
@@ -799,7 +799,7 @@ agent_communication:
     - agent: "testing"
       message: "🎉 MOBILE RESPONSIVENESS ENHANCEMENTS SUCCESSFULLY VERIFIED: Comprehensive testing confirms all mobile improvements are working perfectly with 100% success rate (8/8 features). ✅ HEADER IMPROVEMENTS: Profile and Help buttons correctly implemented in header area with 8x8 compact size, only visible for authenticated users, positioned next to 'Capture magic' greeting. ✅ BOTTOM NAVIGATION: Profile button successfully removed, safe area support implemented with pb-safe class, proper positioning maintained. ✅ UI CLEANUP: Floating Help button completely removed, streamlined navigation with better space utilization. ✅ MOBILE UX: No horizontal scrolling, responsive across multiple viewports, all navigation functional. The enhanced mobile responsiveness delivers excellent user experience on mobile devices with modern safe area support and clean interface design."
     - agent: "testing"
-      message: "Comprehensive backend testing completed successfully. All 12 critical backend endpoints are working correctly. The API is fully functional with proper authentication, note management, and system monitoring. Backend is accessible at https://content-capture-1.preview.emergentagent.com/api with all /api prefixed routes working as expected. No critical issues found."
+      message: "Comprehensive backend testing completed successfully. All 12 critical backend endpoints are working correctly. The API is fully functional with proper authentication, note management, and system monitoring. Backend is accessible at https://audio-chunk-wizard.preview.emergentagent.com/api with all /api prefixed routes working as expected. No critical issues found."
     - agent: "testing"
       message: "Mobile responsive UI testing completed successfully. Comprehensive testing across multiple viewports (390px-1280px) confirms excellent mobile responsiveness. Key achievements: ✅ No horizontal scrolling on any screen size, ✅ Proper PWA viewport configuration, ✅ Modal components fit correctly within mobile viewports, ✅ Most interactive elements meet 44px touch targets, ✅ Text readability optimized with proper wrapping, ✅ Form elements sized appropriately for mobile interaction. The mobile experience is significantly improved and meets modern responsive design standards."
     - agent: "testing"

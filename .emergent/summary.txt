@@ -1,77 +1,222 @@
 <analysis>
-The AI engineer successfully transitioned from initial bug fixes to feature development. The initial phase addressed crucial live transcription issues by introducing configurable audio chunking and detailed documentation. A subsequent critical bug involving corrupted audio files was identified and resolved with enhanced validation and error logging. Following this, the focus shifted to implementing YouTube URL processing, which also involved significant UI/UX enhancements to create a feature-rich menu. This YouTube feature encountered persistent challenges with YouTube's anti-bot measures, leading to an iterative process of adding spoofing, multiple extraction strategies, and a user-facing troubleshooting component. The troubleshoot agent was effectively utilized for complex bug resolution. The current state reflects a robust, though still evolving, YouTube integration with an improved frontend, addressing the user's desire to surpass competitors like Smart Notes.
+The previous AI engineer successfully tackled a range of critical bugs and feature enhancements. Initially, they resolved persistent YouTube audio extraction failures (403 errors) by implementing robust cookie-based authentication, fallback strategies, and refined error handling in . Concurrently, the UI was significantly improved with a global, responsive hamburger menu consolidating features and streamlining the bottom navigation. A major reliability issue with long recordings failing was addressed by adopting large file processing principles, including extended timeouts, smart chunking, and background processing. Critical security flaw of notes exposure post-logout was fixed by introducing authentication checks and state clearing. Additionally, the screen's wake lock during recording was enhanced, and a bug causing markdown symbols in exported reports was resolved by comprehensive cleaning. The latest work focuses on fixing a transcription catastrophe (repetitive You You You output) by correcting corrupted audio chunking in  and adding chunk validation, indicating a deep dive into audio processing core.
 </analysis>
 
 <product_requirements>
-The AUTO-ME PWA is a content capture application designed for enterprise features like AI reports. Initial implementation included OCR, Whisper transcription, text notes, email/Git sync, and JWT authentication. Key features developed before this trajectory include OCR & transcription reliability fixes, note management, partial live transcription, AI provider robustness, and UI/UX streamlining (e.g., removing download buttons, renaming Professional Report to Detailed Report, adding a Share button). Core productivity features like client-side search, a full-stack tagging system, and a template options system were also implemented, alongside mobile experience improvements.
+The AUTO-ME PWA is a content capture application with enterprise features like AI reports. It supports OCR, Whisper transcription, text notes, email/Git sync, and JWT authentication. Previous work focused on reliability, note management, partial live transcription, AI provider robustness, and UI/UX improvements.
 
-The user's explicit requests during this trajectory were:
-1.  **Live Transcription Fix**: Improve real-time transcription, specifically by reducing audio chunk size from 240 seconds to 5 seconds, propagating this setting, and documenting it. The goal is Samsung system like real-time feedback.
-2.  **System Enhancement vs. Smart Notes**: Make AUTO-ME demonstrably superior to Smart Notes by implementing features like YouTube/video URL transcription, improved PDF/DOCX support, advanced AI chat, and multi-language translation, along with a UI refresh.
-3.  **YouTube URL Processing & UI Sprush Up**: Implement the ability to extract audio from YouTube videos for transcription, accompanied by a new, aesthetically pleasing menu-style interface to showcase all available features.
+User requests in this trajectory:
+1.  **Live Transcription Fix**: Improve real-time transcription by reducing audio chunk size to 5 seconds, propagating this setting, and documenting it for Samsung system-like feedback.
+2.  **System Enhancement vs. Smart Notes**: Surpass competitors by implementing YouTube/video URL transcription, improved PDF/DOCX support, advanced AI chat, multi-language translation, and a UI refresh.
+3.  **YouTube URL Processing & UI Sprush Up**: Implement YouTube audio extraction for transcription and create an aesthetically pleasing menu-style interface for features.
+4.  **Application Environment Readiness**: Prepare the app for both the current environment and GitHub Codespaces, including a rollback timestamp.
+5.  **Long Recording Reliability**: Implement foolproof background processing for regular Record functionality, similar to Large Files, to prevent failures for recordings over 1 hour.
+6.  **Streamlined Navigation**: Redesign the bottom navigation to only include Record (center, larger), Scan, and Notes, moving other features to the hamburger menu.
+7.  **Export Format Cleanliness**: Ensure exported batch reports are truly clean, removing all markdown symbols (e.g., , ).
+8.  **Expanded File Format Support**: Broaden supported file types for large uploads to prevent Unsupported file type errors, including M4A and various video formats.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React, React Context, Shadcn/UI, Tailwind CSS, , Axios.
--   **Backend**: FastAPI, MongoDB (Motor), , , , /tmp/fileMNI46j,  (for YouTube).
--   **Audio Processing**: FFmpeg for audio splitting/chunking, Whisper API for STT.
--   **Error Handling**: Rate limiting, exponential backoff, file validation, user-agent spoofing.
--   **Architecture**: Full-stack modular design, environment variable configuration.
+-   **Frontend**: React, React Context, Shadcn/UI, Tailwind CSS, , Axios, Web Wake Lock API.
+-   **Backend**: FastAPI, MongoDB (Motor), , , , /tmp/file3fOyYE,  (for YouTube), FFmpeg (audio processing).
+-   **Audio Processing**: Whisper API (STT), smart chunking, background tasks, retry logic, file validation.
+-   **Architecture**: Modular full-stack, environment variable configuration, CI/CD with GitHub Actions, Codespaces readiness.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard React frontend and FastAPI backend architecture, utilizing MongoDB and Redis.
+The application uses a React frontend and FastAPI backend, with MongoDB and Redis.
 
 
 
 -   **backend/providers.py**: Core logic for STT and OCR.
     -   **Importance**: Handles audio duration, splitting, and transcription via OpenAI.
-    -   **Changes**:  now reads from .  and  now accept an optional  parameter, defaulting to the environment variable.
+    -   **Changes**: Configurable  via environment variable and passing  parameter.
 -   **backend/tasks.py**: Manages background processing tasks.
-    -   **Importance**: Orchestrates transcription (calls ).
-    -   **Changes**: Added  by reading from environment variable. Updated the  call to pass .
+    -   **Importance**: Orchestrates transcription.
+    -   **Changes**: Reads  from environment. Updated  call. Timeout for  was increased from 30 minutes to 3 hours dynamically.
 -   **backend/enhanced_providers.py**: Enhanced AI/LLM provider.
     -   **Importance**: Central for audio and transcription processing, especially for larger files or more complex logic.
-    -   **Changes**: Improved error logging for OpenAI API responses. Added audio file size validation (min 1KB, max 25MB) before processing. Enhanced exception handling to distinguish validation from unexpected errors. Modified  to include various user-agent spoofing and retry different extraction formats/methods for YouTube.
--   **backend/youtube_processor.py (NEW)**: Handles YouTube video processing.
-    -   **Importance**: Extracts audio from YouTube URLs using . Implements multiple user-agent spoofing, retry mechanisms, and error handling for YouTube's anti-bot measures.
-    -   **Code Snippet (key part - from analysis, not verbatim but content-wise)**:
-        
+    -   **Changes**: Improved error logging. Added audio file size validation. Modified  for user-agent spoofing/retries. **Critical fix for audio chunking:** adjusted ffmpeg command to preserve audio quality (removed ) and added chunk validation, optimized chunk size for longer recordings (1-2 minutes for medium/large files vs. 5 seconds for small). Added better error recovery.
+-   **backend/youtube_processor.py**: Handles YouTube video processing.
+    -   **Importance**: Extracts audio from YouTube URLs using .
+    -   **Changes**: Implemented cookie-based authentication (), removed  option, added multiple user-agent spoofing, retry mechanisms, and robust error handling for YouTube's anti-bot measures. Enhanced info extraction.
 -   **backend/server.py**: Main FastAPI application.
     -   **Importance**: Central API for all functionalities.
-    -   **Changes**: Imported  and added new API endpoints:  (for video metadata) and  (to trigger audio extraction and transcription). Endpoints were ensured to be added before the startup event.
--   **README.md**: Project documentation.
-    -   **Importance**: Provides an overview, features, and technical details.
-    -   **Changes**: Added a new bullet point under Advanced Audio Transcription for Configurable Chunk Duration and a Real-Time Chunk Tuning sub-section explaining how to use  environment variable (default 5s) for real-time updates.
+    -   **Changes**: Added  and  endpoints. **Crucially, updated hardcoded file extension validation** for regular audio uploads to include a comprehensive list of audio and video formats (e.g., , , ).
+-   **backend/models.py**: Defines Pydantic models and application configurations.
+    -   **Importance**: Stores configuration for file uploads, including allowed MIME types.
+    -   **Changes**: Expanded  to support 24 different audio and video formats to resolve Unsupported file type errors for large uploads.
 -   **frontend/src/App.js**: Main React application file.
     -   **Importance**: Orchestrates UI, routing, and client-side logic.
-    -   **Changes**: Integrated new routes  and . Replaced the Live Transcription button in the bottom navigation with a Features button (using the  icon). Imported  icon for .
--   **frontend/src/components/FeatureMenu.js (NEW)**: Displays the new features menu.
-    -   **Importance**: Provides a visually appealing, card-based interface for navigating different application features, including YouTube processing.
--   **frontend/src/components/YouTubeProcessorScreen.js (NEW)**: UI for YouTube URL processing.
-    -   **Importance**: User interface for inputting YouTube URLs, displaying video info, and initiating the audio extraction/transcription process.
--   **frontend/src/components/YouTubeInput.js (NEW)**: Component likely for handling the YouTube URL input field.
--   **frontend/src/components/YouTubeTroubleshooting.js (NEW)**: Provides troubleshooting guidance and alternative options for YouTube extraction failures.
-    -   **Importance**: Offers user-friendly suggestions when YouTube blocks video downloads, including categories likely to work and an option for manual file upload.
-
+    -   **Changes**: Integrated new global  component, removed local header from . Integrated new routes (, ). Modified bottom navigation to only include Record (larger, center), Scan, and Notes. Enhanced  function with authentication checks, clearing notes on logout, and managing polling intervals to fix security vulnerability. Enhanced Wake Lock implementation with fallback (invisible video element) and cleanup in  and . Modified regular Record process to use background processing similar to large files. Implemented  function and applied it to  and  for all formats.
+-   **frontend/src/components/FeatureMenu.js**: Displays the new features menu.
+    -   **Importance**: Provides a card-based interface for features.
+    -   **Changes**: Removed references to competitor applications.
+-   **frontend/src/components/YouTubeTroubleshooting.js**: Provides troubleshooting guidance for YouTube extraction failures.
+    -   **Importance**: Offers user-friendly suggestions when YouTube blocks video downloads.
+    -   **Changes**: Minor adjustments to content to remove competitive comparisons.
+-   **frontend/src/components/LargeFileTranscriptionScreen.js**: UI for large file processing.
+    -   **Importance**: Handles resumable chunked uploads.
+    -   **Changes**: Used as a reference for implementing background processing logic in  for regular recordings.
+-   **frontend/src/contexts/AuthContext.tsx**: Manages user authentication state.
+    -   **Importance**: Provides authentication context.
+    -   **Changes**: Logout function was checked and deemed correct, but issues were in 's handling of  state.
+-   **README.md**: Project documentation.
+    -   **Importance**: Provides an overview, features, and technical details.
+    -   **Changes**: Added a new Development Setup section, updated Latest Updates with YouTube processing, and added YouTube processing to Key Features.
+-   **NEW Files for Codespaces/Dev Environment**: , 🚀 Setting up AUTO-ME PWA Development Environment...
+Hit:1 http://deb.debian.org/debian bookworm InRelease
+Hit:2 http://deb.debian.org/debian bookworm-updates InRelease
+Hit:3 http://deb.debian.org/debian-security bookworm-security InRelease
+Hit:4 https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 InRelease
+Hit:5 https://deb.nodesource.com/node_20.x nodistro InRelease
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Calculating upgrade...
+The following packages will be upgraded:
+  libcjson1
+1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Need to get 22.7 kB of archives.
+After this operation, 0 B of additional disk space will be used.
+Get:1 http://deb.debian.org/debian-security bookworm-security/main arm64 libcjson1 arm64 1.7.15-1+deb12u4 [22.7 kB]
+Fetched 22.7 kB in 0s (508 kB/s)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 47627 files and directories currently installed.)
+Preparing to unpack .../libcjson1_1.7.15-1+deb12u4_arm64.deb ...
+Unpacking libcjson1:arm64 (1.7.15-1+deb12u4) over (1.7.15-1+deb12u3) ...
+Setting up libcjson1:arm64 (1.7.15-1+deb12u4) ...
+Processing triggers for libc-bin (2.36-9+deb12u13) ...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+supervisor is already the newest version (4.2.5-1).
+curl is already the newest version (7.88.1-10+deb12u14).
+wget is already the newest version (1.21.3-1+deb12u1).
+git is already the newest version (1:2.39.5-0+deb12u2).
+build-essential is already the newest version (12.9).
+software-properties-common is already the newest version (0.99.30-4.1~deb12u1).
+The following additional packages will be installed:
+  libavdevice59 libcdio-cdda2 libcdio-paranoia2 libcdio19 libjemalloc2 liblzf1
+  libxcb-shape0 libxv1 redis-tools
+Suggested packages:
+  ffmpeg-doc ruby-redis
+The following NEW packages will be installed:
+  ffmpeg libavdevice59 libcdio-cdda2 libcdio-paranoia2 libcdio19 libjemalloc2
+  liblzf1 libxcb-shape0 libxv1 redis-server redis-tools
+0 upgraded, 11 newly installed, 0 to remove and 0 not upgraded.
+Need to get 3488 kB of archives.
+After this operation, 10.8 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main arm64 libjemalloc2 arm64 5.3.0-1 [217 kB]
+Get:2 http://deb.debian.org/debian bookworm/main arm64 liblzf1 arm64 3.6-3 [9860 B]
+Get:3 http://deb.debian.org/debian bookworm/main arm64 redis-tools arm64 5:7.0.15-1~deb12u5 [898 kB]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 redis-server arm64 5:7.0.15-1~deb12u5 [73.0 kB]
+Get:5 http://deb.debian.org/debian bookworm/main arm64 libcdio19 arm64 2.1.0-4 [201 kB]
+Get:6 http://deb.debian.org/debian bookworm/main arm64 libcdio-cdda2 arm64 10.2+2.0.1-1 [20.1 kB]
+Get:7 http://deb.debian.org/debian bookworm/main arm64 libcdio-paranoia2 arm64 10.2+2.0.1-1 [19.6 kB]
+Get:8 http://deb.debian.org/debian bookworm/main arm64 libxcb-shape0 arm64 1.15-1 [106 kB]
+Get:9 http://deb.debian.org/debian bookworm/main arm64 libxv1 arm64 2:1.0.11-1.1 [24.5 kB]
+Get:10 http://deb.debian.org/debian bookworm/main arm64 libavdevice59 arm64 7:5.1.7-0+deb12u1 [116 kB]
+Get:11 http://deb.debian.org/debian bookworm/main arm64 ffmpeg arm64 7:5.1.7-0+deb12u1 [1803 kB]
+Fetched 3488 kB in 0s (22.1 MB/s)
+Selecting previously unselected package libjemalloc2:arm64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 47627 files and directories currently installed.)
+Preparing to unpack .../00-libjemalloc2_5.3.0-1_arm64.deb ...
+Unpacking libjemalloc2:arm64 (5.3.0-1) ...
+Selecting previously unselected package liblzf1:arm64.
+Preparing to unpack .../01-liblzf1_3.6-3_arm64.deb ...
+Unpacking liblzf1:arm64 (3.6-3) ...
+Selecting previously unselected package redis-tools.
+Preparing to unpack .../02-redis-tools_5%3a7.0.15-1~deb12u5_arm64.deb ...
+Unpacking redis-tools (5:7.0.15-1~deb12u5) ...
+Selecting previously unselected package redis-server.
+Preparing to unpack .../03-redis-server_5%3a7.0.15-1~deb12u5_arm64.deb ...
+Unpacking redis-server (5:7.0.15-1~deb12u5) ...
+Selecting previously unselected package libcdio19:arm64.
+Preparing to unpack .../04-libcdio19_2.1.0-4_arm64.deb ...
+Unpacking libcdio19:arm64 (2.1.0-4) ...
+Selecting previously unselected package libcdio-cdda2:arm64.
+Preparing to unpack .../05-libcdio-cdda2_10.2+2.0.1-1_arm64.deb ...
+Unpacking libcdio-cdda2:arm64 (10.2+2.0.1-1) ...
+Selecting previously unselected package libcdio-paranoia2:arm64.
+Preparing to unpack .../06-libcdio-paranoia2_10.2+2.0.1-1_arm64.deb ...
+Unpacking libcdio-paranoia2:arm64 (10.2+2.0.1-1) ...
+Selecting previously unselected package libxcb-shape0:arm64.
+Preparing to unpack .../07-libxcb-shape0_1.15-1_arm64.deb ...
+Unpacking libxcb-shape0:arm64 (1.15-1) ...
+Selecting previously unselected package libxv1:arm64.
+Preparing to unpack .../08-libxv1_2%3a1.0.11-1.1_arm64.deb ...
+Unpacking libxv1:arm64 (2:1.0.11-1.1) ...
+Selecting previously unselected package libavdevice59:arm64.
+Preparing to unpack .../09-libavdevice59_7%3a5.1.7-0+deb12u1_arm64.deb ...
+Unpacking libavdevice59:arm64 (7:5.1.7-0+deb12u1) ...
+Selecting previously unselected package ffmpeg.
+Preparing to unpack .../10-ffmpeg_7%3a5.1.7-0+deb12u1_arm64.deb ...
+Unpacking ffmpeg (7:5.1.7-0+deb12u1) ...
+Setting up libxcb-shape0:arm64 (1.15-1) ...
+Setting up libjemalloc2:arm64 (5.3.0-1) ...
+Setting up libcdio19:arm64 (2.1.0-4) ...
+Setting up liblzf1:arm64 (3.6-3) ...
+Setting up libxv1:arm64 (2:1.0.11-1.1) ...
+Setting up libcdio-cdda2:arm64 (10.2+2.0.1-1) ...
+Setting up libcdio-paranoia2:arm64 (10.2+2.0.1-1) ...
+Setting up redis-tools (5:7.0.15-1~deb12u5) ...
+Setting up libavdevice59:arm64 (7:5.1.7-0+deb12u1) ...
+Setting up ffmpeg (7:5.1.7-0+deb12u1) ...
+Setting up redis-server (5:7.0.15-1~deb12u5) ...
+invoke-rc.d: could not determine current runlevel
+invoke-rc.d: policy-rc.d denied execution of start.
+Created symlink /etc/systemd/system/redis.service → /lib/systemd/system/redis-server.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/redis-server.service → /lib/systemd/system/redis-server.service.
+Processing triggers for libc-bin (2.36-9+deb12u13) ...
+OK
+deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse
+Hit:1 http://deb.debian.org/debian bookworm InRelease
+Hit:2 http://deb.debian.org/debian bookworm-updates InRelease
+Hit:3 http://deb.debian.org/debian-security bookworm-security InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Get:5 https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 InRelease [4009 B]
+Hit:6 https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 InRelease
+Get:7 https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0/multiverse amd64 Packages [111 kB]
+Get:8 https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0/multiverse arm64 Packages [107 kB]
+Fetched 222 kB in 3s (88.8 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+mongodb-org is already the newest version (7.0.24).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Looking in indexes: https://pypi.org/simple, https://d33sy5i8bnduwe.cloudfront.net/simple/
+Collecting yt-dlp
+  Using cached yt_dlp-2025.9.5-py3-none-any.whl.metadata (177 kB)
+Using cached yt_dlp-2025.9.5-py3-none-any.whl (3.3 MB)
+Installing collected packages: yt-dlp
+Successfully installed yt-dlp-2025.9.5, 🚀 Starting AUTO-ME PWA services...
+📊 Starting MongoDB..., , , , , , , . These files establish a consistent development environment.
 </code_architecture>
 
 <pending_tasks>
--   Further improve live transcription UI/UX with session validation, auto-restart capabilities, and clearer error messages for expired sessions.
--   Investigate confusing Speaker 1: references from large file transcription output.
--   Add YouTube/video URL transcription (partially implemented, but needs robustness/completeness).
--   Improve PDF and DOCX support (from Smart Notes competitive analysis).
--   Integrate advanced AI chat with context awareness (from Smart Notes competitive analysis).
--   Expand multi-language translation capabilities (from Smart Notes competitive analysis).
+- Further improve live transcription UI/UX with session validation, auto-restart capabilities, and clearer error messages for expired sessions.
+- Investigate confusing Speaker 1: references from large file transcription output.
+- Improve PDF and DOCX support (from Smart Notes competitive analysis).
+- Integrate advanced AI chat with context awareness (from Smart Notes competitive analysis).
+- Expand multi-language translation capabilities (from Smart Notes competitive analysis).
+- The  import is missing in  after recent edits.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing persistent issues with YouTube video audio extraction, specifically the HTTP Error 403: Forbidden where YouTube's anti-bot measures blocked downloads. This involved implementing more robust bypass techniques, trying different extraction formats and methods within , and adding a fallback mechanism for manual audio file uploads.
+Immediately before this summary request, the AI engineer was addressing a transcription catastrophe reported by the user, where a 2-hour meeting recording resulted in nonsensical output (You You You and Silence). This pointed to a severe bug in the audio processing pipeline.
 
-To enhance the user experience during these failures, a new frontend component, , was created. This component is designed to provide clear instructions and recommend categories of videos (e.g., public domain, educational) that are typically easier to process, or offer an alternative path to upload files directly. The engineer had successfully integrated this  component into  and was in the process of ensuring all necessary UI dependencies, specifically the  component, were correctly handled and integrated. The goal is to provide a more resilient YouTube processing feature with comprehensive user guidance for common failures.
+The engineer, after consulting the , identified the root cause as **corrupted audio chunking** within the ffmpeg process in . Specifically, the aggressive resampling parameters () were destroying audio quality, leading to uninterpretable chunks for the Whisper API.
+
+The current work involves implementing fixes for this critical audio chunking issue:
+1.  **Correcting ffmpeg command**: The command in  is being modified to remove the aggressive resampling parameters, preserving original audio quality during chunking.
+2.  **Adding chunk validation**: Logic is being added to  to detect corrupted audio chunks, which will help in future debugging and error handling.
+3.  **Missing  import**: The very last action noted a missing  import in , which is likely required for the new chunk validation or error recovery logic being implemented.
+
+This work aims to ensure that audio chunks are correctly generated and passed to the transcription service, preventing the repetitive You You You output and making the transcription process reliable for all audio types, especially long recordings.
 </current_work>
 
 <optional_next_step>
-Integrate the  component into  to complete the error display functionality.
+Add the missing  import statement to .
 </optional_next_step>
-
