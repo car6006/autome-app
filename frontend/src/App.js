@@ -3696,7 +3696,7 @@ const NotesScreen = () => {
                     className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                   >
                     <MessageSquare className="w-3 h-3 mr-1" />
-                    Ask AI about this content
+                    Ask AUTO-ME about this content
                   </Button>
                   
                   <Button
