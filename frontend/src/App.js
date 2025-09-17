@@ -2618,7 +2618,7 @@ const NotesScreen = () => {
       
       // Create and download file based on format
       let blob;
-      let filename = `Batch_AI_Analysis_${batchAiContent.title.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '_')}`;
+      let filename = `Batch_AUTO-ME_Analysis_${batchAiContent.title.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '_')}`;
       
       if (format === 'pdf') {
         // For PDF, we'll create a simple text file for now
