@@ -1980,7 +1980,7 @@ const NotesScreen = () => {
           // For TXT/RTF or when note_id is not available, use frontend processing
           let content = reportData.data.report || '';
           
-          // Clean formatting for ALL formats (not just txt/rtf)
+          // Enhanced markdown cleaning for professional formatting
           const cleanMarkdown = (text) => {
             return text
               .replace(/\*\*\*(.*?)\*\*\*/g, '$1')      // Remove *** bold italic ***
@@ -1996,9 +1996,11 @@ const NotesScreen = () => {
               .replace(/`(.*?)`/g, '$1')                // Remove ` inline code `
               .replace(/>\s*/g, '')                     // Remove > blockquotes
               .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // Remove [text](link) - keep text
-              .replace(/^\s*[-*+]\s*/gm, '')            // Remove bullet points
+              .replace(/^\s*[-*+]\s*/gm, '• ')          // Convert bullet points to clean bullets
               .replace(/^\s*\d+\.\s*/gm, '')            // Remove numbered lists
               .replace(/\n{3,}/g, '\n\n')               // Reduce multiple newlines to double
+              .replace(/\.(\w)/g, '. $1')               // Add space after periods if missing
+              .replace(/\s+/g, ' ')                     // Clean up multiple spaces
               .trim();
           };
           
