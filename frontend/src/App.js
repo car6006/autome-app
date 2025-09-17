@@ -4008,7 +4008,7 @@ const NotesScreen = () => {
                 {/* Question Input */}
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Ask AI about this content</Label>
+                    <Label className="text-sm font-medium text-gray-700">Ask AUTO-ME about this content</Label>
                     <Textarea
                       value={aiQuestion}
                       onChange={(e) => setAiQuestion(e.target.value)}
