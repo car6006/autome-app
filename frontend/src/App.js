@@ -3217,7 +3217,7 @@ const NotesScreen = () => {
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                       </div>
                     </div>
-                    <p className="text-xs text-blue-600 mt-1">AI is analyzing your content and creating a comprehensive business report...</p>
+                    <p className="text-xs text-blue-600 mt-1">AUTO-ME is analyzing your content and creating a comprehensive business report...</p>
                   </div>
                 )}
                 
