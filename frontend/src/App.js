@@ -1719,7 +1719,7 @@ const NotesScreen = () => {
       
       toast({ 
         title: "📊 Detailed Report Generated", 
-        description: "Your AI-powered business analysis is ready" 
+        description: "Your AUTO-ME powered business analysis is ready" 
       });
       
     } catch (error) {
