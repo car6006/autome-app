@@ -3203,6 +3203,24 @@ const NotesScreen = () => {
                   </div>
                 )}
                 
+                {/* Report Generation Progress Indicator */}
+                {generatingReport[note.id] && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800">Generating Detailed Report</span>
+                      </div>
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">AI is analyzing your content and creating a comprehensive business report...</p>
+                  </div>
+                )}
+                
                 {(note.status === 'processing' || note.status === 'uploading') && (
                   <div className="space-y-3">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
