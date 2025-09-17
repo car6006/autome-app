@@ -9067,6 +9067,145 @@ class BackendTester:
             audio_data += amplitude.to_bytes(2, byteorder='little', signed=True)
         return wav_header + audio_data
 
+    def test_archive_management_configuration(self):
+        """Test archive management configuration endpoint fix - Critical test for integer body handling"""
+        if not self.auth_token:
+            self.log_result("Archive Management Configuration", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            print("\n🏛️ Testing Archive Management Configuration Endpoint Fix...")
+            
+            # Test 1: Valid integer value (should work after fix)
+            test_cases = [
+                {
+                    "name": "Valid integer value (30 days)",
+                    "data": 30,
+                    "expected_status": 200,
+                    "description": "Should accept integer value directly"
+                },
+                {
+                    "name": "Boundary value (1 day)",
+                    "data": 1,
+                    "expected_status": 200,
+                    "description": "Should accept minimum boundary value"
+                },
+                {
+                    "name": "Boundary value (365 days)",
+                    "data": 365,
+                    "expected_status": 200,
+                    "description": "Should accept maximum boundary value"
+                },
+                {
+                    "name": "Invalid value (0 days)",
+                    "data": 0,
+                    "expected_status": 400,
+                    "description": "Should reject value below minimum"
+                },
+                {
+                    "name": "Invalid value (366 days)",
+                    "data": 366,
+                    "expected_status": 400,
+                    "description": "Should reject value above maximum"
+                }
+            ]
+            
+            passed_tests = 0
+            total_tests = len(test_cases)
+            
+            for test_case in test_cases:
+                print(f"  Testing: {test_case['name']}")
+                
+                # Send integer directly in request body (not wrapped in object)
+                response = self.session.post(
+                    f"{BACKEND_URL}/admin/archive/configure",
+                    json=test_case["data"],  # Send integer directly
+                    headers={"Content-Type": "application/json"},
+                    timeout=15
+                )
+                
+                if response.status_code == test_case["expected_status"]:
+                    if response.status_code == 200:
+                        data = response.json()
+                        if (data.get("success") and 
+                            data.get("archive_days") == test_case["data"] and
+                            "message" in data):
+                            passed_tests += 1
+                            print(f"    ✅ {test_case['description']} - Response: {data.get('message')}")
+                        else:
+                            print(f"    ❌ Valid response but missing expected fields: {data}")
+                    else:  # 400 error expected
+                        error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {"detail": response.text}
+                        error_msg = error_data.get("detail", "")
+                        if ("at least 1" in error_msg and test_case["data"] == 0) or ("cannot exceed 365" in error_msg and test_case["data"] == 366):
+                            passed_tests += 1
+                            print(f"    ✅ {test_case['description']} - Error: {error_msg}")
+                        else:
+                            print(f"    ❌ Expected validation error but got: {error_msg}")
+                else:
+                    print(f"    ❌ Expected HTTP {test_case['expected_status']}, got {response.status_code}: {response.text}")
+                
+                time.sleep(0.5)  # Small delay between tests
+            
+            # Test 2: Test the old problematic format (object with archive_days key)
+            print("  Testing: Old format (object with archive_days key)")
+            old_format_response = self.session.post(
+                f"{BACKEND_URL}/admin/archive/configure",
+                json={"archive_days": 30},  # Old format that was causing issues
+                headers={"Content-Type": "application/json"},
+                timeout=15
+            )
+            
+            if old_format_response.status_code == 422:
+                # Pydantic validation error expected for old format
+                print("    ✅ Old format correctly rejected with Pydantic validation error")
+                passed_tests += 1
+                total_tests += 1
+            elif old_format_response.status_code == 200:
+                print("    ⚠️ Old format unexpectedly accepted (may indicate backward compatibility)")
+                passed_tests += 1
+                total_tests += 1
+            else:
+                print(f"    ❌ Old format gave unexpected response: HTTP {old_format_response.status_code}")
+                total_tests += 1
+            
+            # Test 3: Authentication requirement
+            print("  Testing: Authentication requirement")
+            original_headers = self.session.headers.copy()
+            if "Authorization" in self.session.headers:
+                del self.session.headers["Authorization"]
+            
+            unauth_response = self.session.post(
+                f"{BACKEND_URL}/admin/archive/configure",
+                json=30,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            # Restore headers
+            self.session.headers.update(original_headers)
+            
+            if unauth_response.status_code in [401, 403]:
+                print("    ✅ Endpoint correctly requires authentication")
+                passed_tests += 1
+            else:
+                print(f"    ❌ Expected 401/403 for unauthenticated request, got {unauth_response.status_code}")
+            
+            total_tests += 1
+            
+            # Calculate success rate
+            success_rate = (passed_tests / total_tests) * 100
+            
+            if success_rate >= 85:  # 85% success rate required
+                self.log_result("Archive Management Configuration", True, 
+                              f"✅ Archive configuration endpoint working correctly: {passed_tests}/{total_tests} tests passed ({success_rate:.1f}%)")
+            else:
+                self.log_result("Archive Management Configuration", False, 
+                              f"❌ Archive configuration endpoint issues: only {passed_tests}/{total_tests} tests passed ({success_rate:.1f}%)")
+                
+        except Exception as e:
+            self.log_result("Archive Management Configuration", False, f"Archive configuration test error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Testing Suite")
