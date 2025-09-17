@@ -3998,7 +3998,7 @@ const NotesScreen = () => {
                 {/* Current Response */}
                 {aiResponse && (
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">AI Analysis</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">AUTO-ME Analysis</h3>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <div className="whitespace-pre-wrap text-gray-800">{aiResponse}</div>
                     </div>
