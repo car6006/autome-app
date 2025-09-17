@@ -2582,19 +2582,34 @@ const NotesScreen = () => {
           .trim();
       };
       
-      // Create export content from batch AI conversations
-      let exportContent = `BATCH REPORT AI ANALYSIS\n`;
-      exportContent += `${cleanMarkdown(batchAiContent.title)}\n`;
+      // Create clean, professional export content using the notes title as report name
+      let exportContent = `${cleanMarkdown(batchAiContent.title)}\n`;
       exportContent += `Generated: ${new Date().toLocaleDateString()}\n\n`;
       
-      // Add all conversations with cleaned content
+      // Add all conversations with professional formatting
       batchAiConversations.forEach((conv, index) => {
         const cleanQuestion = cleanMarkdown(conv.question || '');
         const cleanResponse = cleanMarkdown(conv.response || '');
         
-        exportContent += `QUESTION ${index + 1}:\n${cleanQuestion}\n\n`;
-        exportContent += `AI RESPONSE ${index + 1}:\n${cleanResponse}\n\n`;
-        exportContent += `${'='.repeat(50)}\n\n`;
+        // Format question and response professionally without dividers
+        exportContent += `QUESTION ${index + 1}:\n`;
+        exportContent += `${cleanQuestion}\n\n`;
+        
+        exportContent += `ANALYSIS:\n`;
+        
+        // Format the response in clean paragraphs
+        const formattedResponse = cleanResponse
+          .split('\n\n')
+          .map(paragraph => paragraph.trim())
+          .filter(paragraph => paragraph.length > 0)
+          .join('\n\n');
+        
+        exportContent += `${formattedResponse}\n\n`;
+        
+        // Add subtle spacing between questions (not ugly dividers)
+        if (index < batchAiConversations.length - 1) {
+          exportContent += `\n`;
+        }
       });
       
       // Create and download file based on format
