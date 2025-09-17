@@ -2515,7 +2515,7 @@ const NotesScreen = () => {
       const url = URL.createObjectURL(response.data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Analysis_${aiChatNote.title.substring(0, 30)}.${format}`;
+      a.download = `AUTO-ME_Analysis_${aiChatNote.title.substring(0, 30)}.${format}`;
       document.body.appendChild(a); // Add to DOM for better browser compatibility
       a.click();
       document.body.removeChild(a); // Clean up
