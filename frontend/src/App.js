@@ -2680,7 +2680,7 @@ const NotesScreen = () => {
       
       toast({ 
         title: "Export Error", 
-        description: "Failed to export batch AI analysis. Please try again.", 
+        description: "Failed to export batch AUTO-ME analysis. Please try again.", 
         variant: "destructive" 
       });
     }
