@@ -2672,7 +2672,7 @@ const NotesScreen = () => {
       
       toast({ 
         title: "📄 Export successful", 
-        description: `Batch AI analysis exported as ${format.toUpperCase()}` 
+        description: `Batch AUTO-ME analysis exported as ${format.toUpperCase()}` 
       });
       
     } catch (error) {
