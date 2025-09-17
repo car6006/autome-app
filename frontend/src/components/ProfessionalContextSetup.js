@@ -128,7 +128,7 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
       
       toast({
         title: "🎯 Professional Context Updated!",
-        description: "Your AI assistant is now personalized for your role and industry."
+        description: "Your AUTO-ME assistant is now personalized for your role and industry."
       });
       
       // Force reload context to ensure it persists
