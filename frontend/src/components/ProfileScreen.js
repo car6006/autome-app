@@ -148,8 +148,13 @@ const ProfileScreen = () => {
       const validArchiveDays = Math.max(1, Math.min(365, parseInt(archiveDays) || 30));
       
       await axios.post(`${API}/admin/archive/configure`, 
-        { archive_days: validArchiveDays },
-        { headers: { 'Authorization': `Bearer ${token}` } }
+        validArchiveDays,  // Send just the integer, not an object
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
       
       toast({
