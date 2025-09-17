@@ -9394,6 +9394,13 @@ class BackendTester:
         self.test_openai_whisper_api_calls()
         self.test_end_to_end_transcription_pipeline()
         
+        # 🎯 ARCHIVE MANAGEMENT CONFIGURATION TESTS (NEW - CURRENT REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("🏛️ ARCHIVE MANAGEMENT CONFIGURATION TESTS - Integer Body Handling Fix")
+        print("=" * 60)
+        
+        self.test_archive_management_configuration()
+        
         # Summary
         return self.print_summary()
     
