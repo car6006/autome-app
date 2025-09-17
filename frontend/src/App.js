@@ -2096,7 +2096,7 @@ const NotesScreen = () => {
       setAiConversations(prev => [...prev, newConversation]);
       
       toast({ 
-        title: "🤖 AI Analysis Complete", 
+        title: "🤖 AUTO-ME Analysis Complete", 
         description: "Your question has been analyzed!" 
       });
       
