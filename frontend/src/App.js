@@ -4277,7 +4277,7 @@ const NotesScreen = () => {
                   {/* Export Section - Show if there are conversations */}
                   {batchAiConversations.length > 0 && (
                     <div className="mt-6 pt-4 border-t border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export Batch AI Analysis Report</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Export Batch AUTO-ME Analysis Report</h4>
                       
                       {/* Mobile: Stack vertically */}
                       <div className="sm:hidden space-y-2">
