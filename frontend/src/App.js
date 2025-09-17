@@ -2775,7 +2775,7 @@ const NotesScreen = () => {
                 }`}
               >
                 <Target className="w-4 h-4 mr-2" />
-                🎯 Personalize AI
+                🎯 Personalize AUTO-ME
               </Button>
               
               {/* Archive Toggle */}
