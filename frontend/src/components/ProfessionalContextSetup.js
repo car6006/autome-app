@@ -202,7 +202,7 @@ const ProfessionalContextSetup = ({ isOpen, onClose }) => {
               <span className="truncate">Professional Context Setup</span>
             </h2>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              Personalize your AI assistant for your role and industry
+              Personalize your AUTO-ME assistant for your role and industry
             </p>
           </div>
           <Button
