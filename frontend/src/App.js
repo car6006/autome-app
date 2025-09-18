@@ -5327,7 +5327,7 @@ function AppContent() {
         {/* Global Header with Burger Menu */}
         <GlobalHeader user={user} theme={theme} branding={branding} />
         
-        <div className="pb-20 pt-16"> {/* Bottom padding for navigation, top padding for header */}
+        <div className="pb-28 pt-16"> {/* Increased bottom padding for mobile navigation, top padding for header */}
           <Routes>
             <Route path="/" element={<CaptureScreen />} />
             <Route path="/capture" element={<CaptureScreen />} />
