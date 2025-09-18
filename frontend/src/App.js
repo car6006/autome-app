@@ -4919,14 +4919,14 @@ const Navigation = () => {
               onClick={() => setShowAuthModal(true)}
               className="flex flex-col items-center space-y-1 p-1 transform transition-all duration-200 hover:scale-105"
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 theme.isExpeditors 
                   ? 'bg-gradient-to-r from-red-500 to-red-600' 
                   : 'bg-gradient-to-r from-violet-500 to-pink-600'
               } shadow-lg`}>
-                <User className="w-6 h-6 text-white" />
+                <User className="w-5 h-5 text-white" />
               </div>
-              <span className={`text-sm font-medium ${theme.navItemClass}`}>Login</span>
+              <span className={`text-xs font-medium ${theme.navItemClass}`}>Login</span>
             </button>
           )}
           
