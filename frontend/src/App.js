@@ -4878,46 +4878,46 @@ const Navigation = () => {
              style={{ paddingBottom: 'env(safe-area-inset-bottom, 4px)' }}>
           
           {/* Scan - Left Side */}
-          <Link to="/scan" className="flex flex-col items-center space-y-2 p-2 transform transition-all duration-200 hover:scale-105">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+          <Link to="/scan" className="flex flex-col items-center space-y-1 p-1 transform transition-all duration-200 hover:scale-105">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
               theme.isExpeditors 
                 ? 'bg-gradient-to-r from-gray-800 to-gray-900' 
                 : 'bg-gradient-to-r from-green-500 to-blue-600'
             } shadow-lg`}>
-              <Camera className="w-6 h-6 text-white" />
+              <Camera className="w-5 h-5 text-white" />
             </div>
-            <span className={`text-sm font-medium ${theme.navItemClass}`}>Scan</span>
+            <span className={`text-xs font-medium ${theme.navItemClass}`}>Scan</span>
           </Link>
           
           {/* Record - Center Stage (Larger & Featured) */}
-          <Link to="/capture" className="flex flex-col items-center space-y-2 p-3 transform transition-all duration-200 hover:scale-105">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+          <Link to="/capture" className="flex flex-col items-center space-y-1 p-2 transform transition-all duration-200 hover:scale-105">
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
               theme.isExpeditors 
                 ? 'bg-gradient-to-r from-red-600 to-red-700' 
                 : 'bg-gradient-to-r from-blue-500 to-purple-600'
-            } shadow-xl ring-4 ring-white/20`}>
-              <Mic className="w-8 h-8 text-white" />
+            } shadow-xl ring-2 ring-white/20`}>
+              <Mic className="w-7 h-7 text-white" />
             </div>
-            <span className={`text-base font-bold ${theme.navItemClass}`}>Record</span>
+            <span className={`text-sm font-bold ${theme.navItemClass}`}>Record</span>
           </Link>
           
           {/* Notes - Right Side (Only for authenticated users) */}
           {isAuthenticated ? (
-            <Link to="/notes" className="flex flex-col items-center space-y-2 p-2 transform transition-all duration-200 hover:scale-105">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+            <Link to="/notes" className="flex flex-col items-center space-y-1 p-1 transform transition-all duration-200 hover:scale-105">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 theme.isExpeditors 
                   ? 'bg-gradient-to-r from-red-500 to-red-600' 
                   : 'bg-gradient-to-r from-purple-500 to-pink-600'
               } shadow-lg`}>
-                <FileText className="w-6 h-6 text-white" />
+                <FileText className="w-5 h-5 text-white" />
               </div>
-              <span className={`text-sm font-medium ${theme.navItemClass}`}>Notes</span>
+              <span className={`text-xs font-medium ${theme.navItemClass}`}>Notes</span>
             </Link>
           ) : (
             /* Login for non-authenticated users */
             <button 
               onClick={() => setShowAuthModal(true)}
-              className="flex flex-col items-center space-y-2 p-2 transform transition-all duration-200 hover:scale-105"
+              className="flex flex-col items-center space-y-1 p-1 transform transition-all duration-200 hover:scale-105"
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                 theme.isExpeditors 
