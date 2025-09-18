@@ -2743,8 +2743,8 @@ const NotesScreen = () => {
   }
 
   return (
-    <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
-      <div className="max-w-full mx-auto px-1 sm:px-2 sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
+    <div className={`min-h-screen p-2 sm:p-4 ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-gray-50 to-white'} overflow-y-auto`}>
+      <div className="max-w-full mx-auto px-1 sm:px-2 sm:max-w-2xl md:max-w-4xl lg:max-w-6xl pb-4">{/* Added pb-4 for extra mobile spacing */}
         
         {/* Expeditors Logo for notes page */}
         {branding.showLogo && (
