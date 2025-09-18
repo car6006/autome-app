@@ -4872,10 +4872,10 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Streamlined Bottom Navigation - Core Features Only */}
-      <div className={`fixed bottom-0 left-0 right-0 ${theme.navClass} px-4 py-3 pb-safe`}>
-        <div className="flex justify-center items-end max-w-sm mx-auto space-x-8"
-             style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
+      {/* Streamlined Bottom Navigation - Core Features Only - Compact Mobile Design */}
+      <div className={`fixed bottom-0 left-0 right-0 ${theme.navClass} px-3 py-2 pb-safe`}>
+        <div className="flex justify-center items-end max-w-sm mx-auto space-x-6"
+             style={{ paddingBottom: 'env(safe-area-inset-bottom, 4px)' }}>
           
           {/* Scan - Left Side */}
           <Link to="/scan" className="flex flex-col items-center space-y-2 p-2 transform transition-all duration-200 hover:scale-105">
