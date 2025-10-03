@@ -4525,12 +4525,12 @@ const MonthlyOverviewChart = ({ theme, metrics, monthlyData }) => {
     )
   }));
 
-  const maxNotes = Math.max(...monthlyData.map(d => d.notes));
+  const maxNotes = Math.max(...dataWithColors.map(d => d.notes), 1);
 
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between space-x-2" style={{ height: '200px' }}>
-        {monthlyData.map((month, index) => (
+        {dataWithColors.map((month, index) => (
           <div key={month.month} className="flex flex-col items-center space-y-2 flex-1">
             <div className="flex flex-col justify-end h-full">
               <div 
