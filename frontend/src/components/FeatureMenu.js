@@ -70,7 +70,7 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
     processing: {
       title: "AI Processing",
       description: "Advanced AI-powered content analysis and generation",
-      icon: Bot,
+      icon: Settings,
       gradient: "from-purple-500 to-pink-600",
       features: [
         {
