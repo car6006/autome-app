@@ -3718,9 +3718,9 @@ const NotesScreen = () => {
                   </Button>
                 </div>
                 
-                {/* Desktop Action Buttons - Clean Design */}
-                <div className="hidden sm:flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-                  <div className="flex gap-3">
+                {/* Desktop Action Buttons - Vertical Layout Design */}
+                <div className="hidden sm:flex justify-between items-start mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex flex-col gap-3">
                     {/* Download Options Dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -3750,6 +3750,25 @@ const NotesScreen = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     
+                    {/* Download Professional Button - Under dropdown */}
+                    <Button
+                      onClick={() => downloadReport(
+                        currentReport.data.report || currentReport.data.content,
+                        currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
+                          ? `${currentReport.data.title || 'Batch_Report'}.pdf`
+                          : `Report ${currentReport.noteId}`,
+                        currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
+                          ? currentReport.data.title
+                          : currentReport.data.note_title
+                      )}
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Professional
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-3">
                     {/* Ask AUTO-ME Button */}
                     <Button
                       onClick={() => {
@@ -3767,29 +3786,12 @@ const NotesScreen = () => {
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Ask AUTO-ME
                     </Button>
-                  </div>
-                  
-                  <div className="flex gap-3">
+                    
                     <Button
                       variant="outline"
                       onClick={() => setShowReportModal(false)}
                     >
                       Close
-                    </Button>
-                    <Button
-                      onClick={() => downloadReport(
-                        currentReport.data.report || currentReport.data.content,
-                        currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
-                          ? `${currentReport.data.title || 'Batch_Report'}.pdf`
-                          : `Report ${currentReport.noteId}`,
-                        currentReport.type === 'batch' || currentReport.type === 'comprehensive-batch'
-                          ? currentReport.data.title
-                          : currentReport.data.note_title
-                      )}
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Professional
                     </Button>
                   </div>
                 </div>
