@@ -37,7 +37,7 @@ import IISBAnalysisScreen from "./components/IISBAnalysisScreen";
 import HelpGuide from "./components/HelpGuide";
 import ProfessionalContextSetup from "./components/ProfessionalContextSetup";
 import LargeFileTranscriptionScreen from "./components/LargeFileTranscriptionScreen";
-import LiveTranscriptionRecorder from "./components/LiveTranscriptionRecorder";
+// LiveTranscriptionRecorder import removed
 import FeatureMenu from "./components/FeatureMenu";
 import YouTubeProcessor from "./components/YouTubeProcessor";
 import { getThemeClasses, getBrandingElements, isExpeditorsUser } from "./utils/themeUtils";
