@@ -4708,7 +4708,7 @@ const MetricsScreen = () => {
     );
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
         <Loader2 className={`w-8 h-8 animate-spin ${theme.isExpeditors ? 'text-red-600' : 'text-purple-600'}`} />
