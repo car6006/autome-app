@@ -4748,7 +4748,7 @@ const MetricsScreen = () => {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-800">{metrics?.notes_total || 0}</p>
+                  <p className="text-2xl font-bold text-gray-800">{metrics?.total_notes || 0}</p>
                   <p className="text-sm text-gray-600">Total Notes</p>
                 </div>
               </div>
