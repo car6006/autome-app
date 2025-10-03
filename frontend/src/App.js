@@ -4451,12 +4451,13 @@ const NotesScreen = () => {
 };
 
 // Weekly Usage Chart Component
-const WeeklyUsageChart = ({ theme, metrics }) => {
-  const weeklyData = [
-    { week: 'Week 1', notes: 12, minutes: 180 },
-    { week: 'Week 2', notes: 18, minutes: 245 },
-    { week: 'Week 3', notes: 8, minutes: 120 },
-    { week: 'Week 4', notes: 22, minutes: 310 }
+const WeeklyUsageChart = ({ theme, metrics, weeklyData }) => {
+  // Use provided weeklyData or fallback to sample data
+  const data = weeklyData || [
+    { week: 'Week 1', notes: 0, minutes: 0 },
+    { week: 'Week 2', notes: 0, minutes: 0 },
+    { week: 'Week 3', notes: 0, minutes: 0 },
+    { week: 'Week 4', notes: 0, minutes: 0 }
   ];
 
   return (
