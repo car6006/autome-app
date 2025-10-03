@@ -3996,7 +3996,7 @@ app.include_router(api_router)
 app.include_router(upload_router, prefix="/api")  # New resumable upload API
 app.include_router(transcription_router, prefix="/api")  # New transcription job API
 app.include_router(webhook_router, prefix="/api")  # Phase 4: Webhook management API
-app.include_router(streaming_router)  # Live Transcription Streaming API
+# Live transcription streaming API removed
 
 app.add_middleware(
     CORSMiddleware,
