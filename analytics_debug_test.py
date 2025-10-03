@@ -25,7 +25,7 @@ class AnalyticsDebugger:
             # Generate unique email and username for this test
             unique_id = uuid.uuid4().hex[:8]
             unique_email = f"analytics_debug_{unique_id}@example.com"
-            unique_username = f"analytics_debug{unique_id}"
+            unique_username = f"analyticsuser{unique_id}"
             
             user_data = {
                 "email": unique_email,
