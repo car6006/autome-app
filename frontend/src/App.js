@@ -4450,6 +4450,149 @@ const NotesScreen = () => {
   );
 };
 
+// Weekly Usage Chart Component
+const WeeklyUsageChart = ({ theme, metrics }) => {
+  const weeklyData = [
+    { week: 'Week 1', notes: 12, minutes: 180 },
+    { week: 'Week 2', notes: 18, minutes: 245 },
+    { week: 'Week 3', notes: 8, minutes: 120 },
+    { week: 'Week 4', notes: 22, minutes: 310 }
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+        <span>Notes Created</span>
+        <span>Time Saved (min)</span>
+      </div>
+      {weeklyData.map((week, index) => (
+        <div key={week.week} className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">{week.week}</span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">{week.notes} notes</span>
+              <span className="text-sm text-gray-600">{week.minutes} min</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <div className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-red-100' : 'bg-blue-100'}`}>
+                <div 
+                  className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600'} transition-all duration-500`}
+                  style={{ width: `${(week.notes / 25) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-gray-100' : 'bg-green-100'}`}>
+                <div 
+                  className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-gray-600' : 'bg-green-600'} transition-all duration-500`}
+                  style={{ width: `${(week.minutes / 350) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Monthly Overview Chart Component
+const MonthlyOverviewChart = ({ theme, metrics }) => {
+  const monthlyData = [
+    { month: 'Jan', notes: 45, color: theme.isExpeditors ? 'bg-red-400' : 'bg-blue-400' },
+    { month: 'Feb', notes: 62, color: theme.isExpeditors ? 'bg-red-500' : 'bg-blue-500' },
+    { month: 'Mar', notes: 38, color: theme.isExpeditors ? 'bg-red-300' : 'bg-blue-300' },
+    { month: 'Apr', notes: 71, color: theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600' },
+    { month: 'May', notes: 58, color: theme.isExpeditors ? 'bg-red-500' : 'bg-blue-500' },
+    { month: 'Jun', notes: 84, color: theme.isExpeditors ? 'bg-red-700' : 'bg-blue-700' }
+  ];
+
+  const maxNotes = Math.max(...monthlyData.map(d => d.notes));
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-end justify-between space-x-2" style={{ height: '200px' }}>
+        {monthlyData.map((month, index) => (
+          <div key={month.month} className="flex flex-col items-center space-y-2 flex-1">
+            <div className="flex flex-col justify-end h-full">
+              <div 
+                className={`${month.color} rounded-t transition-all duration-700 delay-${index * 100}`}
+                style={{ 
+                  height: `${(month.notes / maxNotes) * 160}px`,
+                  minHeight: '20px'
+                }}
+              ></div>
+            </div>
+            <span className="text-xs font-medium text-gray-600">{month.month}</span>
+            <span className="text-xs text-gray-500">{month.notes}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Activity Heatmap Component
+const ActivityHeatmap = ({ theme, metrics }) => {
+  const hours = ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  const activityData = {
+    'Mon': [2, 8, 12, 15, 10, 3],
+    'Tue': [1, 6, 14, 18, 8, 2],
+    'Wed': [3, 9, 16, 12, 11, 4],
+    'Thu': [2, 7, 13, 20, 9, 1],
+    'Fri': [4, 11, 15, 14, 7, 2],
+    'Sat': [1, 3, 8, 6, 5, 3],
+    'Sun': [0, 2, 5, 4, 6, 8]
+  };
+
+  const getIntensity = (value) => {
+    if (value === 0) return theme.isExpeditors ? 'bg-gray-100' : 'bg-gray-100';
+    if (value <= 5) return theme.isExpeditors ? 'bg-red-200' : 'bg-blue-200';
+    if (value <= 10) return theme.isExpeditors ? 'bg-red-400' : 'bg-blue-400';
+    if (value <= 15) return theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600';
+    return theme.isExpeditors ? 'bg-red-800' : 'bg-blue-800';
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-7 gap-1 text-xs text-center text-gray-600">
+        {days.map(day => (
+          <span key={day}>{day}</span>
+        ))}
+      </div>
+      {hours.map((hour, hourIndex) => (
+        <div key={hour} className="flex items-center gap-1">
+          <span className="text-xs text-gray-600 w-10">{hour}</span>
+          <div className="grid grid-cols-7 gap-1 flex-1">
+            {days.map(day => (
+              <div 
+                key={`${day}-${hour}`}
+                className={`h-6 rounded ${getIntensity(activityData[day][hourIndex])} transition-colors duration-300`}
+                title={`${day} ${hour}: ${activityData[day][hourIndex]} notes`}
+              ></div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="flex items-center justify-center gap-2 text-xs text-gray-600 mt-4">
+        <span>Less</span>
+        <div className="flex gap-1">
+          <div className="w-3 h-3 bg-gray-100 rounded"></div>
+          <div className={`w-3 h-3 rounded ${theme.isExpeditors ? 'bg-red-200' : 'bg-blue-200'}`}></div>
+          <div className={`w-3 h-3 rounded ${theme.isExpeditors ? 'bg-red-400' : 'bg-blue-400'}`}></div>
+          <div className={`w-3 h-3 rounded ${theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600'}`}></div>
+          <div className={`w-3 h-3 rounded ${theme.isExpeditors ? 'bg-red-800' : 'bg-blue-800'}`}></div>
+        </div>
+        <span>More</span>
+      </div>
+    </div>
+  );
+};
+
 const MetricsScreen = () => {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
