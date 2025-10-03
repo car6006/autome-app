@@ -9206,6 +9206,206 @@ class BackendTester:
         except Exception as e:
             self.log_result("Archive Management Configuration", False, f"Archive configuration test error: {str(e)}")
 
+    def test_analytics_weekly_usage(self):
+        """Test weekly usage analytics endpoint"""
+        if not self.auth_token:
+            self.log_result("Analytics Weekly Usage", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            response = self.session.get(f"{BACKEND_URL}/analytics/weekly-usage", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and "data" in data:
+                    weekly_data = data["data"]
+                    if isinstance(weekly_data, list) and len(weekly_data) > 0:
+                        # Check data structure
+                        first_week = weekly_data[0]
+                        required_fields = ["week", "notes", "minutes"]
+                        has_required_fields = all(field in first_week for field in required_fields)
+                        
+                        if has_required_fields:
+                            self.log_result("Analytics Weekly Usage", True, 
+                                          f"Weekly analytics data retrieved successfully: {len(weekly_data)} weeks", 
+                                          {"weeks_count": len(weekly_data), "sample_data": first_week})
+                        else:
+                            self.log_result("Analytics Weekly Usage", False, 
+                                          f"Missing required fields in weekly data: {first_week}")
+                    else:
+                        self.log_result("Analytics Weekly Usage", True, 
+                                      "Weekly analytics endpoint working (no data yet for new user)")
+                else:
+                    self.log_result("Analytics Weekly Usage", False, "Invalid response structure", data)
+            elif response.status_code == 401:
+                self.log_result("Analytics Weekly Usage", True, "Correctly requires authentication")
+            else:
+                self.log_result("Analytics Weekly Usage", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Analytics Weekly Usage", False, f"Weekly analytics test error: {str(e)}")
+
+    def test_analytics_monthly_overview(self):
+        """Test monthly overview analytics endpoint"""
+        if not self.auth_token:
+            self.log_result("Analytics Monthly Overview", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            response = self.session.get(f"{BACKEND_URL}/analytics/monthly-overview", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and "data" in data:
+                    monthly_data = data["data"]
+                    if isinstance(monthly_data, list) and len(monthly_data) > 0:
+                        # Check data structure
+                        first_month = monthly_data[0]
+                        required_fields = ["month", "notes"]
+                        has_required_fields = all(field in first_month for field in required_fields)
+                        
+                        if has_required_fields:
+                            self.log_result("Analytics Monthly Overview", True, 
+                                          f"Monthly analytics data retrieved successfully: {len(monthly_data)} months", 
+                                          {"months_count": len(monthly_data), "sample_data": first_month})
+                        else:
+                            self.log_result("Analytics Monthly Overview", False, 
+                                          f"Missing required fields in monthly data: {first_month}")
+                    else:
+                        self.log_result("Analytics Monthly Overview", True, 
+                                      "Monthly analytics endpoint working (no data yet for new user)")
+                else:
+                    self.log_result("Analytics Monthly Overview", False, "Invalid response structure", data)
+            elif response.status_code == 401:
+                self.log_result("Analytics Monthly Overview", True, "Correctly requires authentication")
+            else:
+                self.log_result("Analytics Monthly Overview", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Analytics Monthly Overview", False, f"Monthly analytics test error: {str(e)}")
+
+    def test_analytics_daily_activity(self):
+        """Test daily activity heatmap analytics endpoint"""
+        if not self.auth_token:
+            self.log_result("Analytics Daily Activity", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            response = self.session.get(f"{BACKEND_URL}/analytics/daily-activity", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and "data" in data:
+                    heatmap_data = data["data"]
+                    required_fields = ["activity_data", "hours", "days"]
+                    has_required_fields = all(field in heatmap_data for field in required_fields)
+                    
+                    if has_required_fields:
+                        activity_data = heatmap_data["activity_data"]
+                        hours = heatmap_data["hours"]
+                        days = heatmap_data["days"]
+                        
+                        # Validate structure
+                        if isinstance(activity_data, dict) and isinstance(hours, list) and isinstance(days, list):
+                            self.log_result("Analytics Daily Activity", True, 
+                                          f"Daily activity heatmap data retrieved successfully", 
+                                          {"days_count": len(days), "hours_count": len(hours), 
+                                           "has_activity_data": len(activity_data) > 0})
+                        else:
+                            self.log_result("Analytics Daily Activity", False, 
+                                          "Invalid heatmap data structure", heatmap_data)
+                    else:
+                        self.log_result("Analytics Daily Activity", False, 
+                                      f"Missing required fields in heatmap data: {list(heatmap_data.keys())}")
+                else:
+                    self.log_result("Analytics Daily Activity", False, "Invalid response structure", data)
+            elif response.status_code == 401:
+                self.log_result("Analytics Daily Activity", True, "Correctly requires authentication")
+            else:
+                self.log_result("Analytics Daily Activity", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Analytics Daily Activity", False, f"Daily activity analytics test error: {str(e)}")
+
+    def test_analytics_performance_insights(self):
+        """Test performance insights analytics endpoint"""
+        if not self.auth_token:
+            self.log_result("Analytics Performance Insights", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            response = self.session.get(f"{BACKEND_URL}/analytics/performance-insights", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and "data" in data:
+                    insights_data = data["data"]
+                    required_fields = ["weekly_average", "peak_day", "streak", "success_rate", 
+                                     "total_notes", "estimated_minutes_saved"]
+                    has_required_fields = all(field in insights_data for field in required_fields)
+                    
+                    if has_required_fields:
+                        self.log_result("Analytics Performance Insights", True, 
+                                      f"Performance insights retrieved successfully", 
+                                      {"weekly_average": insights_data.get("weekly_average"),
+                                       "peak_day": insights_data.get("peak_day"),
+                                       "success_rate": insights_data.get("success_rate"),
+                                       "total_notes": insights_data.get("total_notes")})
+                    else:
+                        missing_fields = [field for field in required_fields if field not in insights_data]
+                        self.log_result("Analytics Performance Insights", False, 
+                                      f"Missing required fields: {missing_fields}", insights_data)
+                else:
+                    self.log_result("Analytics Performance Insights", False, "Invalid response structure", data)
+            elif response.status_code == 401:
+                self.log_result("Analytics Performance Insights", True, "Correctly requires authentication")
+            else:
+                self.log_result("Analytics Performance Insights", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_result("Analytics Performance Insights", False, f"Performance insights test error: {str(e)}")
+
+    def test_analytics_authentication_required(self):
+        """Test that analytics endpoints require authentication"""
+        try:
+            # Temporarily remove auth header
+            original_headers = self.session.headers.copy()
+            if "Authorization" in self.session.headers:
+                del self.session.headers["Authorization"]
+            
+            endpoints_to_test = [
+                "/analytics/weekly-usage",
+                "/analytics/monthly-overview", 
+                "/analytics/daily-activity",
+                "/analytics/performance-insights"
+            ]
+            
+            all_protected = True
+            results = []
+            
+            for endpoint in endpoints_to_test:
+                response = self.session.get(f"{BACKEND_URL}{endpoint}", timeout=10)
+                if response.status_code in [401, 403]:
+                    results.append(f"✅ {endpoint}: Protected")
+                else:
+                    results.append(f"❌ {endpoint}: Not protected (HTTP {response.status_code})")
+                    all_protected = False
+            
+            # Restore headers
+            self.session.headers.update(original_headers)
+            
+            if all_protected:
+                self.log_result("Analytics Authentication Required", True, 
+                              "All analytics endpoints correctly require authentication", 
+                              {"results": results})
+            else:
+                self.log_result("Analytics Authentication Required", False, 
+                              "Some analytics endpoints don't require authentication", 
+                              {"results": results})
+                
+        except Exception as e:
+            self.log_result("Analytics Authentication Required", False, f"Analytics auth test error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Testing Suite")
