@@ -272,6 +272,10 @@ class AnalyticsService:
             for note in recent_notes:
                 created_at = note.get("created_at")
                 if created_at:
+                    # Handle timezone-naive datetime objects from MongoDB
+                    if created_at.tzinfo is None:
+                        created_at = created_at.replace(tzinfo=timezone.utc)
+                    
                     day_name = created_at.strftime("%A")
                     day_counts[day_name] = day_counts.get(day_name, 0) + 1
             
