@@ -356,6 +356,12 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
               const Icon = feature.icon;
               const colorClasses = getColorClasses(feature.color);
               
+              // Debug: Check if Icon is undefined
+              if (!Icon) {
+                console.error(`Icon is undefined for feature: ${feature.title}`, feature);
+                return null; // Skip rendering this card
+              }
+              
               return (
                 <Card
                   key={feature.id}
