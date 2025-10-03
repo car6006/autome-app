@@ -3990,14 +3990,6 @@ async def get_metrics(
         "metrics_auto_tracked": True  # Indicates metrics are automatically updated
     }
 
-# YouTube Processing Models
-class YouTubeInfoRequest(BaseModel):
-    url: str
-
-class YouTubeProcessRequest(BaseModel):
-    url: str
-    title: Optional[str] = None
-
 # YouTube Processing endpoints removed
 
 # Include the router in the main app
