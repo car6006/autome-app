@@ -4612,6 +4612,9 @@ const ActivityHeatmap = ({ theme, metrics, heatmapData }) => {
 
 const MetricsScreen = () => {
   const [metrics, setMetrics] = useState(null);
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [heatmapData, setHeatmapData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
   const theme = getThemeClasses(user);
@@ -4620,20 +4623,17 @@ const MetricsScreen = () => {
   useEffect(() => {
     // Only fetch metrics if user is authenticated
     if (isAuthenticated) {
-      fetchMetrics();
-      const interval = setInterval(fetchMetrics, 30000); // Update every 30 seconds
+      fetchAllAnalytics();
+      const interval = setInterval(fetchAllAnalytics, 300000); // Update every 5 minutes
       return () => clearInterval(interval);
     } else {
       setLoading(false);
     }
   }, [isAuthenticated]);
 
-  const fetchMetrics = async () => {
+  const fetchAllAnalytics = async () => {
     try {
-      console.log('🔍 Fetching metrics from:', `${API}/metrics?days=7`);
-      console.log('🔑 Current auth headers:', axios.defaults.headers.common['Authorization'] ? 'SET' : 'NOT SET');
-      console.log('👤 User authenticated:', isAuthenticated);
-      console.log('👤 User info:', user?.id);
+      console.log('🔍 Fetching analytics data...');
       
       // Ensure we have auth token before making request
       const token = localStorage.getItem('auto_me_token');
@@ -4642,16 +4642,33 @@ const MetricsScreen = () => {
         return;
       }
       
-      // Make request with explicit auth header (in case axios defaults aren't working)
-      const response = await axios.get(`${API}/metrics?days=7`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      console.log('📊 Metrics response:', response.data);
-      setMetrics(response.data);
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      // Fetch all analytics data in parallel
+      const [
+        performanceResponse,
+        weeklyResponse, 
+        monthlyResponse,
+        heatmapResponse
+      ] = await Promise.all([
+        axios.get(`${API}/analytics/performance-insights`, { headers }),
+        axios.get(`${API}/analytics/weekly-usage?weeks=4`, { headers }),
+        axios.get(`${API}/analytics/monthly-overview?months=6`, { headers }),
+        axios.get(`${API}/analytics/daily-activity?days=30`, { headers })
+      ]);
+      
+      console.log('📊 Performance insights:', performanceResponse.data);
+      console.log('📊 Weekly data:', weeklyResponse.data);
+      console.log('📊 Monthly data:', monthlyResponse.data);
+      console.log('📊 Heatmap data:', heatmapResponse.data);
+      
+      setMetrics(performanceResponse.data.data);
+      setWeeklyData(weeklyResponse.data.data);
+      setMonthlyData(monthlyResponse.data.data);
+      setHeatmapData(heatmapResponse.data.data);
+      
     } catch (error) {
-      console.error('❌ Metrics fetching error:', error.response?.status, error.response?.data);
+      console.error('❌ Analytics fetching error:', error.response?.status, error.response?.data);
       console.error('Full error:', error);
       
       // If 401/403, user is not authenticated - redirect to login
