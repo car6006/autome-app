@@ -77,7 +77,7 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
           id: 'auto-summaries',
           title: 'Auto Summaries',
           description: 'Generate intelligent summaries and key points',
-          icon: FileBarChart,
+          icon: FileText,
           isNew: true,
           isPremium: false,
           color: 'purple'
