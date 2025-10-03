@@ -22,7 +22,6 @@ import {
   BookOpen,
   FileBarChart,
   Languages,
-  Headphones,
   Clock,
   TrendingUp,
   CheckCircle,
