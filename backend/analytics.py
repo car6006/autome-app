@@ -263,8 +263,13 @@ class AnalyticsService:
             recent_notes = []
             for note in all_notes:
                 note_created_at = note.get("created_at")
-                if note_created_at and note_created_at >= recent_date:
-                    recent_notes.append(note)
+                if note_created_at:
+                    # Handle timezone-naive datetime objects from MongoDB
+                    if note_created_at.tzinfo is None:
+                        note_created_at = note_created_at.replace(tzinfo=timezone.utc)
+                    
+                    if note_created_at >= recent_date:
+                        recent_notes.append(note)
             weekly_average = len(recent_notes) // 8 if recent_notes else 0
             
             # Find most active day
