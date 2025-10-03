@@ -4939,7 +4939,7 @@ const MetricsScreen = () => {
 };
 
 const Navigation = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const theme = getThemeClasses(user);
   const branding = getBrandingElements(user);
