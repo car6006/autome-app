@@ -68,24 +68,7 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
           isPremium: false,
           color: 'orange'
         },
-        {
-          id: 'youtube-processing',
-          title: 'YouTube Processing',
-          description: 'Extract audio from YouTube videos for transcription',
-          icon: Youtube,
-          isNew: true,
-          isPremium: false,
-          color: 'red'
-        },
-        {
-          id: 'live-transcription',
-          title: 'Live Transcription',
-          description: 'Real-time transcription in 5-second chunks',
-          icon: Headphones,
-          isNew: false,
-          isPremium: false,
-          color: 'purple'
-        }
+        {/* YouTube Processing and Live Transcription features removed */}
       ]
     },
     processing: {
