@@ -4616,7 +4616,7 @@ const MetricsScreen = () => {
   const [monthlyData, setMonthlyData] = useState([]);
   const [heatmapData, setHeatmapData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const theme = getThemeClasses(user);
   const branding = getBrandingElements(user);
 
