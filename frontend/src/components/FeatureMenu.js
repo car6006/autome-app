@@ -287,6 +287,16 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
   };
 
   const currentCategory = featureCategories[selectedCategory];
+  
+  // Debug: Check if currentCategory or its icon is undefined
+  if (!currentCategory) {
+    console.error(`Category not found: ${selectedCategory}`);
+    return <div>Error: Category not found</div>;
+  }
+  
+  if (!currentCategory.icon) {
+    console.error(`Category icon is undefined for: ${selectedCategory}`, currentCategory);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
