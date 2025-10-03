@@ -39,7 +39,7 @@ import ProfessionalContextSetup from "./components/ProfessionalContextSetup";
 import LargeFileTranscriptionScreen from "./components/LargeFileTranscriptionScreen";
 // LiveTranscriptionRecorder import removed
 import FeatureMenu from "./components/FeatureMenu";
-import YouTubeProcessor from "./components/YouTubeProcessor";
+// YouTubeProcessor import removed
 import { getThemeClasses, getBrandingElements, isExpeditorsUser } from "./utils/themeUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
