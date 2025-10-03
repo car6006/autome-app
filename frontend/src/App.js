@@ -4505,15 +4505,25 @@ const WeeklyUsageChart = ({ theme, metrics, weeklyData }) => {
 };
 
 // Monthly Overview Chart Component
-const MonthlyOverviewChart = ({ theme, metrics }) => {
-  const monthlyData = [
-    { month: 'Jan', notes: 45, color: theme.isExpeditors ? 'bg-red-400' : 'bg-blue-400' },
-    { month: 'Feb', notes: 62, color: theme.isExpeditors ? 'bg-red-500' : 'bg-blue-500' },
-    { month: 'Mar', notes: 38, color: theme.isExpeditors ? 'bg-red-300' : 'bg-blue-300' },
-    { month: 'Apr', notes: 71, color: theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600' },
-    { month: 'May', notes: 58, color: theme.isExpeditors ? 'bg-red-500' : 'bg-blue-500' },
-    { month: 'Jun', notes: 84, color: theme.isExpeditors ? 'bg-red-700' : 'bg-blue-700' }
+const MonthlyOverviewChart = ({ theme, metrics, monthlyData }) => {
+  // Use provided monthlyData or fallback to sample data
+  const data = monthlyData || [
+    { month: 'Jan', notes: 0, color: theme.isExpeditors ? 'bg-red-400' : 'bg-blue-400' },
+    { month: 'Feb', notes: 0, color: theme.isExpeditors ? 'bg-red-500' : 'bg-blue-500' },
+    { month: 'Mar', notes: 0, color: theme.isExpeditors ? 'bg-red-300' : 'bg-blue-300' },
+    { month: 'Apr', notes: 0, color: theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600' },
+    { month: 'May', notes: 0, color: theme.isExpeditors ? 'bg-red-500' : 'bg-blue-500' },
+    { month: 'Jun', notes: 0, color: theme.isExpeditors ? 'bg-red-700' : 'bg-blue-700' }
   ];
+  
+  // Add colors to API data if not present
+  const dataWithColors = data.map((item, index) => ({
+    ...item,
+    color: item.color || (theme.isExpeditors ? 
+      ['bg-red-400', 'bg-red-500', 'bg-red-300', 'bg-red-600', 'bg-red-500', 'bg-red-700'][index % 6] :
+      ['bg-blue-400', 'bg-blue-500', 'bg-blue-300', 'bg-blue-600', 'bg-blue-500', 'bg-blue-700'][index % 6]
+    )
+  }));
 
   const maxNotes = Math.max(...monthlyData.map(d => d.notes));
 
