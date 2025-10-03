@@ -3987,6 +3987,174 @@ async def get_metrics(
         "metrics_auto_tracked": True  # Indicates metrics are automatically updated
     }
 
+@api_router.get("/analytics/weekly")
+async def get_weekly_analytics(current_user: dict = Depends(get_current_user)):
+    """Get weekly usage analytics based on actual user data"""
+    try:
+        from datetime import datetime, timedelta
+        user_id = current_user["id"]
+        
+        # Get notes from the last 4 weeks
+        four_weeks_ago = datetime.utcnow() - timedelta(weeks=4)
+        notes = await db["notes"].find({
+            "user_id": user_id,
+            "created_at": {"$gte": four_weeks_ago.isoformat()}
+        }).to_list(length=None)
+        
+        # Group notes by week
+        weekly_data = []
+        for week_offset in range(4):
+            week_start = datetime.utcnow() - timedelta(weeks=4-week_offset)
+            week_end = week_start + timedelta(weeks=1)
+            
+            week_notes = [n for n in notes 
+                         if week_start.isoformat() <= n.get("created_at", "") < week_end.isoformat()]
+            
+            notes_count = len(week_notes)
+            audio_count = len([n for n in week_notes if n.get("kind") == "audio"])
+            minutes_saved = (audio_count * 10) + ((notes_count - audio_count) * 5)
+            
+            weekly_data.append({
+                "week": f"Week {week_offset + 1}",
+                "notes": notes_count,
+                "minutes": minutes_saved,
+                "week_start": week_start.isoformat(),
+                "week_end": week_end.isoformat()
+            })
+        
+        return {"weekly_data": weekly_data}
+        
+    except Exception as e:
+        logger.error(f"Error fetching weekly analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch weekly analytics: {str(e)}")
+
+@api_router.get("/analytics/monthly")
+async def get_monthly_analytics(current_user: dict = Depends(get_current_user)):
+    """Get monthly usage analytics based on actual user data"""
+    try:
+        from datetime import datetime, timedelta
+        import calendar
+        user_id = current_user["id"]
+        
+        # Get notes from the last 6 months
+        six_months_ago = datetime.utcnow() - timedelta(days=180)
+        notes = await db["notes"].find({
+            "user_id": user_id,
+            "created_at": {"$gte": six_months_ago.isoformat()}
+        }).to_list(length=None)
+        
+        # Group notes by month
+        monthly_data = []
+        current_date = datetime.utcnow()
+        
+        for month_offset in range(6):
+            if current_date.month - month_offset <= 0:
+                target_year = current_date.year - 1
+                target_month = 12 + (current_date.month - month_offset)
+            else:
+                target_year = current_date.year
+                target_month = current_date.month - month_offset
+            
+            month_start = datetime(target_year, target_month, 1)
+            if target_month == 12:
+                month_end = datetime(target_year + 1, 1, 1)
+            else:
+                month_end = datetime(target_year, target_month + 1, 1)
+            
+            month_notes = [n for n in notes 
+                          if month_start.isoformat() <= n.get("created_at", "") < month_end.isoformat()]
+            
+            monthly_data.append({
+                "month": calendar.month_abbr[target_month],
+                "notes": len(month_notes),
+                "year": target_year,
+                "month_number": target_month
+            })
+        
+        # Reverse to show chronological order
+        monthly_data.reverse()
+        
+        return {"monthly_data": monthly_data}
+        
+    except Exception as e:
+        logger.error(f"Error fetching monthly analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch monthly analytics: {str(e)}")
+
+@api_router.get("/analytics/activity")
+async def get_activity_analytics(current_user: dict = Depends(get_current_user)):
+    """Get daily activity heatmap data based on actual user usage"""
+    try:
+        from datetime import datetime, timedelta
+        user_id = current_user["id"]
+        
+        # Get notes from the last 4 weeks for activity pattern analysis
+        four_weeks_ago = datetime.utcnow() - timedelta(weeks=4)
+        notes = await db["notes"].find({
+            "user_id": user_id,
+            "created_at": {"$gte": four_weeks_ago.isoformat()}
+        }).to_list(length=None)
+        
+        # Initialize activity data structure
+        activity_data = {
+            'Mon': [0, 0, 0, 0, 0, 0],
+            'Tue': [0, 0, 0, 0, 0, 0],
+            'Wed': [0, 0, 0, 0, 0, 0],
+            'Thu': [0, 0, 0, 0, 0, 0],
+            'Fri': [0, 0, 0, 0, 0, 0],
+            'Sat': [0, 0, 0, 0, 0, 0],
+            'Sun': [0, 0, 0, 0, 0, 0]
+        }
+        
+        # Map hour ranges to indices
+        hour_ranges = [(6, 9), (9, 12), (12, 15), (15, 18), (18, 21), (21, 24)]
+        day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        
+        # Process each note
+        for note in notes:
+            try:
+                created_at = datetime.fromisoformat(note.get("created_at", ""))
+                day_of_week = day_names[created_at.weekday()]
+                hour = created_at.hour
+                
+                # Find which time range this hour falls into
+                for time_index, (start_hour, end_hour) in enumerate(hour_ranges):
+                    if start_hour <= hour < end_hour:
+                        activity_data[day_of_week][time_index] += 1
+                        break
+            except (ValueError, KeyError, IndexError):
+                continue  # Skip invalid dates
+        
+        # Calculate some additional insights
+        total_notes = len(notes)
+        if total_notes > 0:
+            # Find most active day
+            day_totals = {day: sum(hours) for day, hours in activity_data.items()}
+            peak_day = max(day_totals, key=day_totals.get)
+            
+            # Calculate weekly average
+            weeks_of_data = min(4, max(1, len(notes) // 7)) if notes else 1
+            weekly_average = round(total_notes / weeks_of_data, 1)
+            
+            # Calculate streak (simplified - consecutive days with activity)
+            streak = min(7, len([day for day, total in day_totals.items() if total > 0]))
+        else:
+            peak_day = "Monday"
+            weekly_average = 0
+            streak = 0
+        
+        return {
+            "activity_data": activity_data,
+            "insights": {
+                "peak_day": peak_day,
+                "weekly_average": weekly_average,
+                "streak": streak
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching activity analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch activity analytics: {str(e)}")
+
 # YouTube Processing endpoints removed
 
 # Include the router in the main app
