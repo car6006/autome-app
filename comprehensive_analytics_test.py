@@ -239,6 +239,11 @@ class ComprehensiveAnalyticsTester:
                 insights_data = data["data"]
                 required_fields = ["weekly_average", "peak_day", "streak", "success_rate", 
                                  "total_notes", "estimated_minutes_saved"]
+                
+                # Debug: print what we actually have
+                print(f"DEBUG: insights_data keys: {list(insights_data.keys())}")
+                print(f"DEBUG: required_fields: {required_fields}")
+                
                 missing_fields = [field for field in required_fields if field not in insights_data]
                 
                 if missing_fields:
