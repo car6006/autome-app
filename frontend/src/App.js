@@ -4896,7 +4896,7 @@ const MetricsScreen = () => {
                 <p className="text-sm text-gray-600">Most productive hours</p>
               </CardHeader>
               <CardContent>
-                <ActivityHeatmap theme={theme} metrics={metrics} />
+                <ActivityHeatmap theme={theme} metrics={metrics} heatmapData={heatmapData} />
               </CardContent>
             </Card>
           </div>
