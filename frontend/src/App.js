@@ -4883,7 +4883,7 @@ const MetricsScreen = () => {
                 <p className="text-sm text-gray-600">Notes created per month</p>
               </CardHeader>
               <CardContent>
-                <MonthlyOverviewChart theme={theme} metrics={metrics} />
+                <MonthlyOverviewChart theme={theme} metrics={metrics} monthlyData={monthlyData} />
               </CardContent>
             </Card>
 
