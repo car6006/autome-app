@@ -9453,6 +9453,13 @@ class BackendTester:
         self.test_analytics_performance_insights()
         self.test_analytics_authentication_required()
         
+        # 🔍 ANALYTICS DEBUGGING TESTS (PRIORITY - USER ISSUE)
+        print("\n" + "🔍" * 60)
+        print("🔍 ANALYTICS DEBUGGING TESTS - User has 6 notes but analytics shows 0 stats")
+        print("🔍" * 60)
+        self.test_analytics_data_debugging()
+        self.test_database_direct_query_debugging()
+        
         # 🎯 TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS (NEW - REVIEW REQUEST FOCUS)
         print("\n" + "=" * 60)
         print("✏️ TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS - PUT /api/notes/{note_id} Endpoint")
