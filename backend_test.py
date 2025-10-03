@@ -9406,6 +9406,250 @@ class BackendTester:
         except Exception as e:
             self.log_result("Analytics Authentication Required", False, f"Analytics auth test error: {str(e)}")
 
+    def test_analytics_data_debugging(self):
+        """Debug analytics data issue where user has 6 notes but analytics shows 0 stats"""
+        if not self.auth_token:
+            self.log_result("Analytics Data Debugging", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            print("\n🔍 ANALYTICS DEBUGGING - Starting comprehensive investigation...")
+            
+            # Step 1: Create multiple test notes to simulate the user with 6 notes
+            created_notes = []
+            for i in range(6):
+                note_data = {
+                    "title": f"Analytics Test Note {i+1} - {datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                    "kind": "text",
+                    "text_content": f"This is analytics test note number {i+1}. Created for debugging analytics data issue."
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/notes",
+                    json=note_data,
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    created_notes.append(result.get("id"))
+                    print(f"✅ Created test note {i+1}: {result.get('id')}")
+                else:
+                    print(f"❌ Failed to create test note {i+1}: HTTP {response.status_code}")
+            
+            print(f"📝 Created {len(created_notes)} test notes for analytics debugging")
+            
+            # Step 2: Verify notes exist in database by listing them
+            response = self.session.get(f"{BACKEND_URL}/notes", timeout=10)
+            if response.status_code == 200:
+                notes_list = response.json()
+                print(f"📊 User has {len(notes_list)} total notes in database")
+                
+                # Check note details
+                for note in notes_list[:3]:  # Show first 3 notes
+                    print(f"   Note ID: {note.get('id')}, Status: {note.get('status')}, Created: {note.get('created_at')}")
+            else:
+                print(f"❌ Failed to list notes: HTTP {response.status_code}")
+            
+            # Step 3: Test all analytics endpoints
+            analytics_endpoints = [
+                ("/analytics/weekly-usage", "Weekly Usage"),
+                ("/analytics/monthly-overview", "Monthly Overview"), 
+                ("/analytics/daily-activity", "Daily Activity"),
+                ("/analytics/performance-insights", "Performance Insights")
+            ]
+            
+            analytics_results = {}
+            
+            for endpoint, name in analytics_endpoints:
+                print(f"\n🔍 Testing {name} endpoint: {endpoint}")
+                
+                response = self.session.get(f"{BACKEND_URL}{endpoint}", timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    analytics_results[name] = data
+                    
+                    # Analyze the response
+                    if data.get("success"):
+                        endpoint_data = data.get("data", {})
+                        
+                        if name == "Weekly Usage":
+                            total_notes = sum(week.get("notes", 0) for week in endpoint_data)
+                            print(f"   ✅ Weekly Usage: {len(endpoint_data)} weeks, {total_notes} total notes")
+                            
+                        elif name == "Monthly Overview":
+                            total_notes = sum(month.get("notes", 0) for month in endpoint_data)
+                            print(f"   ✅ Monthly Overview: {len(endpoint_data)} months, {total_notes} total notes")
+                            
+                        elif name == "Daily Activity":
+                            activity_data = endpoint_data.get("activity_data", {})
+                            total_activity = sum(sum(day_data) for day_data in activity_data.values())
+                            print(f"   ✅ Daily Activity: {total_activity} total activities across all days")
+                            
+                        elif name == "Performance Insights":
+                            total_notes = endpoint_data.get("total_notes", 0)
+                            success_rate = endpoint_data.get("success_rate", 0)
+                            print(f"   ✅ Performance Insights: {total_notes} total notes, {success_rate}% success rate")
+                    else:
+                        print(f"   ❌ {name}: Response not successful")
+                        
+                elif response.status_code == 403:
+                    print(f"   ❌ {name}: Authentication required (HTTP 403)")
+                else:
+                    print(f"   ❌ {name}: HTTP {response.status_code} - {response.text[:100]}")
+            
+            # Step 4: Check user profile and authentication
+            response = self.session.get(f"{BACKEND_URL}/auth/me", timeout=10)
+            if response.status_code == 200:
+                user_data = response.json()
+                user_id = user_data.get("id")
+                user_email = user_data.get("email")
+                print(f"\n👤 Authenticated User: {user_email} (ID: {user_id})")
+            else:
+                print(f"\n❌ Failed to get user profile: HTTP {response.status_code}")
+                user_id = "unknown"
+            
+            # Step 5: Analyze the issue
+            print(f"\n🔍 ANALYTICS ISSUE ANALYSIS:")
+            print(f"   Database Notes Count: {len(notes_list) if 'notes_list' in locals() else 'Unknown'}")
+            
+            # Check if analytics show zero data
+            zero_data_endpoints = []
+            for name, result in analytics_results.items():
+                if result.get("success"):
+                    data = result.get("data", {})
+                    if name == "Weekly Usage":
+                        if not data or sum(week.get("notes", 0) for week in data) == 0:
+                            zero_data_endpoints.append(name)
+                    elif name == "Monthly Overview":
+                        if not data or sum(month.get("notes", 0) for month in data) == 0:
+                            zero_data_endpoints.append(name)
+                    elif name == "Performance Insights":
+                        if data.get("total_notes", 0) == 0:
+                            zero_data_endpoints.append(name)
+            
+            if zero_data_endpoints:
+                print(f"   ❌ ISSUE CONFIRMED: {len(zero_data_endpoints)} endpoints showing zero data: {zero_data_endpoints}")
+                
+                # Potential causes analysis
+                print(f"\n🔍 POTENTIAL ROOT CAUSES:")
+                print(f"   1. User ID mismatch between notes and analytics queries")
+                print(f"   2. Date/timezone issues in analytics date range calculations")
+                print(f"   3. Note status filtering excluding user's notes")
+                print(f"   4. Database field name mismatches (user_id vs userId)")
+                print(f"   5. Notes created outside expected date ranges")
+                
+                self.log_result("Analytics Data Debugging", False, 
+                              f"CRITICAL ISSUE: Analytics showing zero data despite {len(notes_list) if 'notes_list' in locals() else 'unknown'} notes in database. Zero data endpoints: {zero_data_endpoints}")
+            else:
+                print(f"   ✅ Analytics data appears to be working correctly")
+                self.log_result("Analytics Data Debugging", True, 
+                              f"Analytics endpoints working correctly with {len(notes_list) if 'notes_list' in locals() else 'unknown'} notes")
+            
+            # Step 6: Additional debugging info
+            print(f"\n📋 DEBUGGING SUMMARY:")
+            print(f"   User ID: {user_id}")
+            print(f"   Total Notes: {len(notes_list) if 'notes_list' in locals() else 'Unknown'}")
+            print(f"   Created Test Notes: {len(created_notes)}")
+            print(f"   Analytics Endpoints Tested: {len(analytics_endpoints)}")
+            print(f"   Successful Analytics Calls: {len([r for r in analytics_results.values() if r.get('success')])}")
+            
+        except Exception as e:
+            self.log_result("Analytics Data Debugging", False, f"Analytics debugging error: {str(e)}")
+
+    def test_database_direct_query_debugging(self):
+        """Test direct database queries to understand analytics data issues"""
+        if not self.auth_token:
+            self.log_result("Database Direct Query Debugging", False, "Skipped - no authentication token")
+            return
+            
+        try:
+            print("\n🔍 DATABASE DIRECT QUERY DEBUGGING...")
+            
+            # Get current user info
+            response = self.session.get(f"{BACKEND_URL}/auth/me", timeout=10)
+            if response.status_code == 200:
+                user_data = response.json()
+                user_id = user_data.get("id")
+                user_email = user_data.get("email")
+                print(f"👤 Testing with User: {user_email} (ID: {user_id})")
+            else:
+                print(f"❌ Cannot get user info: HTTP {response.status_code}")
+                return
+            
+            # Get all user notes
+            response = self.session.get(f"{BACKEND_URL}/notes", timeout=10)
+            if response.status_code == 200:
+                notes = response.json()
+                print(f"📊 Found {len(notes)} notes for user {user_id}")
+                
+                if notes:
+                    # Analyze note structure
+                    sample_note = notes[0]
+                    print(f"📝 Sample Note Structure:")
+                    print(f"   ID: {sample_note.get('id')}")
+                    print(f"   User ID: {sample_note.get('user_id')}")
+                    print(f"   Status: {sample_note.get('status')}")
+                    print(f"   Kind: {sample_note.get('kind')}")
+                    print(f"   Created At: {sample_note.get('created_at')}")
+                    print(f"   Title: {sample_note.get('title')}")
+                    
+                    # Check for potential issues
+                    issues = []
+                    
+                    # Check user_id field
+                    if not sample_note.get('user_id'):
+                        issues.append("Missing user_id field")
+                    elif sample_note.get('user_id') != user_id:
+                        issues.append(f"User ID mismatch: note has '{sample_note.get('user_id')}', expected '{user_id}'")
+                    
+                    # Check created_at field
+                    if not sample_note.get('created_at'):
+                        issues.append("Missing created_at field")
+                    else:
+                        try:
+                            # Try to parse the date
+                            from datetime import datetime
+                            if isinstance(sample_note.get('created_at'), str):
+                                created_at = datetime.fromisoformat(sample_note.get('created_at').replace('Z', '+00:00'))
+                            else:
+                                created_at = sample_note.get('created_at')
+                            print(f"   Parsed Created At: {created_at}")
+                        except Exception as e:
+                            issues.append(f"Invalid created_at format: {e}")
+                    
+                    # Check status field
+                    status = sample_note.get('status')
+                    if status not in ['ready', 'completed', 'processing', 'failed']:
+                        issues.append(f"Unusual status: {status}")
+                    
+                    if issues:
+                        print(f"⚠️  Potential Issues Found:")
+                        for issue in issues:
+                            print(f"   - {issue}")
+                    else:
+                        print(f"✅ Note structure looks correct")
+                    
+                    # Count notes by status
+                    status_counts = {}
+                    for note in notes:
+                        status = note.get('status', 'unknown')
+                        status_counts[status] = status_counts.get(status, 0) + 1
+                    
+                    print(f"📊 Notes by Status:")
+                    for status, count in status_counts.items():
+                        print(f"   {status}: {count}")
+                
+                self.log_result("Database Direct Query Debugging", True, 
+                              f"Database query successful: {len(notes)} notes found, structure analysis completed")
+            else:
+                self.log_result("Database Direct Query Debugging", False, 
+                              f"Failed to query notes: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Database Direct Query Debugging", False, f"Database debugging error: {str(e)}")
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Backend API Testing Suite")
