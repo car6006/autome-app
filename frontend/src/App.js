@@ -5136,37 +5136,7 @@ const GlobalHeader = ({ user, theme, branding }) => {
                     </Link>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem asChild>
-                    <Link to="/youtube" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        theme.isExpeditors 
-                          ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                          : 'bg-gradient-to-r from-red-500 to-red-600'
-                      }`}>
-                        <Youtube className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">YouTube Processing</p>
-                        <p className="text-xs text-gray-500">Extract & transcribe videos</p>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem asChild>
-                    <Link to="/live" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        theme.isExpeditors 
-                          ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                          : 'bg-gradient-to-r from-green-500 to-green-600'
-                      }`}>
-                        <Mic className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">Live Transcription</p>
-                        <p className="text-xs text-gray-500">Real-time speech capture</p>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
+                  {/* YouTube Processing and Live Transcription removed */}
                   
                   <DropdownMenuItem asChild>
                     <Link to="/large-file" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
