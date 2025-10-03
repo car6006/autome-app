@@ -3079,13 +3079,7 @@ const NotesScreen = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <CardTitle className="text-sm sm:text-base md:text-lg truncate pr-2">{note.title}</CardTitle>
-                    {generatingReport[note.id] && (
-                      <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full animate-pulse shrink-0">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span className="hidden sm:inline">Generating Report</span>
-                        <span className="sm:hidden">Report</span>
-                      </div>
-                    )}
+                    {/* Removed top processing animation - keeping main content animation only */}
                   </div>
                   <Badge className={`${getStatusColor(note.status)} text-xs shrink-0 transition-all duration-200 cursor-pointer border`}>
                     {note.status}
