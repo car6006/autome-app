@@ -1308,6 +1308,108 @@ async def get_system_metrics(current_user: Optional[dict] = Depends(get_current_
         )
 
 # ================================
+# ANALYTICS ENDPOINTS
+# ================================
+
+@api_router.get("/analytics/weekly-usage")
+async def get_weekly_usage(
+    weeks: int = Query(4, description="Number of weeks to retrieve data for", ge=1, le=12),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get weekly usage analytics data for the authenticated user"""
+    try:
+        user_id = current_user["id"]
+        weekly_data = await AnalyticsService.get_weekly_usage_data(user_id, weeks)
+        
+        return {
+            "success": True,
+            "data": weekly_data,
+            "user_id": user_id,
+            "weeks_requested": weeks,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get weekly usage data: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve weekly usage data"
+        )
+
+@api_router.get("/analytics/monthly-overview")
+async def get_monthly_overview(
+    months: int = Query(6, description="Number of months to retrieve data for", ge=1, le=12),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get monthly overview analytics data for the authenticated user"""
+    try:
+        user_id = current_user["id"]
+        monthly_data = await AnalyticsService.get_monthly_overview_data(user_id, months)
+        
+        return {
+            "success": True,
+            "data": monthly_data,
+            "user_id": user_id,
+            "months_requested": months,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get monthly overview data: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve monthly overview data"
+        )
+
+@api_router.get("/analytics/daily-activity")
+async def get_daily_activity(
+    days: int = Query(30, description="Number of days to analyze for heatmap", ge=7, le=90),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get daily activity heatmap data for the authenticated user"""
+    try:
+        user_id = current_user["id"]
+        heatmap_data = await AnalyticsService.get_daily_activity_heatmap(user_id, days)
+        
+        return {
+            "success": True,
+            "data": heatmap_data,
+            "user_id": user_id,
+            "days_analyzed": days,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get daily activity data: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve daily activity data"
+        )
+
+@api_router.get("/analytics/performance-insights")
+async def get_performance_insights(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get performance insights and summary statistics for the authenticated user"""
+    try:
+        user_id = current_user["id"]
+        insights_data = await AnalyticsService.get_performance_insights(user_id)
+        
+        return {
+            "success": True,
+            "data": insights_data,
+            "user_id": user_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get performance insights: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve performance insights"
+        )
+
+# ================================
 # ARCHIVE MANAGEMENT ENDPOINTS
 # ================================
 
