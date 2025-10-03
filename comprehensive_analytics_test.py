@@ -227,9 +227,6 @@ class ComprehensiveAnalyticsTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Debug: print full response
-                print(f"DEBUG: Full response: {json.dumps(data, indent=2)}")
-                
                 # Validate response structure
                 if not data.get("success"):
                     self.log_result("Performance Insights Endpoint", False, "Response success=false", data)
@@ -240,15 +237,8 @@ class ComprehensiveAnalyticsTester:
                     return
                 
                 insights_data = data["data"]
-                print(f"DEBUG: insights_data type: {type(insights_data)}")
-                print(f"DEBUG: insights_data: {insights_data}")
-                
                 required_fields = ["weekly_average", "peak_day", "streak", "success_rate", 
                                  "total_notes", "estimated_minutes_saved"]
-                
-                # Debug: print what we actually have
-                print(f"DEBUG: insights_data keys: {list(insights_data.keys()) if isinstance(insights_data, dict) else 'Not a dict'}")
-                print(f"DEBUG: required_fields: {required_fields}")
                 
                 if not isinstance(insights_data, dict):
                     self.log_result("Performance Insights Endpoint", False, 
