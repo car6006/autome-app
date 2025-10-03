@@ -4551,18 +4551,19 @@ const MonthlyOverviewChart = ({ theme, metrics, monthlyData }) => {
 };
 
 // Activity Heatmap Component
-const ActivityHeatmap = ({ theme, metrics }) => {
-  const hours = ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const ActivityHeatmap = ({ theme, metrics, heatmapData }) => {
+  // Use provided data or fallback
+  const hours = heatmapData?.hours || ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
+  const days = heatmapData?.days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
-  const activityData = {
-    'Mon': [2, 8, 12, 15, 10, 3],
-    'Tue': [1, 6, 14, 18, 8, 2],
-    'Wed': [3, 9, 16, 12, 11, 4],
-    'Thu': [2, 7, 13, 20, 9, 1],
-    'Fri': [4, 11, 15, 14, 7, 2],
-    'Sat': [1, 3, 8, 6, 5, 3],
-    'Sun': [0, 2, 5, 4, 6, 8]
+  const activityData = heatmapData?.activity_data || {
+    'Mon': [0, 0, 0, 0, 0, 0],
+    'Tue': [0, 0, 0, 0, 0, 0],
+    'Wed': [0, 0, 0, 0, 0, 0],
+    'Thu': [0, 0, 0, 0, 0, 0],
+    'Fri': [0, 0, 0, 0, 0, 0],
+    'Sat': [0, 0, 0, 0, 0, 0],
+    'Sun': [0, 0, 0, 0, 0, 0]
   };
 
   const getIntensity = (value) => {
