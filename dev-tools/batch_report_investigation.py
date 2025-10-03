@@ -13,7 +13,7 @@ from datetime import datetime
 import traceback
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://audio-chunk-wizard.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://insight-api.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class BatchReportInvestigator:

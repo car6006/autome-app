@@ -16,7 +16,7 @@ import struct
 import math
 
 # Configuration
-BACKEND_URL = "https://audio-chunk-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://insight-api.preview.emergentagent.com/api"
 
 def create_realistic_audio_file():
     """Create a more realistic audio file with actual audio content"""

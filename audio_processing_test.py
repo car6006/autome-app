@@ -18,7 +18,7 @@ import tempfile
 import subprocess
 
 # Configuration
-BACKEND_URL = "https://audio-chunk-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://insight-api.preview.emergentagent.com/api"
 TEST_USER_EMAIL = f"audiotest_{uuid.uuid4().hex[:8]}@example.com"
 TEST_USER_PASSWORD = "AudioTest123!"
 

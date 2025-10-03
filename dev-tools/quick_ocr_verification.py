@@ -13,7 +13,7 @@ import base64
 from PIL import Image, ImageDraw, ImageFont
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://audio-chunk-wizard.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://insight-api.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 async def test_ocr_with_real_content():

@@ -11,7 +11,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 ## 📋 Base Information
-- **Base URL**: `https://audio-chunk-wizard.preview.emergentagent.com/api`
+- **Base URL**: `https://insight-api.preview.emergentagent.com/api`
 - **API Version**: v2.1.0
 - **Content-Type**: `application/json`
 - **Authentication**: JWT Bearer Token
@@ -394,7 +394,7 @@ GET /api/user/stats
 
 **Create Template**:
 ```bash
-curl -X POST https://audio-chunk-wizard.preview.emergentagent.com/api/templates \
+curl -X POST https://insight-api.preview.emergentagent.com/api/templates \
   -H "Authorization: Bearer $JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -407,7 +407,7 @@ curl -X POST https://audio-chunk-wizard.preview.emergentagent.com/api/templates 
 
 **Add Tag to Note**:
 ```bash
-curl -X POST https://audio-chunk-wizard.preview.emergentagent.com/api/notes/abc123/tags \
+curl -X POST https://insight-api.preview.emergentagent.com/api/notes/abc123/tags \
   -H "Authorization: Bearer $JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"tag": "important"}'
@@ -415,7 +415,7 @@ curl -X POST https://audio-chunk-wizard.preview.emergentagent.com/api/notes/abc1
 
 **Search Notes by Tag**:
 ```bash
-curl https://audio-chunk-wizard.preview.emergentagent.com/api/notes/by-tag/meeting \
+curl https://insight-api.preview.emergentagent.com/api/notes/by-tag/meeting \
   -H "Authorization: Bearer $JWT_TOKEN"
 ```
 

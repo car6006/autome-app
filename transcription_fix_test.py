@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://audio-chunk-wizard.preview.emergentagent.com/api"
+BACKEND_URL = "https://insight-api.preview.emergentagent.com/api"
 
 def create_test_audio_content():
     """Create a small test audio file content"""
