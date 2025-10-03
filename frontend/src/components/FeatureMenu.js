@@ -6,7 +6,6 @@ import {
   Mic, 
   Camera, 
   Upload, 
-  Youtube, 
   FileText,
   Music,
   Video,
