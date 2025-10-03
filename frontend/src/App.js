@@ -4678,6 +4678,84 @@ const MetricsScreen = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Usage Trends and Analytics Charts */}
+        <div className="mt-8 space-y-6">
+          {/* Weekly Usage Chart */}
+          <Card className={`${theme.cardClass}`}>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <TrendingUp className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-blue-600'}`} />
+                Weekly Usage Trends
+              </CardTitle>
+              <p className="text-sm text-gray-600">Your activity over the past 4 weeks</p>
+            </CardHeader>
+            <CardContent>
+              <WeeklyUsageChart theme={theme} metrics={metrics} />
+            </CardContent>
+          </Card>
+
+          {/* Monthly Analytics */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className={`${theme.cardClass}`}>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <BarChart3 className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-purple-600'}`} />
+                  Monthly Overview
+                </CardTitle>
+                <p className="text-sm text-gray-600">Notes created per month</p>
+              </CardHeader>
+              <CardContent>
+                <MonthlyOverviewChart theme={theme} metrics={metrics} />
+              </CardContent>
+            </Card>
+
+            <Card className={`${theme.cardClass}`}>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Clock className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-green-600'}`} />
+                  Daily Activity Heatmap
+                </CardTitle>
+                <p className="text-sm text-gray-600">Most productive hours</p>
+              </CardHeader>
+              <CardContent>
+                <ActivityHeatmap theme={theme} metrics={metrics} />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Usage Statistics Summary */}
+          <Card className={`${theme.cardClass}`}>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Target className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-indigo-600'}`} />
+                Performance Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className={`text-2xl font-bold ${theme.isExpeditors ? 'text-red-600' : 'text-blue-600'}`}>
+                    {metrics?.weekly_average || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Avg Notes/Week</p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className={`text-2xl font-bold ${theme.isExpeditors ? 'text-red-600' : 'text-green-600'}`}>
+                    {metrics?.peak_day || 'Monday'}
+                  </p>
+                  <p className="text-sm text-gray-600">Most Active Day</p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className={`text-2xl font-bold ${theme.isExpeditors ? 'text-red-600' : 'text-purple-600'}`}>
+                    {metrics?.streak || 0} days
+                  </p>
+                  <p className="text-sm text-gray-600">Current Streak</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
