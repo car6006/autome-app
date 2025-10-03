@@ -43,7 +43,7 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
         {
           id: 'voice-recording',
           title: 'Voice Recording',
-          description: 'Real-time audio recording with live transcription',
+          description: 'Real-time audio recording with instant transcription',
           icon: Mic,
           isNew: false,
           isPremium: false,
