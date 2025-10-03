@@ -246,8 +246,11 @@ class AnalyticsService:
             
             # Calculate weekly average (last 8 weeks)
             recent_date = datetime.now(timezone.utc) - timedelta(weeks=8)
-            recent_notes = [note for note in all_notes 
-                           if note.get("created_at", recent_date) >= recent_date]
+            recent_notes = []
+            for note in all_notes:
+                note_created_at = note.get("created_at")
+                if note_created_at and note_created_at >= recent_date:
+                    recent_notes.append(note)
             weekly_average = len(recent_notes) // 8 if recent_notes else 0
             
             # Find most active day
