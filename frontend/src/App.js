@@ -3712,52 +3712,42 @@ const NotesScreen = () => {
                   </Button>
                 </div>
                 
-                {/* Desktop Action Buttons */}
+                {/* Desktop Action Buttons - Clean Design */}
                 <div className="hidden sm:flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'txt')}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      TXT
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'rtf')}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      RTF
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'pdf')}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      PDF
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'docx')}
-                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      Word
-                    </Button>
+                  <div className="flex gap-3">
+                    {/* Download Options Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="w-4 h-4 mr-2" />
+                          Download Options
+                          <ChevronDown className="w-4 h-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'pdf')}>
+                          <Download className="w-4 h-4 mr-3 text-red-600" />
+                          <span>Download as PDF</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'docx')}>
+                          <Download className="w-4 h-4 mr-3 text-blue-600" />
+                          <span>Download as Word</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'txt')}>
+                          <Download className="w-4 h-4 mr-3 text-gray-600" />
+                          <span>Download as Text</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'rtf')}>
+                          <Download className="w-4 h-4 mr-3 text-green-600" />
+                          <span>Download as RTF</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     
-                    {/* Ask AI button for batch reports */}
+                    {/* Ask AUTO-ME Button */}
                     <Button
-                      size="sm"
                       onClick={() => {
-                        // Use dedicated batch report AI chat instead of virtual note
                         const batchReportContent = currentReport.data.report || currentReport.data.content;
-                        
-                        // Create batch-specific AI chat state
                         setBatchAiContent({
                           content: batchReportContent,
                           title: currentReport.data.title || 'Batch Report',
@@ -3768,11 +3758,12 @@ const NotesScreen = () => {
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      <MessageSquare className="w-4 h-4 mr-1" />
-                      Ask AI
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Ask AUTO-ME
                     </Button>
                   </div>
-                  <div className="flex gap-2">
+                  
+                  <div className="flex gap-3">
                     <Button
                       variant="outline"
                       onClick={() => setShowReportModal(false)}
@@ -3792,7 +3783,7 @@ const NotesScreen = () => {
                       className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Download Comprehensive
+                      Download Professional
                     </Button>
                   </div>
                 </div>
