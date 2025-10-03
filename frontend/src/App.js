@@ -4466,35 +4466,40 @@ const WeeklyUsageChart = ({ theme, metrics, weeklyData }) => {
         <span>Notes Created</span>
         <span>Time Saved (min)</span>
       </div>
-      {weeklyData.map((week, index) => (
-        <div key={week.week} className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">{week.week}</span>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{week.notes} notes</span>
-              <span className="text-sm text-gray-600">{week.minutes} min</span>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <div className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-red-100' : 'bg-blue-100'}`}>
-                <div 
-                  className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600'} transition-all duration-500`}
-                  style={{ width: `${(week.notes / 25) * 100}%` }}
-                ></div>
+      {data.map((week, index) => {
+        const maxNotes = Math.max(...data.map(w => w.notes), 25);
+        const maxMinutes = Math.max(...data.map(w => w.minutes), 350);
+        
+        return (
+          <div key={week.week || `week-${index}`} className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">{week.week}</span>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600">{week.notes} notes</span>
+                <span className="text-sm text-gray-600">{week.minutes} min</span>
               </div>
             </div>
-            <div className="flex-1">
-              <div className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-gray-100' : 'bg-green-100'}`}>
-                <div 
-                  className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-gray-600' : 'bg-green-600'} transition-all duration-500`}
-                  style={{ width: `${(week.minutes / 350) * 100}%` }}
-                ></div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <div className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-red-100' : 'bg-blue-100'}`}>
+                  <div 
+                    className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-red-600' : 'bg-blue-600'} transition-all duration-500`}
+                    style={{ width: `${maxNotes > 0 ? (week.notes / maxNotes) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-gray-100' : 'bg-green-100'}`}>
+                  <div 
+                    className={`h-2 rounded-full ${theme.isExpeditors ? 'bg-gray-600' : 'bg-green-600'} transition-all duration-500`}
+                    style={{ width: `${maxMinutes > 0 ? (week.minutes / maxMinutes) * 100 : 0}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
