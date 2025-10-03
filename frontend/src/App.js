@@ -4794,9 +4794,7 @@ function FeatureMenuScreen() {
   
   const handleFeatureSelect = (featureId) => {
     switch (featureId) {
-      case 'youtube-processing':
-        navigate('/youtube');
-        break;
+      // YouTube processing feature removed
       case 'voice-recording':
         navigate('/capture');
         break;
