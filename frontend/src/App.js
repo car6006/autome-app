@@ -3634,71 +3634,9 @@ const NotesScreen = () => {
                   )}
                 </div>
                 
-                {/* Mobile Action Buttons */}
+                {/* Mobile Action Buttons - Clean Design */}
                 <div className="sm:hidden mt-6 space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'pdf')}
-                      className="text-xs text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      PDF
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'docx')}
-                      className="text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      Word
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'txt')}
-                      className="text-xs"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      TXT
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => downloadReportAs(currentReport, 'rtf')}
-                      className="text-xs"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      RTF
-                    </Button>
-                  </div>
-                  
-                  {/* Ask AI button for batch reports */}
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      // Use dedicated batch report AI chat instead of virtual note
-                      const batchReportContent = currentReport.data.report || currentReport.data.content;
-                      
-                      // Create batch-specific AI chat state
-                      setBatchAiContent({
-                        content: batchReportContent,
-                        title: currentReport.data.title || 'Batch Report',
-                        type: 'batch-report'
-                      });
-                      setShowReportModal(false);
-                      setShowBatchAiModal(true);
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-                  >
-                    <MessageSquare className="w-3 h-3 mr-1" />
-                    Ask AUTO-ME about this content
-                  </Button>
-                  
+                  {/* Primary Action Button */}
                   <Button
                     onClick={() => downloadReport(
                       currentReport.data.report || currentReport.data.content,
@@ -3714,6 +3652,57 @@ const NotesScreen = () => {
                     <Download className="w-4 h-4 mr-2" />
                     Download Professional
                   </Button>
+
+                  {/* Download Options Dropdown */}
+                  <div className="relative">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Download className="w-4 h-4 mr-2" />
+                          More Download Options
+                          <ChevronDown className="w-4 h-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'pdf')}>
+                          <Download className="w-4 h-4 mr-3 text-red-600" />
+                          <span>Download as PDF</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'docx')}>
+                          <Download className="w-4 h-4 mr-3 text-blue-600" />
+                          <span>Download as Word</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'txt')}>
+                          <Download className="w-4 h-4 mr-3 text-gray-600" />
+                          <span>Download as Text</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'rtf')}>
+                          <Download className="w-4 h-4 mr-3 text-green-600" />
+                          <span>Download as RTF</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* Ask AUTO-ME Button */}
+                  <Button
+                    onClick={() => {
+                      const batchReportContent = currentReport.data.report || currentReport.data.content;
+                      setBatchAiContent({
+                        content: batchReportContent,
+                        title: currentReport.data.title || 'Batch Report',
+                        type: 'batch-report'
+                      });
+                      setShowReportModal(false);
+                      setShowBatchAiModal(true);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Ask AUTO-ME about this content
+                  </Button>
+
+                  {/* Close Button */}
                   <Button
                     variant="outline"
                     onClick={() => setShowReportModal(false)}
