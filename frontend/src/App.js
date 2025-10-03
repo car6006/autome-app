@@ -3464,18 +3464,6 @@ const NotesScreen = () => {
                             )}
                           </DropdownMenuItem>
 
-                          {/* Download Professional */}
-                          <DropdownMenuItem 
-                            onClick={() => downloadReport(
-                              note.note_transcript || note.transcript || '',
-                              `Professional_Report_${note.title || `Note_${note.id}`}.pdf`,
-                              note.title || `Note ${note.id}`
-                            )}
-                          >
-                            <Download className="w-4 h-4 mr-3 text-indigo-600" />
-                            Download Professional
-                          </DropdownMenuItem>
-
                           <DropdownMenuSeparator />
 
                           {/* Batch Selection */}
