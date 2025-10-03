@@ -4683,7 +4683,7 @@ const MetricsScreen = () => {
   };
 
   // Show authentication required message for unauthenticated users (after loading)
-  if (!loading && !isAuthenticated) {
+  if (!authLoading && !isAuthenticated) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${theme.isExpeditors ? 'bg-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
         <Card className="w-full max-w-md mx-4">
