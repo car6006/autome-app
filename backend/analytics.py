@@ -50,8 +50,13 @@ class AnalyticsService:
                 week_notes = []
                 for note in notes:
                     note_created_at = note.get("created_at")
-                    if note_created_at and week_start <= note_created_at < week_end:
-                        week_notes.append(note)
+                    if note_created_at:
+                        # Handle timezone-naive datetime objects from MongoDB
+                        if note_created_at.tzinfo is None:
+                            note_created_at = note_created_at.replace(tzinfo=timezone.utc)
+                        
+                        if week_start <= note_created_at < week_end:
+                            week_notes.append(note)
                 
                 # Calculate metrics for this week
                 notes_count = len(week_notes)
