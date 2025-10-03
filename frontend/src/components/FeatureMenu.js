@@ -340,7 +340,10 @@ const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-6">
             <div className={`p-3 rounded-xl bg-gradient-to-r ${currentCategory.gradient} text-white`}>
-              {React.createElement(currentCategory.icon, { className: "h-6 w-6" })}
+              {(() => {
+                const IconComponent = currentCategory.icon;
+                return IconComponent ? <IconComponent className="h-6 w-6" /> : null;
+              })()}
             </div>
             <div>
               <h2 className="text-2xl font-bold text-slate-900">{currentCategory.title}</h2>
