@@ -47,8 +47,11 @@ class AnalyticsService:
                 week_end = week_start + timedelta(weeks=1)
                 
                 # Filter notes for this week
-                week_notes = [note for note in notes 
-                             if week_start <= note.get("created_at", start_date) < week_end]
+                week_notes = []
+                for note in notes:
+                    note_created_at = note.get("created_at")
+                    if note_created_at and week_start <= note_created_at < week_end:
+                        week_notes.append(note)
                 
                 # Calculate metrics for this week
                 notes_count = len(week_notes)
