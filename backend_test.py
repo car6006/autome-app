@@ -9243,6 +9243,16 @@ class BackendTester:
         self.test_list_notes()
         self.test_get_specific_note()
         
+        # 📊 ANALYTICS ENDPOINTS TESTS (NEW - REVIEW REQUEST FOCUS)
+        print("\n" + "=" * 60)
+        print("📊 ANALYTICS ENDPOINTS TESTS - Testing New Analytics Features")
+        print("=" * 60)
+        self.test_analytics_weekly_usage()
+        self.test_analytics_monthly_overview()
+        self.test_analytics_daily_activity()
+        self.test_analytics_performance_insights()
+        self.test_analytics_authentication_required()
+        
         # 🎯 TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS (NEW - REVIEW REQUEST FOCUS)
         print("\n" + "=" * 60)
         print("✏️ TRANSCRIPT EDITING SAVE FUNCTIONALITY TESTS - PUT /api/notes/{note_id} Endpoint")
