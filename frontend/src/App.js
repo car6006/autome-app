@@ -322,8 +322,46 @@ const CaptureScreen = () => {
     }
   };
 
+  const checkBrowserSupport = () => {
+    const issues = [];
+    
+    if (!navigator.mediaDevices) {
+      issues.push("MediaDevices API not supported");
+    }
+    
+    if (!navigator.mediaDevices?.getUserMedia) {
+      issues.push("getUserMedia not supported");
+    }
+    
+    if (!window.MediaRecorder) {
+      issues.push("MediaRecorder API not supported");
+    }
+    
+    if (!(window.AudioContext || window.webkitAudioContext)) {
+      issues.push("Web Audio API not supported");
+    }
+    
+    // Check for HTTPS requirement
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      issues.push("HTTPS required for microphone access");
+    }
+    
+    return issues;
+  };
+
   const startRecording = async () => {
     try {
+      // Check browser support first
+      const supportIssues = checkBrowserSupport();
+      if (supportIssues.length > 0) {
+        toast({ 
+          title: "Browser Compatibility Issue", 
+          description: `Your browser has compatibility issues: ${supportIssues.join(', ')}`, 
+          variant: "destructive",
+          duration: 8000
+        });
+        return;
+      }
       // Enhanced wake lock implementation to prevent screen sleep during recording
       if ('wakeLock' in navigator) {
         try {
