@@ -143,8 +143,11 @@ class AnalyticsService:
                     next_month_start = month_start.replace(month=month_start.month + 1)
                 
                 # Filter notes for this month
-                month_notes = [note for note in notes 
-                              if month_start <= note.get("created_at", start_date) < next_month_start]
+                month_notes = []
+                for note in notes:
+                    note_created_at = note.get("created_at")
+                    if note_created_at and month_start <= note_created_at < next_month_start:
+                        month_notes.append(note)
                 
                 notes_count = len(month_notes)
                 
