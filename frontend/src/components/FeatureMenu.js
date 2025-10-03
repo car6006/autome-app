@@ -10,7 +10,6 @@ import {
   Music,
   Video,
   Globe,
-  Bot,
   MessageSquare,
   Zap,
   Star,
@@ -20,13 +19,12 @@ import {
   BarChart3,
   Target,
   BookOpen,
-  FileBarChart,
   Languages,
   Clock,
   TrendingUp,
   CheckCircle,
   ArrowRight,
-  Wand2
+  Settings
 } from "lucide-react";
 
 const FeatureMenu = ({ onFeatureSelect, currentUser }) => {
