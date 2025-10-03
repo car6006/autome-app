@@ -151,8 +151,13 @@ class AnalyticsService:
                 month_notes = []
                 for note in notes:
                     note_created_at = note.get("created_at")
-                    if note_created_at and month_start <= note_created_at < next_month_start:
-                        month_notes.append(note)
+                    if note_created_at:
+                        # Handle timezone-naive datetime objects from MongoDB
+                        if note_created_at.tzinfo is None:
+                            note_created_at = note_created_at.replace(tzinfo=timezone.utc)
+                        
+                        if month_start <= note_created_at < next_month_start:
+                            month_notes.append(note)
                 
                 notes_count = len(month_notes)
                 
