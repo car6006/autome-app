@@ -205,6 +205,10 @@ class AnalyticsService:
             for note in notes:
                 created_at = note.get("created_at")
                 if created_at:
+                    # Handle timezone-naive datetime objects from MongoDB
+                    if created_at.tzinfo is None:
+                        created_at = created_at.replace(tzinfo=timezone.utc)
+                    
                     # Get day of week and hour
                     day_of_week = created_at.strftime("%a")
                     hour = created_at.hour
