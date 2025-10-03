@@ -273,8 +273,11 @@ class AnalyticsService:
                 day_start = datetime.combine(check_date, datetime.min.time()).replace(tzinfo=timezone.utc)
                 day_end = day_start + timedelta(days=1)
                 
-                day_notes = [note for note in all_notes 
-                            if day_start <= note.get("created_at", day_start) < day_end]
+                day_notes = []
+                for note in all_notes:
+                    note_created_at = note.get("created_at")
+                    if note_created_at and day_start <= note_created_at < day_end:
+                        day_notes.append(note)
                 
                 if day_notes:
                     streak += 1
