@@ -4822,7 +4822,7 @@ const MetricsScreen = () => {
                     <Mic className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-blue-600'}`} />
                     <span>Audio Notes</span>
                   </div>
-                  <Badge variant="secondary">{metrics?.notes_audio || 0}</Badge>
+                  <Badge variant="secondary">{metrics?.audio_notes || 0}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
