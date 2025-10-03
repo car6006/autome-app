@@ -434,7 +434,35 @@ const CaptureScreen = () => {
         wakeLock = null;
       }
       
-      toast({ title: "Error", description: "Could not access microphone", variant: "destructive" });
+      console.error('Microphone access error:', error);
+      
+      // Provide specific error messages based on error type
+      let errorMessage = "Could not access microphone";
+      let errorTitle = "Microphone Error";
+      
+      if (error.name === 'NotAllowedError') {
+        errorTitle = "Microphone Access Denied";
+        errorMessage = "Please allow microphone access in your browser settings and try again";
+      } else if (error.name === 'NotFoundError') {
+        errorTitle = "No Microphone Found";
+        errorMessage = "No microphone device detected. Please check your audio devices";
+      } else if (error.name === 'NotSupportedError') {
+        errorTitle = "Browser Not Supported";
+        errorMessage = "Your browser doesn't support audio recording. Try using Chrome, Firefox, or Safari";
+      } else if (error.name === 'NotReadableError') {
+        errorTitle = "Microphone Unavailable";
+        errorMessage = "Microphone is already in use by another application";
+      } else if (error.message && error.message.includes('https')) {
+        errorTitle = "HTTPS Required";
+        errorMessage = "Audio recording requires a secure (HTTPS) connection";
+      }
+      
+      toast({ 
+        title: errorTitle, 
+        description: errorMessage, 
+        variant: "destructive",
+        duration: 6000
+      });
     }
   };
 
