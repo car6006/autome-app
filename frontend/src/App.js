@@ -4868,7 +4868,7 @@ const MetricsScreen = () => {
               <p className="text-sm text-gray-600">Your activity over the past 4 weeks</p>
             </CardHeader>
             <CardContent>
-              <WeeklyUsageChart theme={theme} metrics={metrics} />
+              <WeeklyUsageChart theme={theme} metrics={metrics} weeklyData={weeklyData} />
             </CardContent>
           </Card>
 
