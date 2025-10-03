@@ -4829,7 +4829,7 @@ const MetricsScreen = () => {
                     <Camera className={`w-5 h-5 ${theme.isExpeditors ? 'text-red-600' : 'text-green-600'}`} />
                     <span>Photo Scans</span>
                   </div>
-                  <Badge variant="secondary">{metrics?.notes_photo || 0}</Badge>
+                  <Badge variant="secondary">{metrics?.photo_notes || 0}</Badge>
                 </div>
               </div>
             </CardContent>
