@@ -3470,15 +3470,15 @@ const NotesScreen = () => {
                             Quick Share (Text)
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => exportNote(note, 'txt')}>
+                          <DropdownMenuItem onClick={() => exportNoteAsFile(note, 'txt')}>
                             <FileText className="w-4 h-4 mr-2" />
                             Export as TXT File
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => exportNote(note, 'rtf')}>
+                          <DropdownMenuItem onClick={() => exportNoteAsFile(note, 'rtf')}>
                             <FileText className="w-4 h-4 mr-2" />
                             Export as RTF Document
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => exportNote(note, 'docx')}>
+                          <DropdownMenuItem onClick={() => exportNoteAsFile(note, 'docx')}>
                             <FileText className="w-4 h-4 mr-2" />
                             Export as Word Document
                           </DropdownMenuItem>
