@@ -3752,22 +3752,14 @@ const NotesScreen = () => {
                           <ChevronDown className="w-4 h-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56">
+                      <DropdownMenuContent className="w-48" align="end">
                         <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'pdf')}>
-                          <Download className="w-4 h-4 mr-3 text-red-600" />
-                          <span>Download as PDF</span>
+                          <Download className="w-4 h-4 mr-3 text-red-500" />
+                          <span>PDF Document</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'docx')}>
-                          <Download className="w-4 h-4 mr-3 text-blue-600" />
-                          <span>Download as Word</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'txt')}>
-                          <Download className="w-4 h-4 mr-3 text-gray-600" />
-                          <span>Download as Text</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'rtf')}>
-                          <Download className="w-4 h-4 mr-3 text-green-600" />
-                          <span>Download as RTF</span>
+                          <Download className="w-4 h-4 mr-3 text-blue-500" />
+                          <span>Word Document</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -3813,22 +3805,14 @@ const NotesScreen = () => {
                           <ChevronDown className="w-4 h-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56">
+                      <DropdownMenuContent className="w-48" align="end">
                         <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'pdf')}>
-                          <Download className="w-4 h-4 mr-3 text-red-600" />
-                          <span>Download as PDF</span>
+                          <Download className="w-4 h-4 mr-3 text-red-500" />
+                          <span>PDF Document</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'docx')}>
-                          <Download className="w-4 h-4 mr-3 text-blue-600" />
-                          <span>Download as Word</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'txt')}>
-                          <Download className="w-4 h-4 mr-3 text-gray-600" />
-                          <span>Download as Text</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => downloadReportAs(currentReport, 'rtf')}>
-                          <Download className="w-4 h-4 mr-3 text-green-600" />
-                          <span>Download as RTF</span>
+                          <Download className="w-4 h-4 mr-3 text-blue-500" />
+                          <span>Word Document</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
