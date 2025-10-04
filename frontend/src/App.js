@@ -2510,8 +2510,6 @@ const NotesScreen = () => {
 
   const exportBatchAiAnalysis = async (format = 'pdf') => {
     console.log('Batch AI Export triggered:', format);
-    console.log('Batch AI Content:', batchAiContent);
-    console.log('Batch AI Conversations:', batchAiConversations);
     
     if (!batchAiContent || batchAiConversations.length === 0) {
       toast({ 
@@ -2546,79 +2544,147 @@ const NotesScreen = () => {
           .replace(/\s+/g, ' ')                     // Clean up multiple spaces
           .trim();
       };
+
+      // Format text into proper paragraphs
+      const formatIntoParagraphs = (text) => {
+        return text
+          .split(/\n+/)
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .map(line => {
+            // Add proper spacing after bullet points
+            if (line.startsWith('•')) {
+              return line;
+            }
+            // Ensure sentences end properly
+            if (line.length > 50 && !line.match(/[.!?]$/)) {
+              return line + '.';
+            }
+            return line;
+          })
+          .join('\n\n');
+      };
       
-      // Create clean, professional export content using the notes title as report name
-      let exportContent = `${cleanMarkdown(batchAiContent.title)}\n`;
-      exportContent += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+      // Create structured report content
+      const reportTitle = cleanMarkdown(batchAiContent.title || 'Batch Analysis Report');
+      const reportDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
       
-      // Add all conversations with professional formatting
+      let structuredContent = '';
+      
+      // Professional header
+      structuredContent += `${reportTitle.toUpperCase()}\n`;
+      structuredContent += `${'='.repeat(reportTitle.length)}\n\n`;
+      structuredContent += `Generated: ${reportDate}\n`;
+      structuredContent += `Document Type: AUTO-ME Batch Analysis Report\n`;
+      structuredContent += `Number of Analyses: ${batchAiConversations.length}\n\n`;
+      
+      // Executive Summary
+      if (batchAiConversations.length > 0) {
+        structuredContent += `EXECUTIVE SUMMARY\n`;
+        structuredContent += `${'-'.repeat(17)}\n\n`;
+        structuredContent += `This report contains ${batchAiConversations.length} AI analysis${batchAiConversations.length > 1 ? 'es' : ''} performed on the selected content. Each analysis provides insights, recommendations, and actionable information based on the source material.\n\n\n`;
+      }
+      
+      // Process each conversation with professional formatting
       batchAiConversations.forEach((conv, index) => {
         const cleanQuestion = cleanMarkdown(conv.question || '');
         const cleanResponse = cleanMarkdown(conv.response || '');
         
-        // Format question and response professionally without dividers
-        exportContent += `QUESTION ${index + 1}:\n`;
-        exportContent += `${cleanQuestion}\n\n`;
+        // Section header
+        structuredContent += `ANALYSIS ${index + 1}\n`;
+        structuredContent += `${'-'.repeat(12)}\n\n`;
         
-        exportContent += `ANALYSIS:\n`;
+        // Question section
+        structuredContent += `QUERY:\n`;
+        structuredContent += `${formatIntoParagraphs(cleanQuestion)}\n\n`;
         
-        // Format the response in clean paragraphs
-        const formattedResponse = cleanResponse
-          .split('\n\n')
-          .map(paragraph => paragraph.trim())
-          .filter(paragraph => paragraph.length > 0)
-          .join('\n\n');
+        // Response section with proper paragraph formatting
+        structuredContent += `FINDINGS & RECOMMENDATIONS:\n\n`;
         
-        exportContent += `${formattedResponse}\n\n`;
+        // Split response into logical paragraphs
+        const responseText = formatIntoParagraphs(cleanResponse);
+        const paragraphs = responseText.split('\n\n').filter(p => p.trim().length > 0);
         
-        // Add subtle spacing between questions (not ugly dividers)
+        paragraphs.forEach((paragraph, pIndex) => {
+          // Add paragraph with proper spacing
+          structuredContent += `${paragraph}\n\n`;
+        });
+        
+        // Add section separator (except for last item)
         if (index < batchAiConversations.length - 1) {
-          exportContent += `\n`;
+          structuredContent += `\n${'─'.repeat(60)}\n\n`;
         }
       });
       
-      // Create and download file based on format
-      let blob;
-      let filename = `Batch_AUTO-ME_Analysis_${batchAiContent.title.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '_')}`;
+      // Footer
+      structuredContent += `\n\nREPORT FOOTER\n`;
+      structuredContent += `${'-'.repeat(13)}\n\n`;
+      structuredContent += `This report was generated using AUTO-ME's AI analysis capabilities.\n`;
+      structuredContent += `For additional analysis or questions about this content, please use the AUTO-ME platform.\n\n`;
+      structuredContent += `Report generated on: ${new Date().toLocaleString()}\n`;
       
-      if (format === 'pdf') {
-        // For PDF, we'll create a simple text file for now
-        blob = new Blob([exportContent], { type: 'text/plain' });
+      // Create files based on format with proper formatting
+      let blob;
+      let filename = `AUTO-ME_Batch_Report_${new Date().getTime()}`;
+      
+      if (format === 'txt') {
+        // Clean TXT format with proper spacing
+        blob = new Blob([structuredContent], { type: 'text/plain; charset=utf-8' });
         filename += '.txt';
-      } else if (format === 'docx') {
-        // Create RTF format that Word can open as DOC
-        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 `;
         
-        // Convert content to RTF format
-        const rtfText = exportContent
-          .replace(/\\/g, '\\\\')  // Escape backslashes
-          .replace(/\n/g, '\\par ') // Convert newlines to RTF paragraphs
-          .replace(/=/g, '\\bullet '); // Convert = to bullets for separators
-        
-        rtfContent += rtfText + '}';
-        
-        blob = new Blob([rtfContent], { type: 'application/msword' });
-        filename += '.doc';  // Use .doc extension for Word compatibility
-      } else if (format === 'txt') {
-        blob = new Blob([exportContent], { type: 'text/plain' });
-        filename += '.txt';
       } else if (format === 'rtf') {
-        // Create RTF format
-        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 `;
+        // Professional RTF with proper paragraph formatting
+        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0\\fswiss Calibri;}{\\f1\\froman Times New Roman;}}`;
+        rtfContent += `\\f0\\fs22 `;  // Use Calibri 11pt as base font
         
-        // Convert content to RTF format with better formatting
-        const rtfText = exportContent
-          .replace(/\\/g, '\\\\')  // Escape backslashes
-          .replace(/\n\n/g, '\\par\\par ')  // Double newlines to double paragraphs
+        // Convert content to RTF with proper paragraphs and formatting
+        const rtfText = structuredContent
+          .replace(/\\/g, '\\\\')  // Escape backslashes first
+          .replace(/([A-Z ]+)\n=+/g, '\\f1\\fs28\\b $1\\b0\\f0\\fs22\\par\\par')  // Main title
+          .replace(/([A-Z ]+)\n-+/g, '\\fs24\\b $1\\b0\\fs22\\par\\par')  // Section headers
+          .replace(/QUERY:/g, '\\b QUERY:\\b0')  // Bold query labels
+          .replace(/FINDINGS & RECOMMENDATIONS:/g, '\\b FINDINGS & RECOMMENDATIONS:\\b0')  // Bold findings
+          .replace(/REPORT FOOTER/g, '\\b REPORT FOOTER\\b0')  // Bold footer
+          .replace(/─+/g, '\\line')  // Convert separators to lines
+          .replace(/\n\n\n+/g, '\\par\\par ')  // Triple+ newlines to double paragraphs
+          .replace(/\n\n/g, '\\par\\par ')  // Double newlines to double paragraphs  
           .replace(/\n/g, '\\par ')  // Single newlines to paragraphs
-          .replace(/QUESTION \d+:/g, '\\b$&\\b0')  // Bold questions
-          .replace(/AI RESPONSE \d+:/g, '\\b$&\\b0')  // Bold responses
-          .replace(/={50}/g, '\\line\\line');  // Convert separators to lines
+          .replace(/•/g, '\\bullet');  // Bullet points
         
         rtfContent += rtfText + '}';
-        
         blob = new Blob([rtfContent], { type: 'application/rtf' });
         filename += '.rtf';
+        
+      } else if (format === 'docx') {
+        // Enhanced RTF for Word with better formatting
+        let docContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0\\fswiss Calibri;}{\\f1\\froman Times New Roman;}{\\f2\\fmodern Consolas;}}`;
+        docContent += `\\f0\\fs22\\ql `;  // Calibri 11pt, left aligned
+        
+        const docText = structuredContent
+          .replace(/\\/g, '\\\\')
+          .replace(/([A-Z ]+)\n=+/g, '\\f1\\fs32\\b\\qc $1\\b0\\ql\\f0\\fs22\\par\\par')  // Centered title
+          .replace(/ANALYSIS \d+\n-+/g, '\\fs26\\b $&\\b0\\fs22\\par')  // Analysis headers
+          .replace(/([A-Z ]+)\n-+/g, '\\fs24\\b $1\\b0\\fs22\\par\\par')  // Other section headers
+          .replace(/QUERY:/g, '\\cf1\\b QUERY:\\b0\\cf0')  // Blue query labels
+          .replace(/FINDINGS & RECOMMENDATIONS:/g, '\\cf2\\b FINDINGS & RECOMMENDATIONS:\\b0\\cf0')  // Green findings
+          .replace(/─+/g, '\\par\\pard\\brdrb\\brdrs\\brdrw10\\brsp20 \\par\\pard')  // Horizontal line
+          .replace(/\n\n\n+/g, '\\par\\par ')
+          .replace(/\n\n/g, '\\par\\par ')  
+          .replace(/\n/g, '\\par ')
+          .replace(/•/g, '\\bullet\\tab ');  // Proper bullet formatting
+        
+        docContent += docText + '}';
+        blob = new Blob([docContent], { type: 'application/msword' });
+        filename += '.doc';
+        
+      } else {
+        // Default to TXT
+        blob = new Blob([structuredContent], { type: 'text/plain; charset=utf-8' });
+        filename += '.txt';
       }
       
       // Download the file
@@ -2632,8 +2698,8 @@ const NotesScreen = () => {
       URL.revokeObjectURL(url);
       
       toast({ 
-        title: "📄 Export successful", 
-        description: `Batch AUTO-ME analysis exported as ${format.toUpperCase()}` 
+        title: "📄 Professional Report Generated", 
+        description: `Batch analysis exported as ${format.toUpperCase()} with enhanced formatting` 
       });
       
     } catch (error) {
@@ -2641,7 +2707,7 @@ const NotesScreen = () => {
       
       toast({ 
         title: "Export Error", 
-        description: "Failed to export batch AUTO-ME analysis. Please try again.", 
+        description: "Failed to export batch analysis. Please try again.", 
         variant: "destructive" 
       });
     }
