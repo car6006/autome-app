@@ -4036,23 +4036,7 @@ const NotesScreen = () => {
                           </DropdownMenu>
                         </div>
                         
-                        <div className="flex gap-3">
-                          {/* Ask AUTO-ME Button */}
-                          <Button
-                            onClick={() => {
-                              // Reopen the modal to continue asking questions
-                              setAiQuestion("");
-                            }}
-                            className={`${
-                              theme.isExpeditors 
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
-                          >
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Ask AUTO-ME about this content
-                          </Button>
-                        </div>
+                        {/* Desktop: Only Download Options, Ask AI functionality is above */}
                       </div>
                       
                       <p className="text-xs text-gray-500 mt-2">
