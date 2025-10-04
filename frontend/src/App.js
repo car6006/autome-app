@@ -4258,33 +4258,15 @@ const NotesScreen = () => {
                           Professional PDF
                         </Button>
                         
-                        <div className="grid grid-cols-3 gap-1">
+                        <div className="grid grid-cols-1 gap-2">
                           <Button
                             onClick={() => exportBatchAiAnalysis('docx')}
                             variant="outline"
-                            className="text-xs relative z-10"
+                            className="text-sm relative z-10 w-full"
                             style={{ pointerEvents: 'auto' }}
                           >
-                            <FileText className="w-3 h-3 mr-1" />
-                            Word
-                          </Button>
-                          <Button
-                            onClick={() => exportBatchAiAnalysis('txt')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            TXT
-                          </Button>
-                          <Button
-                            onClick={() => exportBatchAiAnalysis('rtf')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            RTF
+                            <FileText className="w-4 h-4 mr-2" />
+                            Word Document
                           </Button>
                         </div>
                       </div>
