@@ -2180,7 +2180,7 @@ const NotesScreen = () => {
   };
 
   // Export Note as Formatted File
-  const exportNote = async (note, format = 'txt') => {
+  const exportNoteAsFile = async (note, format = 'txt') => {
     try {
       const content = note.artifacts?.transcript || note.artifacts?.text || 'No content available';
       
