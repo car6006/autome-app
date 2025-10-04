@@ -3967,76 +3967,36 @@ const NotesScreen = () => {
                     <div className="mt-6 pt-4 border-t border-gray-200">
                       <h4 className="text-sm font-medium text-gray-700 mb-3">Export Analysis Report</h4>
                       
-                      {/* Mobile Action Buttons - Clean Design */}
-                      <div className="sm:hidden space-y-3">
-                        {/* Download Options Dropdown */}
-                        <div className="relative">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" className="w-full">
-                                <Download className="w-4 h-4 mr-2" />
-                                Download Options
-                                <ChevronDown className="w-4 h-4 ml-2" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56">
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('pdf')}>
-                                <Download className="w-4 h-4 mr-3 text-red-600" />
-                                <span>Download as PDF</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('docx')}>
-                                <Download className="w-4 h-4 mr-3 text-blue-600" />
-                                <span>Download as Word</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('txt')}>
-                                <Download className="w-4 h-4 mr-3 text-gray-600" />
-                                <span>Download as Text</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('rtf')}>
-                                <Download className="w-4 h-4 mr-3 text-green-600" />
-                                <span>Download as RTF</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        {/* Duplicate Ask AI button removed */}
-                      </div>
-                      
-                      {/* Desktop Action Buttons - Clean Layout */}
-                      <div className="hidden sm:flex justify-between items-start">
-                        <div className="flex flex-col gap-3">
-                          {/* Download Options Dropdown */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline">
-                                <Download className="w-4 h-4 mr-2" />
-                                Download Options
-                                <ChevronDown className="w-4 h-4 ml-2" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56">
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('pdf')}>
-                                <Download className="w-4 h-4 mr-3 text-red-600" />
-                                <span>Download as PDF</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('docx')}>
-                                <Download className="w-4 h-4 mr-3 text-blue-600" />
-                                <span>Download as Word</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('txt')}>
-                                <Download className="w-4 h-4 mr-3 text-gray-600" />
-                                <span>Download as Text</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => exportAiAnalysis('rtf')}>
-                                <Download className="w-4 h-4 mr-3 text-green-600" />
-                                <span>Download as RTF</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        
-                        {/* Desktop: Only Download Options, Ask AI functionality is above */}
+                      {/* Clean Export Section - Single Download Options Dropdown */}
+                      <div className="space-y-3">
+                        {/* Download Options Dropdown - Works for both mobile and desktop */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Options
+                              <ChevronDown className="w-4 h-4 ml-2" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56">
+                            <DropdownMenuItem onClick={() => exportAiAnalysis('pdf')}>
+                              <Download className="w-4 h-4 mr-3 text-red-600" />
+                              <span>Download as PDF</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => exportAiAnalysis('docx')}>
+                              <Download className="w-4 h-4 mr-3 text-blue-600" />
+                              <span>Download as Word</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => exportAiAnalysis('txt')}>
+                              <Download className="w-4 h-4 mr-3 text-gray-600" />
+                              <span>Download as Text</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => exportAiAnalysis('rtf')}>
+                              <Download className="w-4 h-4 mr-3 text-green-600" />
+                              <span>Download as RTF</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                       
                       <p className="text-xs text-gray-500 mt-2">
