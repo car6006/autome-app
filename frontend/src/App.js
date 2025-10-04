@@ -3451,16 +3451,39 @@ const NotesScreen = () => {
                         <span className="hidden sm:inline">Email</span>
                         <span className="sm:hidden">Mail</span>
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => shareNote(note)}
-                        className="w-full text-xs px-3 py-2 flex items-center justify-center gap-1"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        <span className="hidden sm:inline">Share</span>
-                        <span className="sm:hidden">Share</span>
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full text-xs px-3 py-2 flex items-center justify-center gap-1"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            <span className="hidden sm:inline">Share</span>
+                            <span className="sm:hidden">Share</span>
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem onClick={() => shareNote(note, 'quick')}>
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            Quick Share (Text)
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => exportNote(note, 'txt')}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as TXT File
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => exportNote(note, 'rtf')}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as RTF Document
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => exportNote(note, 'docx')}>
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as Word Document
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button
                         size="sm"
                         variant="outline"
