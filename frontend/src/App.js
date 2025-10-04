@@ -2893,7 +2893,7 @@ const NotesScreen = () => {
                           }`}
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
-                          Minutes & Actions ({selectedNotesForBatch.length})
+                          Generate Report ({selectedNotesForBatch.length})
                           <ChevronDown className="w-4 h-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
