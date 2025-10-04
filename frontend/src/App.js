@@ -2637,47 +2637,130 @@ const NotesScreen = () => {
         filename += '.txt';
         
       } else if (format === 'rtf') {
-        // Professional RTF with proper paragraph formatting
-        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0\\fswiss Calibri;}{\\f1\\froman Times New Roman;}}`;
-        rtfContent += `\\f0\\fs22 `;  // Use Calibri 11pt as base font
+        // Professional RTF with proper paragraph formatting and encoding
+        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24\\par`;
         
-        // Convert content to RTF with proper paragraphs and formatting
-        const rtfText = structuredContent
-          .replace(/\\/g, '\\\\')  // Escape backslashes first
-          .replace(/([A-Z ]+)\n=+/g, '\\f1\\fs28\\b $1\\b0\\f0\\fs22\\par\\par')  // Main title
-          .replace(/([A-Z ]+)\n-+/g, '\\fs24\\b $1\\b0\\fs22\\par\\par')  // Section headers
-          .replace(/QUERY:/g, '\\b QUERY:\\b0')  // Bold query labels
-          .replace(/FINDINGS & RECOMMENDATIONS:/g, '\\b FINDINGS & RECOMMENDATIONS:\\b0')  // Bold findings
-          .replace(/REPORT FOOTER/g, '\\b REPORT FOOTER\\b0')  // Bold footer
-          .replace(/─+/g, '\\line')  // Convert separators to lines
-          .replace(/\n\n\n+/g, '\\par\\par ')  // Triple+ newlines to double paragraphs
-          .replace(/\n\n/g, '\\par\\par ')  // Double newlines to double paragraphs  
-          .replace(/\n/g, '\\par ')  // Single newlines to paragraphs
-          .replace(/•/g, '\\bullet');  // Bullet points
+        // Process content line by line for proper RTF formatting
+        const lines = structuredContent.split('\n');
         
-        rtfContent += rtfText + '}';
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
+          if (line === '') {
+            // Empty line - add paragraph break
+            rtfContent += '\\par';
+            continue;
+          }
+          
+          // Check if this is a title with underline (next line has ===)
+          if (i + 1 < lines.length && lines[i + 1].match(/^=+$/)) {
+            rtfContent += `\\fs32\\b ${line}\\b0\\fs24\\par\\par`;
+            i++; // Skip the underline
+            continue;
+          }
+          
+          // Check if this is a section header with dashes (next line has ---)
+          if (i + 1 < lines.length && lines[i + 1].match(/^-+$/)) {
+            rtfContent += `\\fs28\\b ${line}\\b0\\fs24\\par\\par`;
+            i++; // Skip the dashes
+            continue;
+          }
+          
+          // Check for special labels
+          if (line === 'QUERY:') {
+            rtfContent += `\\b QUERY:\\b0\\par`;
+            continue;
+          }
+          
+          if (line === 'FINDINGS & RECOMMENDATIONS:') {
+            rtfContent += `\\b FINDINGS & RECOMMENDATIONS:\\b0\\par\\par`;
+            continue;
+          }
+          
+          // Check for bullet points
+          if (line.startsWith('• ')) {
+            const bulletText = line.substring(2);
+            rtfContent += `\\bullet\\tab ${bulletText}\\par`;
+            continue;
+          }
+          
+          // Check for separator lines
+          if (line.match(/^─+$/)) {
+            rtfContent += '\\line\\par';
+            continue;
+          }
+          
+          // Regular paragraph
+          if (line.length > 0) {
+            rtfContent += `${line}\\par`;
+          }
+        }
+        
+        rtfContent += '}';
         blob = new Blob([rtfContent], { type: 'application/rtf' });
         filename += '.rtf';
         
       } else if (format === 'docx') {
-        // Enhanced RTF for Word with better formatting
-        let docContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0\\fswiss Calibri;}{\\f1\\froman Times New Roman;}{\\f2\\fmodern Consolas;}}`;
-        docContent += `\\f0\\fs22\\ql `;  // Calibri 11pt, left aligned
+        // Create a proper Word-compatible RTF document
+        let docContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}`;
+        docContent += `\\f0\\fs24`;
         
-        const docText = structuredContent
-          .replace(/\\/g, '\\\\')
-          .replace(/([A-Z ]+)\n=+/g, '\\f1\\fs32\\b\\qc $1\\b0\\ql\\f0\\fs22\\par\\par')  // Centered title
-          .replace(/ANALYSIS \d+\n-+/g, '\\fs26\\b $&\\b0\\fs22\\par')  // Analysis headers
-          .replace(/([A-Z ]+)\n-+/g, '\\fs24\\b $1\\b0\\fs22\\par\\par')  // Other section headers
-          .replace(/QUERY:/g, '\\cf1\\b QUERY:\\b0\\cf0')  // Blue query labels
-          .replace(/FINDINGS & RECOMMENDATIONS:/g, '\\cf2\\b FINDINGS & RECOMMENDATIONS:\\b0\\cf0')  // Green findings
-          .replace(/─+/g, '\\par\\pard\\brdrb\\brdrs\\brdrw10\\brsp20 \\par\\pard')  // Horizontal line
-          .replace(/\n\n\n+/g, '\\par\\par ')
-          .replace(/\n\n/g, '\\par\\par ')  
-          .replace(/\n/g, '\\par ')
-          .replace(/•/g, '\\bullet\\tab ');  // Proper bullet formatting
+        // Process content for Word compatibility
+        const lines = structuredContent.split('\n');
         
-        docContent += docText + '}';
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
+          if (line === '') {
+            docContent += '\\par';
+            continue;
+          }
+          
+          // Main title formatting
+          if (i + 1 < lines.length && lines[i + 1].match(/^=+$/)) {
+            docContent += `\\pard\\qc\\fs36\\b ${line}\\b0\\fs24\\ql\\par\\par`;
+            i++;
+            continue;
+          }
+          
+          // Section headers
+          if (i + 1 < lines.length && lines[i + 1].match(/^-+$/)) {
+            docContent += `\\fs30\\b ${line}\\b0\\fs24\\par\\par`;
+            i++;
+            continue;
+          }
+          
+          // Special formatting for labels
+          if (line === 'QUERY:') {
+            docContent += `\\b QUERY:\\b0\\par`;
+            continue;
+          }
+          
+          if (line === 'FINDINGS & RECOMMENDATIONS:') {
+            docContent += `\\b FINDINGS & RECOMMENDATIONS:\\b0\\par\\par`;
+            continue;
+          }
+          
+          // Bullet points with proper indentation
+          if (line.startsWith('• ')) {
+            const bulletText = line.substring(2);
+            docContent += `\\pard\\fi-360\\li720\\bullet\\tab ${bulletText}\\par\\pard`;
+            continue;
+          }
+          
+          // Separator lines
+          if (line.match(/^─+$/)) {
+            docContent += '\\pard\\brdrb\\brdrs\\brdrw10\\brsp20 \\par\\pard';
+            continue;
+          }
+          
+          // Regular text
+          if (line.length > 0) {
+            docContent += `${line}\\par`;
+          }
+        }
+        
+        docContent += '}';
         blob = new Blob([docContent], { type: 'application/msword' });
         filename += '.doc';
         
