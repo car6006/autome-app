@@ -4000,21 +4000,7 @@ const NotesScreen = () => {
                           </DropdownMenu>
                         </div>
 
-                        {/* Ask AUTO-ME Button */}
-                        <Button
-                          onClick={() => {
-                            // Reopen the modal to continue asking questions
-                            setAiQuestion("");
-                          }}
-                          className={`w-full ${
-                            theme.isExpeditors 
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          }`}
-                        >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Ask AUTO-ME about this content
-                        </Button>
+                        {/* Duplicate Ask AI button removed */}
                       </div>
                       
                       {/* Desktop Action Buttons - Clean Layout */}
