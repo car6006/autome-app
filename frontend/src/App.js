@@ -4297,31 +4297,7 @@ const NotesScreen = () => {
                           style={{ pointerEvents: 'auto' }}
                         >
                           <FileText className="w-4 h-4 mr-2" />
-                          Word
-                        </Button>
-                        
-                        <Button
-                          onClick={() => exportBatchAiAnalysis('txt')}
-                          variant="outline"
-                          className="text-sm relative z-10"
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Clean TXT
-                        </Button>
-                        
-                        <Button
-                          onClick={() => exportBatchAiAnalysis('rtf')}
-                          variant="outline"
-                          className={`relative z-10 ${
-                            theme.isExpeditors 
-                              ? 'border-red-600 text-red-600 hover:bg-red-50'
-                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
-                          }`}
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Rich RTF
+                          Word Document
                         </Button>
                       </div>
                       
