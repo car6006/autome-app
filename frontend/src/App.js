@@ -2902,7 +2902,7 @@ const NotesScreen = () => {
                           <FileBarChart className="w-4 h-4 mr-3" />
                           <div className="flex flex-col">
                             <span className="font-medium">Full Comprehensive Report</span>
-                            <span className="text-xs text-gray-500">With Meeting Minutes & Action Items</span>
+                            <span className="text-xs text-gray-500">AI-powered comprehensive analysis</span>
                           </div>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
