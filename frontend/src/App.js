@@ -2135,181 +2135,71 @@ const NotesScreen = () => {
     }
   };
 
-  // Enhanced Share Note Function with multiple options
-  const shareNote = async (note, shareType = 'quick') => {
-    try {
-      if (shareType === 'quick') {
-        // Quick text share (original functionality)
-        const content = note.artifacts?.transcript || note.artifacts?.text || 'No content available';
-        
-        // For long content, provide a preview instead of full text
-        const isLongContent = content.length > 500;
-        const shareText = isLongContent 
-          ? `${note.title}\n\n${content.substring(0, 200)}...\n\n[Full content available in exported file]`
-          : `${note.title}\n\n${content}`;
-          
-        const shareData = {
-          title: note.title,
-          text: shareText,
-          url: window.location.href
-        };
-
-        // Check if Web Share API is supported (mobile)
-        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          toast({
-            title: "Shared Successfully",
-            description: isLongContent ? "Note preview shared. Use Export for full content." : "Note shared successfully"
-          });
-        } else {
-          // Fallback: Copy to clipboard (desktop)
-          await navigator.clipboard.writeText(shareText);
-          toast({
-            title: "Copied to Clipboard",
-            description: isLongContent ? "Note preview copied. Use Export for full content." : "Note content copied successfully"
-          });
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Share Failed",
-        description: "Unable to share the note",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Export Note as Formatted File
-  const exportNoteAsFile = async (note, format = 'txt') => {
+  // Share Note Function with Smart Content Handling
+  const shareNote = async (note) => {
     try {
       const content = note.artifacts?.transcript || note.artifacts?.text || 'No content available';
       
-      // Clean and format the content
-      const cleanContent = (text) => {
-        return text
-          .replace(/\*\*\*(.*?)\*\*\*/g, '$1')      // Remove *** bold italic ***
-          .replace(/\*\*(.*?)\*\*/g, '$1')          // Remove ** bold **
-          .replace(/\*(.*?)\*/g, '$1')              // Remove * italic *
-          .replace(/_{3}(.*?)_{3}/g, '$1')          // Remove ___ underline ___
-          .replace(/_{2}(.*?)_{2}/g, '$1')          // Remove __ underline __
-          .replace(/_(.*?)_/g, '$1')                // Remove _ underline _
-          .replace(/###\s*/g, '')                   // Remove ### headers
-          .replace(/##\s*/g, '')                    // Remove ## headers
-          .replace(/#\s*/g, '')                     // Remove # headers
-          .replace(/`{3}[\s\S]*?`{3}/g, '')         // Remove ``` code blocks ```
-          .replace(/`(.*?)`/g, '$1')                // Remove ` inline code `
-          .replace(/>\s*/g, '')                     // Remove > blockquotes
-          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // Remove [text](link) - keep text
-          .replace(/^\s*[-*+]\s*/gm, '• ')          // Convert bullet points to clean bullets
-          .replace(/^\s*\d+\.\s*/gm, '')            // Remove numbered lists
-          .replace(/\n{3,}/g, '\n\n')               // Reduce multiple newlines to double
-          .replace(/\.(\w)/g, '. $1')               // Add space after periods if missing
-          .replace(/\s+/g, ' ')                     // Clean up multiple spaces
-          .trim();
+      // For long content (>1000 chars), provide a smart preview
+      const isLongContent = content.length > 1000;
+      let shareText;
+      
+      if (isLongContent) {
+        // Create a meaningful preview with key points
+        const preview = content.substring(0, 300).trim();
+        const lastSentenceEnd = Math.max(
+          preview.lastIndexOf('.'),
+          preview.lastIndexOf('!'),
+          preview.lastIndexOf('?')
+        );
+        
+        const cleanPreview = lastSentenceEnd > 200 ? 
+          preview.substring(0, lastSentenceEnd + 1) : 
+          preview + '...';
+        
+        shareText = `${note.title}\n\n${cleanPreview}\n\n📄 Full content: ${content.length} characters\n💡 For complete content, check the note or use export options`;
+      } else {
+        shareText = `${note.title}\n\n${content}`;
+      }
+      
+      const shareData = {
+        title: note.title,
+        text: shareText,
+        url: window.location.href
       };
-      
-      // Create detailed formatted report
-      let exportContent = `${note.title}\n`;
-      exportContent += `${'='.repeat(note.title.length)}\n\n`;
-      
-      // Add metadata
-      exportContent += `DOCUMENT INFORMATION:\n`;
-      exportContent += `• Created: ${new Date(note.created_at).toLocaleDateString()}\n`;
-      exportContent += `• Type: ${note.kind === 'audio' ? 'Voice Recording' : note.kind === 'photo' ? 'Image Scan' : 'Text Note'}\n`;
-      exportContent += `• Status: ${note.status || 'Unknown'}\n`;
-      
-      // Add tags if available
-      if (note.tags && note.tags.length > 0) {
-        exportContent += `• Tags: ${note.tags.join(', ')}\n`;
+
+      // Check if Web Share API is supported (mobile)
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared Successfully",
+          description: isLongContent ? "Note preview shared via your device" : "Note shared successfully"
+        });
+      } else {
+        // Fallback: Copy to clipboard (desktop)
+        await navigator.clipboard.writeText(shareText);
+        toast({
+          title: "Copied to Clipboard",
+          description: isLongContent ? "Note preview copied to clipboard" : "Note content copied to clipboard"
+        });
       }
-      
-      // Add AI analysis if available
-      if (note.ai_analysis) {
-        exportContent += `• AI Analysis: Available\n`;
-      }
-      
-      exportContent += `• Exported: ${new Date().toLocaleDateString()}\n\n`;
-      
-      // Add content section
-      exportContent += `CONTENT:\n`;
-      exportContent += `${'-'.repeat(50)}\n\n`;
-      exportContent += `${cleanContent(content)}\n\n`;
-      
-      // Add AI analysis if available
-      if (note.ai_analysis) {
-        exportContent += `AI INSIGHTS:\n`;
-        exportContent += `${'-'.repeat(50)}\n\n`;
-        exportContent += `${cleanContent(note.ai_analysis)}\n\n`;
-      }
-      
-      // Add footer
-      exportContent += `${'-'.repeat(50)}\n`;
-      exportContent += `Generated by AUTO-ME - Voice & Document Capture\n`;
-      exportContent += `Export Date: ${new Date().toLocaleString()}\n`;
-      
-      // Create file based on format
-      let blob;
-      let filename = `${note.title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().getTime()}`;
-      
-      if (format === 'txt') {
-        blob = new Blob([exportContent], { type: 'text/plain' });
-        filename += '.txt';
-      } else if (format === 'rtf') {
-        // Create RTF format for better formatting
-        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 `;
-        
-        const rtfText = exportContent
-          .replace(/\\/g, '\\\\')
-          .replace(/\n\n/g, '\\par\\par ')
-          .replace(/\n/g, '\\par ')
-          .replace(/DOCUMENT INFORMATION:/g, '\\b$&\\b0')
-          .replace(/CONTENT:/g, '\\b$&\\b0')
-          .replace(/AI INSIGHTS:/g, '\\b$&\\b0')
-          .replace(/={10,}/g, '\\line')
-          .replace(/-{10,}/g, '\\line');
-        
-        rtfContent += rtfText + '}';
-        blob = new Blob([rtfContent], { type: 'application/rtf' });
-        filename += '.rtf';
-      } else if (format === 'docx') {
-        // Create RTF that Word can open
-        let docContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 `;
-        
-        const docText = exportContent
-          .replace(/\\/g, '\\\\')
-          .replace(/\n\n/g, '\\par\\par ')
-          .replace(/\n/g, '\\par ')
-          .replace(/DOCUMENT INFORMATION:/g, '\\b$&\\b0')
-          .replace(/CONTENT:/g, '\\b$&\\b0')
-          .replace(/AI INSIGHTS:/g, '\\b$&\\b0');
-        
-        docContent += docText + '}';
-        blob = new Blob([docContent], { type: 'application/msword' });
-        filename += '.doc';
-      }
-      
-      // Download the file
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Note Exported Successfully",
-        description: `Downloaded as ${format.toUpperCase()} file: ${filename}`
-      });
-      
     } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Export Failed",
-        description: "Unable to export the note as file",
-        variant: "destructive"
-      });
+      // If sharing fails, fallback to clipboard
+      try {
+        const content = note.artifacts?.transcript || note.artifacts?.text || 'No content available';
+        const textToCopy = `${note.title}\n\n${content}`;
+        await navigator.clipboard.writeText(textToCopy);
+        toast({
+          title: "Copied to Clipboard", 
+          description: "Note content copied. You can now paste it anywhere"
+        });
+      } catch (clipboardError) {
+        toast({
+          title: "Share Failed",
+          description: "Unable to share or copy the note",
+          variant: "destructive"
+        });
+      }
     }
   };
 
