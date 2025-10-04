@@ -2881,7 +2881,7 @@ const NotesScreen = () => {
                       )}
                     </Button>
 
-                    {/* Comprehensive Report with Minutes & Actions */}
+                    {/* Comprehensive Report Generation */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
