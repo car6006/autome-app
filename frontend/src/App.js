@@ -3967,104 +3967,106 @@ const NotesScreen = () => {
                     <div className="mt-6 pt-4 border-t border-gray-200">
                       <h4 className="text-sm font-medium text-gray-700 mb-3">Export Analysis Report</h4>
                       
-                      {/* Mobile: Stack vertically */}
-                      <div className="sm:hidden space-y-2">
-                        <Button
-                          onClick={() => exportAiAnalysis('pdf')}
-                          className={`w-full relative z-10 ${
-                            theme.isExpeditors 
-                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
-                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                          }`}
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <FileDown className="w-4 h-4 mr-2" />
-                          Professional PDF
-                        </Button>
-                        
-                        <div className="grid grid-cols-3 gap-1">
-                          <Button
-                            onClick={() => exportAiAnalysis('docx')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <FileText className="w-3 h-3 mr-1" />
-                            Word
-                          </Button>
-                          <Button
-                            onClick={() => exportAiAnalysis('txt')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            TXT
-                          </Button>
-                          <Button
-                            onClick={() => exportAiAnalysis('rtf')}
-                            variant="outline"
-                            className="text-xs relative z-10"
-                            style={{ pointerEvents: 'auto' }}
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            RTF
-                          </Button>
+                      {/* Mobile Action Buttons - Clean Design */}
+                      <div className="sm:hidden space-y-3">
+                        {/* Download Options Dropdown */}
+                        <div className="relative">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" className="w-full">
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Options
+                                <ChevronDown className="w-4 h-4 ml-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('pdf')}>
+                                <Download className="w-4 h-4 mr-3 text-red-600" />
+                                <span>Download as PDF</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('docx')}>
+                                <Download className="w-4 h-4 mr-3 text-blue-600" />
+                                <span>Download as Word</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('txt')}>
+                                <Download className="w-4 h-4 mr-3 text-gray-600" />
+                                <span>Download as Text</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('rtf')}>
+                                <Download className="w-4 h-4 mr-3 text-green-600" />
+                                <span>Download as RTF</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
+
+                        {/* Ask AUTO-ME Button */}
+                        <Button
+                          onClick={() => {
+                            // Reopen the modal to continue asking questions
+                            setAiQuestion("");
+                          }}
+                          className={`w-full ${
+                            theme.isExpeditors 
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Ask AUTO-ME about this content
+                        </Button>
                       </div>
                       
-                      {/* Desktop: Grid layout */}
-                      <div className="hidden sm:grid grid-cols-2 gap-2">
-                        <Button
-                          onClick={() => exportAiAnalysis('pdf')}
-                          className={`col-span-2 relative z-10 ${
-                            theme.isExpeditors 
-                              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
-                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                          }`}
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <FileDown className="w-4 h-4 mr-2" />
-                          Professional PDF
-                        </Button>
+                      {/* Desktop Action Buttons - Clean Layout */}
+                      <div className="hidden sm:flex justify-between items-start">
+                        <div className="flex flex-col gap-3">
+                          {/* Download Options Dropdown */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline">
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Options
+                                <ChevronDown className="w-4 h-4 ml-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('pdf')}>
+                                <Download className="w-4 h-4 mr-3 text-red-600" />
+                                <span>Download as PDF</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('docx')}>
+                                <Download className="w-4 h-4 mr-3 text-blue-600" />
+                                <span>Download as Word</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('txt')}>
+                                <Download className="w-4 h-4 mr-3 text-gray-600" />
+                                <span>Download as Text</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => exportAiAnalysis('rtf')}>
+                                <Download className="w-4 h-4 mr-3 text-green-600" />
+                                <span>Download as RTF</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                         
-                        <Button
-                          onClick={() => exportAiAnalysis('docx')}
-                          variant="outline"
-                          className={`relative z-10 ${
-                            theme.isExpeditors 
-                              ? 'border-red-600 text-red-600 hover:bg-red-50'
-                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
-                          }`}
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Word
-                        </Button>
-                        
-                        <Button
-                          onClick={() => exportAiAnalysis('txt')}
-                          variant="outline"
-                          className="text-sm relative z-10"
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Clean TXT
-                        </Button>
-                        
-                        <Button
-                          onClick={() => exportAiAnalysis('rtf')}
-                          variant="outline"
-                          className={`col-span-2 relative z-10 ${
-                            theme.isExpeditors 
-                              ? 'border-red-600 text-red-600 hover:bg-red-50'
-                              : 'border-blue-600 text-blue-600 hover:bg-blue-50'
-                          }`}
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Clean RTF Format
-                        </Button>
+                        <div className="flex gap-3">
+                          {/* Ask AUTO-ME Button */}
+                          <Button
+                            onClick={() => {
+                              // Reopen the modal to continue asking questions
+                              setAiQuestion("");
+                            }}
+                            className={`${
+                              theme.isExpeditors 
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                          >
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            Ask AUTO-ME about this content
+                          </Button>
+                        </div>
                       </div>
                       
                       <p className="text-xs text-gray-500 mt-2">
