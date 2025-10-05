@@ -31,8 +31,9 @@ python-docx==1.2.0
 reportlab==4.4.3
 boto3==1.35.0
 redis==5.1.1
-emergentintegrations
+# emergentintegrations - removed for self-hosted deployment
+openai>=1.0.0
 aiofiles
 psutil==6.0.0
 pytest-asyncio
-yt-dlp==2025.9.5
+# yt-dlp==2025.9.5 - YouTube feature removed
